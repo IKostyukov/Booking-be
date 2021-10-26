@@ -1,7 +1,7 @@
 import { pool } from '../db.js';
 const db = pool
 
-class ActivitiesRequestModel {
+class ActivityModel {
     
     async create (req, res) {
         const {activity_name} = req.body
@@ -34,7 +34,7 @@ class ActivitiesRequestModel {
         return deleted_activity
     }
 
-    async getOneActivity(req, res) {
+    async getOne(req, res) {
         const { activity_id } = req.body
         const sql_query = `SELECT id AS activity_id, activity_name 
         FROM activities WHERE id = ${activity_id};`
@@ -42,13 +42,17 @@ class ActivitiesRequestModel {
         return one_activity
     }
 
-    async getAllActivities(req, res) {
+    async getAll(req, res) {
         const { activity_name } = req.body    
         const sql_query = `SELECT id AS activity_id, activity_name 
-        FROM activities WHERE activity_name = '${activity_name}';`
+        FROM activities WHERE activity_name LIKE '%'||'${activity_name}'||'%' ;`
         const all_activitirs = await db.query(sql_query)
         return all_activitirs
     }
+
+     // WHERE first_name LIKE '%'||$1||'%' OR last_name LIKE '%'||$2||'%' OR email LIKE '%'||$3||'%'
+    //     OR phone LIKE '%'||$4||'%' ;`, [first_name, last_name, email, phone ])
+
 
     async getPopular(req, res) {
         const sql_query = `SELECT  
@@ -56,15 +60,15 @@ class ActivitiesRequestModel {
         MIN(f.fare) as start_price
         FROM activities a 
         LEFT JOIN equipments e ON a.id = e.activity_id 
-        LEFT JOIN equipments_recreationalfacilities r 
+        LEFT JOIN equipments_recipientofservices r 
             ON e.id = r.equipment_id 
         LEFT JOIN bookings b 
-            ON r.id = b.equipment_recreationalfacility_id 
+            ON r.id = b.equipment_recipientofservices_id 
         LEFT JOIN fares f  
-            ON f.equipment_recreationalfacility_id = b.equipment_recreationalfacility_id 
+            ON f.equipment_recipientofservices_id = b.equipment_recipientofservices_id 
         WHERE f.fare = 
                 (SELECT MIN(f.fare) FROM fares f 
-                WHERE f.equipment_recreationalfacility_id = b.equipment_recreationalfacility_id )
+                WHERE f.equipment_recipientofservices_id = b.equipment_recipientofservices_id )
         GROUP BY activity_name
         ORDER BY orders DESC LIMIT 3;`
         const popular_activities = await db.query(sql_query)
@@ -72,6 +76,6 @@ class ActivitiesRequestModel {
     }
 }
 
-const activities = new ActivitiesRequestModel();
-export {activities};
+const activity = new ActivityModel();
+export {activity};
 

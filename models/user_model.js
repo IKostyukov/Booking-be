@@ -1,7 +1,7 @@
 import { pool } from '../db.js';
 const db = pool
 
-class UsersRequestModel {
+class UsersModel {
 
     async create(req, res) {
         const {email, phone, first_name, last_name, patronymic = null, dob, ctime = "NOW()", mtime = "NOW()", roles } = req.body
@@ -135,5 +135,5 @@ class UsersRequestModel {
 
 }
 
-const users = new UsersRequestModel();
-export { users };
+const user = new UsersModel();
+export { user };

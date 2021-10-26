@@ -8,7 +8,7 @@ const app = express();
 app.use(cors({
     origin: ['http://localhost:4200']
 }));
-// app.use(express.json());
+app.use(express.json());
 app.use(express.urlencoded());
 app.use('/', Router);
 app.listen(port, () => console.log(`server started on port ${port}`))
