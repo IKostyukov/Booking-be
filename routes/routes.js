@@ -7,19 +7,36 @@ import { service_controller } from '../controller/service_controller.js';
 const Router = express.Router;
 const router = new Router();
 
+//  ### Provider
+
+router.post('/provider', recipient_controller.createRecipient);
+router.patch('/provider/:id/activation', recipient_controller.activateProvider);
+router.patch('/provider/:id', recipient_controller.updateProvider);
+router.delete('/provider/:id', recipient_controller.deleteProvider);
+router.get('/provider/:id', recipient_controller.getProvider);
+router.get('/providers', recipient_controller.getProviders);
+router.get('/bestProviders', recipient_controller.getBestRecipients);
+router.post('/provider/:id/services', recipient_controller.addServicesToProvider);
+router.patch('/provider/:id/services', recipient_controller.updateServicesOfProvider);
+router.post('/provider/:id/description', recipient_controller.createDescription);
+router.patch('/provider/description/:id', recipient_controller.updateDescription);
+router.delete('/provider/description/:id', recipient_controller.deleteDescription);
+
+
+
 
 //  ### Services
 
 router.post('/service', service_controller.createService);
-router.patch('/service/:id', service_controller.updateService);
 router.patch('/service/:id/activation', service_controller.activateService);
+router.patch('/service/:id', service_controller.updateService);
 router.delete('/service/:id', service_controller.deleteService);
 
 //  ### Equipment provider
 
 router.post('/equipmentprovider', recipient_controller.createEquipmentProvider);
-router.patch('/equipmentprovider/:id', recipient_controller.updateEquipmentProvider);
 router.patch('/equipmentprovider/:id/activation', recipient_controller.activateEquipmentProvider);
+router.patch('/equipmentprovider/:id', recipient_controller.updateEquipmentProvider);
 router.delete('/equipmentprovider/:id', recipient_controller.deleteEquipmentProvider);
 
 //  ### Fares 
@@ -34,26 +51,11 @@ router.post('/createTimetable', recipient_controller.createTimetable);
 router.patch('/timetable/:id', recipient_controller.updateTimetable);
 router.delete('/timetable/:id', recipient_controller.deleteTimetable);
 
-
-//  ### Extrftimetable
+//  ### Extratimetable
 
 router.post('/createExtratimetable', recipient_controller.createExtratimetable);
 router.patch('/extratimetable/:id', recipient_controller.updateExtratimetable);
 router.delete('/extratimetable/:id', recipient_controller.deleteExtratimetable);
-
-
-
-
-
-router.post('/createDescription', recipient_controller.createDescription);
-router.post('/addService', recipient_controller.addService);
-
-
-//  ### Provider
-
-router.post('/createRecipient', recipient_controller.createRecipient);
-router.get('/bestRecipientsOfServices', recipient_controller.getBestRecipients);
-
 
 
 //  ### Users
@@ -80,7 +82,7 @@ router.get('/popularActivities', activity_controller.getPopularActivities);
 
 router.post('/createEquipment', equipment_controller.createEquipment);
 router.post('/updateEquipment', equipment_controller.updateEquipment);
-router.post('/activateEquipment', equipment_controller.activateEquipment);
+router.post('/equipment/:id/activation', equipment_controller.activateEquipment);
 router.delete('/deleteEquipment', equipment_controller.deleteEquipment);
 router.get('/getEquipment', equipment_controller.getEquipment);
 router.get('/getEquipments', equipment_controller.getEquipments);

@@ -3,7 +3,7 @@ import { activity } from '../models/activity_model.js';
 import { recipientmodel } from  '../models/recipient_model.js';
 import { timetablemodel } from '../models/timetable_model.js'; 
 import { servicemodel } from '../models/service_model.js';
-import { deckriptionmodel } from '../models/description_model.js';
+import { descriptionmodel } from '../models/description_model.js';
 import { equipmentrecipientmodel } from '../models/equipmentrecipient_model.js'; 
 import { extratimetablemodel } from '../models/extratimetable_model.js';
 import { faremodel } from '../models/fare_model.js';
@@ -14,7 +14,7 @@ const db = pool
 
 class RecipientController {
 
-    //     ### Recipient ###
+    //     ### Provider ###
 
     async createRecipient(req, res) {
         
@@ -28,6 +28,124 @@ class RecipientController {
             const result = { success: "Error" }
             res.json(result)
         }
+    }
+
+
+    async activateProvider(req, res) {
+        const {active} = req.body
+        const provider_id = req.params.id        
+        console.log(provider_id)
+        const activated_provider = await recipientmodel.activateOneProvider(provider_id, active)
+        if (activated_provider.rows[0].active == true) {
+            const result = { success: "Provider successfully activated" }
+            res.json(result)
+            console.log(activated_provider.rows[0], result)
+        } else if (activated_provider.rows[0].active == false) {
+            const result = { success: "Provider successfully deactivated" }
+            res.json(result)
+            console.log(activated_provider.rows[0], result)
+        } else {
+            const result = { Error: "Error" }
+            res.json(result)
+        }  
+    } 
+
+
+    async updateProvider(req, res) {
+        const {                    
+            recipientofservices_name,
+            recipientofservicestype_id,  
+            recreationfacilitytype_id,
+            user_id,
+            location,
+            address,
+            post_index
+            } = req.body
+        const provider_id = req.params.id
+
+        //  Надо добавитьт редактирование recreationfacilitytype_id 
+        
+        console.log(post_index)
+        const apdated_provider = await recipientmodel.updateOneProvider(recipientofservices_name, recipientofservicestype_id, user_id, location, address, post_index, provider_id)
+        if (apdated_provider.rows[0].id) {
+            //  AND .... Другие условия
+            const result = { success: true }
+            res.json(result)
+            console.log(apdated_provider.rows, result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+    
+
+    async deleteProvider(req, res) {
+        const provider_id = req.params.id        
+        console.log(provider_id)
+        const deleted_provider = await recipientmodel.deleteOneProvider(provider_id)
+        if (deleted_provider.rows[0].id) {
+            //  AND .... Другие условия
+            const result = { success: true }
+            res.json(result)
+            console.log(deleted_provider.rows, result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+    
+    async getProvider(req, res) {        
+        const provider_id = req.params.id        
+        console.log(provider_id)
+        const provider = await recipientmodel.getOneProvider(provider_id)
+        if (provider.rows[0]) {
+            const result =  provider.rows[0]
+            res.json(result)
+            console.log(result)
+        } else {
+            const result = "Error"
+            res.json(result)
+        }
+    }
+    
+
+    async getProviders(req, res) {
+        const {                    
+            recipientofservices_name,
+            location,
+            address,
+            post_index
+            } = req.body
+        const recipientofservicestype_id = +req.body.recipientofservicestype_id
+        const recreationfacilitytype_id = +req.body.recreationfacilitytype_id
+        const user_id = +req.body.user_id
+        const rating = +req.body.rating
+        const distance_from_center = +req.body.distance_from_center
+        console.log(recipientofservices_name, location, address, typeof(recipientofservicestype_id))
+        const provider = await recipientmodel.getListProviders(
+            recipientofservices_name,
+            recipientofservicestype_id,
+            user_id,
+            location,
+            address,
+            post_index,
+            rating,
+            distance_from_center)
+
+        if (provider.rows[0]) {
+            const result =  provider.rows
+            res.json(result)
+            console.log(result)
+        } else {
+            const result = "Error"
+            res.json(result)
+        }
+    }
+
+    async getBestRecipients(req, res) {
+        const best_Recipients = await recipient.getBest(req, res)
+        res.json((best_Recipients).rows)
     }
 
      //     ### Timetable ###
@@ -175,16 +293,16 @@ class RecipientController {
 
     async activateEquipmentProvider (req, res) {
         // console.log(req.params.id)
-        const {equipment_id, active} = req.body
-        const recipientofservices_id = req.params.id
-        const activated_equipmentprovider = await equipmentrecipientmodel.activateOneEquipmentProvider(recipientofservices_id, equipment_id, active)
+        const {active} = req.body
+        const equipmentrecipientofservices_id = req.params.id
+        const activated_equipmentprovider = await equipmentrecipientmodel.activateOneEquipmentProvider(equipmentrecipientofservices_id, active)
         // console.log(activated_serviceprovider)
         if (activated_equipmentprovider.rows &&  active == "true") {
-            const result = { success: "Service of provider successfully activated" }
+            const result = { success: "Equipment of provider successfully activated" }
             res.json(result)
             // console.log(activated_equipmentprovider.rows[0], result)
         } else if (activated_equipmentprovider.rows && active == "false") {
-            const result = { success: "Service of provider successfully deactivated" }
+            const result = { success: "Equipment of provider successfully deactivated" }
             res.json(result)
             console.log(activated_equipmentprovider.rows, result)
         } else {
@@ -265,8 +383,11 @@ class RecipientController {
 
     async createDescription (req, res) {
         console.log('Test')
-        const { recipientofservices_id, locale, object, owner, location } = req.body
-        const new_description = await deckriptionmodel.createNewDescription(recipientofservices_id, locale, object, owner, location)               
+        const provider_id = req.params.id
+
+        const {locale, descriptiontype, content } = req.body
+        console.log(typeof(provider_id))
+        const new_description = await descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)               
         if (new_description.rows[0].id ) {
             const result = { success: "Description  successfully created" }
             res.json(result)
@@ -278,28 +399,89 @@ class RecipientController {
         }
     }
 
-//  ### Редактирование удобств ###
-
-    async addService (req, res) {
+    async updateDescription (req, res) {
         console.log('Test')
-        const {recipientofservices_id, service_id } = req.body
-        const added_service = await servicemodel.addOneService(recipientofservices_id, service_id)  
-        console.log(added_service.rows[0])             
-        if (added_service.rows[0].service_id ) {
-            const result = { success: "Service  successfully added" }
+        const description_id = req.params.id
+        const {provider_id, locale, descriptiontype, content } = req.body
+        const new_description = await descriptionmodel.updateOneDescription(description_id, provider_id, locale, descriptiontype, content)               
+        if (new_description.rows[0].id ) {
+            const result = { success: "Description  successfully updated" }
             res.json(result)
-            
-            // res.json( added_service.rows[0].id)
+            console.log(new_description.rows[0], result)
+            // res.json( new_description.rows[0].id)
         } else {
             const result = { success: "Error" }
             res.json(result)
         }
     }
 
-    async getBestRecipients(req, res) {
-        const best_Recipients = await recipient.getBest(req, res)
-        res.json((best_Recipients).rows)
+    async deleteDescription (req, res) {
+        console.log('Test')
+        const description_id = req.params.id
+        const deleted_description = await descriptionmodel.deleteOneDescription(description_id)               
+        if (deleted_description.rows[0].id ) {
+            const result = { success: "Description  successfully deleted" }
+            res.json(result)
+            console.log(deleted_description.rows[0], result)
+            // res.json( deleted_description.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
     }
+
+//  ### Yдобства у Провайдера ###
+
+    async addServicesToProvider (req, res) {
+        const {services} = req.body
+        const recipientofservices_id = req.params.id
+        const services_id = Array.from(services[0].split(','), Number)
+        let services_list =[]
+        services_id.forEach( service_id => {
+            console.log(service_id, "service_id from addServicesToProvider of recipientcontroller")
+            const added_service = recipientmodel.addOneServiceToProvider(recipientofservices_id, service_id)  
+            const serv = added_service.then(function(service) {    
+                console.log(service.rows, "Tect of adding services to recipientofservices")                 
+                // return  added_service
+            })           
+            services_list.push(serv)
+        }); 
+        console.log(services_list) 
+        console.log(services_list.length, services_id.length)            
+        if (services_list.length == services_id.length) {
+            const result = { success: "Services added  successfully " }
+            res.json(result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+    
+
+    async updateServicesOfProvider (req, res) {
+        const {services} = req.body
+        const services_id = Array.from(services[0].split(','), Number)
+        const provider_id = req.params.id
+        recipientmodel.deleteOneServicesOfProvider(provider_id)
+
+        let services_list =[]
+        services_id.forEach(service_id => {
+            console.log(service_id, "service_id from addServicesToProvider of recipientcontroller")
+            const updated_service = recipientmodel.addOneServiceToProvider(provider_id, service_id)  
+            const serv = updated_service.then(function(service) {    
+                console.log(service.rows, "Tect of adding services to recipientofservices")                 
+                // return  updated_service
+                })           
+            services_list.push(serv)
+            }); 
+        if (services_list.length == services_id.length) {
+            const result = { success: "Services updated successfully" }
+            res.json(result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }  
 
 }
 

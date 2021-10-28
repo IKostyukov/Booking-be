@@ -33,9 +33,14 @@ class EquipmentController {
     }
 
     async activateEquipment (req, res) {
-        const activated_equipment = await equipmentmodel.activate(req, res)
+        const {active} = req.body
+        const equipment_id = req.params.id
+        const activated_equipment = await equipmentmodel.activate(equipment_id, active)
         console.log(activated_equipment)
-        if (activated_equipment.rows[0].active == true) {
+        if (activated_equipment.rowCount == 0) {
+            const result = { Error: 404 }
+            res.json(result)
+        } else if (activated_equipment.rows[0].active == true) {
             const result = { success: "Equipment successfully activated" }
             res.json(result)
             console.log(activated_equipment.rows[0], result)

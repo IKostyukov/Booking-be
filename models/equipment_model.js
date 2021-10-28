@@ -26,8 +26,7 @@ class EquipmentModel {
         return updated_equipment
     }
 
-    async activate(req, res) {
-        const {equipment_id, active} = req.body
+    async activate(equipment_id, active) {
         console.log(equipment_id, active)
         const activated_equipment = await db.query(`UPDATE equipments
         SET active = $1 WHERE id = $2 RETURNING *;`,

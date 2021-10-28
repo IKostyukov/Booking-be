@@ -25,11 +25,11 @@ class EquipmentRecipientModel {
     }
 
     
-    async activateOneEquipmentProvider(recipientofservices_id, equipment_id, active) {
-        const activated_equipmen_provider = await db.query(`UPDATE equipments_recipientofservices
-        SET active = $3 WHERE recipientofservices_id = $1 AND equipment_id = $2 RETURNING *;`,
-        [ recipientofservices_id, equipment_id, active])
-        return  activated_equipmen_provider
+    async activateOneEquipmentProvider(equipmentrecipientofservices_id, active) {
+        const activated_equipmentprovider = await db.query(`UPDATE equipments_recipientofservices
+        SET active = $2 WHERE id = $1 RETURNING *;`,
+        [ equipmentrecipientofservices_id, active])
+        return  activated_equipmentprovider
     }
 
     async deleteOneEquipmentProvider(recipientofservices_id, equipment_id) {

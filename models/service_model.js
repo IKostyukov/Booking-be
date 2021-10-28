@@ -40,18 +40,7 @@ class ServiceModel {
         return deleted_service
     }
 
-    //  ### Редактирование удобств у провайдера ###
-    async addOneService (recipientofservices_id, service_id) {
-        console.log('recipientofservices_id - ', recipientofservices_id, 
-        'service_id -', service_id)
-        //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
-        const added_service = await db.query(`INSERT INTO services_recipientofservices(
-            recipientofservices_id, service_id)
-            VALUES ($1, $2)
-            RETURNING *;`,
-        [recipientofservices_id, service_id])
-        return added_service
-    }
+    
 
     
 }

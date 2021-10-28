@@ -5,15 +5,44 @@ class DeckriptionModel {
 
      //  ### Описание объекта (descriptions) ###
 
-     async createNewDescription (recipientofservices_id, locale, object, owner, location) {
-        console.log(recipientofservices_id, locale) 
-        const new_description = await db.query(`INSERT INTO descriptions(
-            recipientofservices_id, locale, object, owner, location)
-            VALUES ($1, $2, $3, $4, $5)
-        RETURNING *;`, [recipientofservices_id, locale, object, owner, location])
+     async createNewDescription (provider_id, locale, descriptiontype, content) {
+        console.log(provider_id, locale)
+        const sql = `INSERT INTO descriptions(
+            recipientofservices_id, locale, descriptiontype, content )
+            VALUES (${provider_id}, '${locale}', '${descriptiontype}', '${content}')
+        RETURNING *;` 
+        console.log(sql)
+        const new_description = await db.query(sql)
+      
         return new_description
+    }
+    
+
+    async updateOneDescription (description_id, provider_id, locale, descriptiontype, content) {
+        console.log(provider_id, locale)
+        const sql = `UPDATE descriptions
+        SET  recipientofservices_id=${provider_id}, locale='${locale}',
+        descriptiontype='${descriptiontype}', content='${content}'
+        WHERE id = ${description_id}
+        RETURNING *;` 
+        console.log(sql)
+        const new_description = await db.query(sql)
+      
+        return new_description
+    }
+
+
+    async deleteOneDescription (description_id) {
+        console.log(description_id)
+        const sql = `DELETE FROM  descriptions
+        WHERE id = ${description_id}
+        RETURNING *;` 
+        console.log(sql)
+        const deleted_description = await db.query(sql)
+      
+        return deleted_description
     }
 }
 
-    const deckriptionmodel = new DeckriptionModel()
-    export { deckriptionmodel } 
+    const descriptionmodel = new DeckriptionModel()
+    export { descriptionmodel } 

@@ -1,17 +1,20 @@
 const descriptiontypes_enums = [
-    {
-        
+    {        
+        "id":1,
         "descriptiontype_name": "object",
-        "language_name": "Russian"
+        "alias": ""
     },
     {
         "id":2,
         "descriptiontype_name": "owner",
-        "language_name": "Ukrainian"
+        "alias": ""
     },
     {
         "id":3,
         "descriptiontype_name": "location",
-        "language_name": "English"
+        "alias": ""
     }
+
 ];
+
+export {descriptiontypes_enums}
