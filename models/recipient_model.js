@@ -31,47 +31,8 @@ class RecipientModel {
 
  //  ### Сщздать провафйдера услуг ###
 
-    async createNewRecipient(req, res) {
+    async createNewRecipient(recipientofservices_name, user_id, timetable_id, recipientofservicestype_id, location, address, post_index, geolocation) {     
 
-        // console.log(req.body)
-        // console.log(req.body.equipments[0].fares)
-        const {
-            recipientofservices_name,
-            recipientofservicestype_id,
-            recreationfacilitytype_id, 
-            user_id, 
-            timetable,
-            geolocation,
-            location,
-            address,
-            post_index,
-            equipments,
-            services,
-            languages,
-            description
-            } = req.body
-
-        console.log(recipientofservices_name,
-            recipientofservicestype_id,
-            recreationfacilitytype_id, 
-            user_id, 
-            timetable,
-            geolocation,
-            location,
-            address,
-            post_index,
-            equipments,
-            services,
-            languages,
-            description)
-
-        //  График работы 
-        const {start_time, end_time} = timetable[0]
-        const new_timetable = await timetablemodel.createNewTimetable(start_time, end_time)
-        // console.log(new_timetable, "new_timetable")
-
-        //  Создание объекта оказания услуг 
-        const timetable_id = new_timetable.rows[0].id;
         const new_recipient = await db.query(`INSERT INTO recipientofservices(
             recipientofservices_name, user_id, timetable_id, recipientofservicestype_id,
             location, address, post_index, geolocation)
@@ -79,58 +40,6 @@ class RecipientModel {
             [recipientofservices_name, user_id, timetable_id, recipientofservicestype_id,
             location, address, post_index, geolocation])    
         // console.log(new_recipient.rows, "Test recipient")
-        const recipientofservices_id = new_recipient.rows[0].id
-
-        //  Редактирование удобств 
-        const services_id = Array.from(services[0].split(','), Number)
-        services_id.forEach( service_id => {
-            // console.log(service_id, "service_id from createNewRecipient Model")
-            const new_services_recipientofservices = servicemodel.addOneServiceToProvider(recipientofservices_id, service_id)
-        // Редактирование удобств перестало работать, так как addOneServiceToProvider был перенесен 
-        //  из servicemodel в  providermodel  то есть в this
-        // Проблема решится при переносе кода сщздания провайдера из модели в конероллер 
-            console.log(new_services_recipientofservices, "Tect services_recipientofservices")
-        });  
-        
-        //  Описание объекта (descriptions) 
-        const { object, owner, location_descript } = description
-        // console.log( object, owner, location_descript )
-        const languages_recipient = Array.from(languages[0].split(','), Number)
-        languages_recipient.forEach(languages_recipient_id => {
-            // languages_json.languages.forEach(language => {
-                 // console.log(language, "from json")
-            //      if (language.id == languages_recipient_id) {
-            //         const locale = language.locale
-            //         const new_description = deckriptionmodel.createNewDescription(recipientofservices_id, locale, object, owner, location_descript)
-            //         console.log(new_description, 'Tect descriprion')
-            //     }
-            // })
-            languages_enums.forEach(language => {
-                console.log(language.id, "language id from language_enums")
-                if (language.id == languages_recipient_id) {
-                    const locale = language.locale
-                    const new_description = descriptionmodel.createNewDescription(recipientofservices_id, locale, object, owner, location_descript)
-                    console.log(new_description, 'Tect descriprion')
-                }
-            })
-        });
-
-    //   Инвентарь от объект отдыха  (equipments_recipientofcervices) 
-    //   И тарификация (fares) 
-
-        equipments.forEach(equipment => {
-            const { equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable, fares} = equipment
-            const equipment_recipient = equipmentrecipientmodel.createNewEquipmentProvider(recipientofservices_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)
-            console.log("Test of equipment_recipient", equipment_recipient) 
-            equipment_recipient.then(function(result){
-                const equipment_recipientofservices_id =  result.rows[0].id
-                console.log(equipment_recipientofservices_id)
-                fares.forEach(fare_item => {
-                    const {duration, time_unit, fare} = fare_item
-                    const added_fare = faremodel.createNewFare(equipment_recipientofservices_id, duration, time_unit, fare)
-                })
-            })
-        })
         return new_recipient
     }
     

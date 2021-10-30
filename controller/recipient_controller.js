@@ -14,11 +14,103 @@ const db = pool
 
 class RecipientController {
 
+    //  Этот код пригодиться для валидации. 
+
+    // const {object, owner, location_descript } = description
+    //     // console.log( object, owner, location_descript )
+    //     const languages_recipient = Array.from(languages[0].split(','), Number)
+    //     languages_recipient.forEach(languages_recipient_id => {
+    //         languages_enums.forEach(language => {
+    //             console.log(language.id, "language id from language_enums")
+    //             if (language.id == languages_recipient_id) {
+    //                 const locale = language.locale
+    //                 const new_description = descriptionmodel.createNewDescription(provider_id, locale, object, owner, location_descript)
+    //                 createNewDescription (provider_id, locale, descriptiontype, content) 
+    //                 console.log(new_description, 'Tect descriprion')
+    //             }
+    //         })
+    //     });
+
     //     ### Provider ###
 
     async createRecipient(req, res) {
-        
-        const new_recipient = await recipientmodel.createNewRecipient(req, res)
+        // console.log(req.body)
+        // console.log(req.body.equipments[0].fares)
+        const {
+            recipientofservices_name,
+            recipientofservicestype_id,
+            recreationfacilitytype_id, 
+            user_id, 
+            timetable,
+            geolocation,
+            location,
+            address,
+            post_index,
+            equipments,
+            services,
+            languages,
+            description
+            } = req.body
+
+        console.log(recipientofservices_name,
+            recipientofservicestype_id,
+            recreationfacilitytype_id, 
+            user_id, 
+            timetable,
+            geolocation,
+            location,
+            address,
+            post_index,
+            equipments,
+            services,
+            languages,
+            description)
+
+        //  Создание графика работы 
+        const {start_time, end_time} = timetable[0]
+        const new_timetable = await timetablemodel.createNewTimetable(start_time, end_time)
+        const timetable_id = new_timetable.rows[0].id;
+        // console.log(new_timetable, "new_timetable")
+
+        //  Создание провайдера оказания услуг         
+        const new_recipient = await recipientmodel.createNewRecipient(recipientofservices_name, user_id, timetable_id, recipientofservicestype_id,
+            location, address, post_index, geolocation)
+        const provider_id = new_recipient.rows[0].id
+
+        //  Добавление  удобств сщзданному провайдеру
+        const services_id = Array.from(services[0].split(','), Number)
+        services_id.forEach( service_id => {
+            // console.log(service_id, "service_id from createNewRecipient Model")
+            const new_services_recipientofservices = recipientmodel.addOneServiceToProvider(provider_id, service_id)
+        // Редактирование удобств перестало работать, так как addOneServiceToProvider был перенесен 
+        //  из servicemodel в  providermodel  то есть в this
+        // Проблема решится при переносе кода сщздания провайдера из модели в конероллер 
+            console.log(new_services_recipientofservices, "Tect services_recipientofservices")
+        });  
+
+        //  Описание провайдера (descriptions) 
+        description.forEach(function create(descript) {
+            const {locale, descriptiontype, content } = descript
+            console.log(typeof(provider_id))
+            const new_description = descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)        
+        })
+
+        //   Инвентарь от объект отдыха  (equipments_recipientofcervices) 
+        //   И тарификация (fares) 
+    equipments.forEach(equipment => {
+        const {equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable, fares} = equipment
+        const equipment_recipient = equipmentrecipientmodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)
+        console.log("Test of equipment_recipient", equipment_recipient) 
+        equipment_recipient.then(function(result){
+            const equipment_recipientofservices_id =  result.rows[0].id
+            console.log(equipment_recipientofservices_id)
+            fares.forEach(fare_item => {
+                const {duration, time_unit, fare} = fare_item
+                const added_fare = faremodel.createNewFare(equipment_recipientofservices_id, duration, time_unit, fare)
+            })
+        })
+    })
+
         if (new_recipient.rows[0].id) {
             //  AND .... Другие условия
             const result = { success: "Recipient successfully created" }
@@ -383,42 +475,68 @@ class RecipientController {
 
     async createDescription (req, res) {
         console.log('Test')
+        const descriptions = req.body
+        console.log(descriptions)
         const provider_id = req.params.id
+        let new_descriptions =[]
 
-        const {locale, descriptiontype, content } = req.body
-        console.log(typeof(provider_id))
-        const new_description = await descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)               
-        if (new_description.rows[0].id ) {
-            const result = { success: "Description  successfully created" }
-            res.json(result)
-            console.log(new_description.rows[0], result)
-            // res.json( new_description.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
-        }
+        descriptions.description.forEach(function create(descript) {
+            const {locale, descriptiontype, content } = descript
+            console.log(typeof(provider_id))
+            const new_description = descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)      
+            console.log(new_description.rows, 1111111111111)
+                new_description.then(
+                    new_descriptions.push(new_description.rows)
+             )            
+            console.log(new_descriptions, '2222222222222')            
+        })
+        console.log(new_descriptions)
+
+            if (new_descriptions.length != 0 ) {
+                const result = { success: "Description  successfully created" }
+                res.json(result)
+                console.log(result)
+                // res.json( new_description.rows[0].id)
+            } else {
+                const result = { success: "Error" }
+                res.json(result)
+            }        
     }
 
+
     async updateDescription (req, res) {
-        console.log('Test')
-        const description_id = req.params.id
-        const {provider_id, locale, descriptiontype, content } = req.body
-        const new_description = await descriptionmodel.updateOneDescription(description_id, provider_id, locale, descriptiontype, content)               
-        if (new_description.rows[0].id ) {
-            const result = { success: "Description  successfully updated" }
-            res.json(result)
-            console.log(new_description.rows[0], result)
-            // res.json( new_description.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
-        }
+        const descriptions = req.body
+        const provider_id = req.params.id
+        descriptionmodel.deleteAllDescriptionsOfProvider(provider_id)  
+        let new_descriptions =[]
+
+        descriptions.description.forEach(function create(descript) {
+            const {locale, descriptiontype, content } = descript
+            console.log(typeof(provider_id))
+            const new_description = descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)      
+            console.log(new_description.rows, '1111111111111')
+                new_description.then(
+                    new_descriptions.push(new_description.rows)
+             )            
+            console.log(new_descriptions, '2222222222222')            
+        })
+        console.log(new_descriptions)
+
+            if (new_descriptions.length != 0 ) {
+                const result = { success: "Description  successfully updated" }
+                res.json(result)
+                console.log(result)
+                // res.json( new_description.rows[0].id)
+            } else {
+                const result = { success: "Error" }
+                res.json(result)
+            }        
     }
 
     async deleteDescription (req, res) {
         console.log('Test')
-        const description_id = req.params.id
-        const deleted_description = await descriptionmodel.deleteOneDescription(description_id)               
+        const provider_id = req.params.id
+        const deleted_description = await descriptionmodel.deleteAllDescriptionsOfProvider(provider_id)               
         if (deleted_description.rows[0].id ) {
             const result = { success: "Description  successfully deleted" }
             res.json(result)

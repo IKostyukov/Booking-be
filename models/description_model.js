@@ -3,7 +3,7 @@ const db = pool
 
 class DeckriptionModel {
 
-     //  ### Описание объекта (descriptions) ###
+     //  ### Описание провайдера (descriptions) ###
 
      async createNewDescription (provider_id, locale, descriptiontype, content) {
         console.log(provider_id, locale)
@@ -12,30 +12,29 @@ class DeckriptionModel {
             VALUES (${provider_id}, '${locale}', '${descriptiontype}', '${content}')
         RETURNING *;` 
         console.log(sql)
-        const new_description = await db.query(sql)
-      
+        const new_description = await db.query(sql)      
         return new_description
     }
     
 
-    async updateOneDescription (description_id, provider_id, locale, descriptiontype, content) {
-        console.log(provider_id, locale)
-        const sql = `UPDATE descriptions
-        SET  recipientofservices_id=${provider_id}, locale='${locale}',
-        descriptiontype='${descriptiontype}', content='${content}'
-        WHERE id = ${description_id}
-        RETURNING *;` 
-        console.log(sql)
-        const new_description = await db.query(sql)
+    // async updateOneDescription (description_id, provider_id, locale, descriptiontype, content) {
+    //     console.log(provider_id, locale)
+    //     const sql = `UPDATE descriptions
+    //     SET  recipientofservices_id=${provider_id}, locale='${locale}',
+    //     descriptiontype='${descriptiontype}', content='${content}'
+    //     WHERE id = ${description_id}
+    //     RETURNING *;` 
+    //     console.log(sql)
+    //     const new_description = await db.query(sql)
       
-        return new_description
-    }
+    //     return new_description
+    // }
 
 
-    async deleteOneDescription (description_id) {
-        console.log(description_id)
+    async deleteAllDescriptionsOfProvider (provider_id) {
+        console.log(provider_id)
         const sql = `DELETE FROM  descriptions
-        WHERE id = ${description_id}
+        WHERE recipientofservices_id = ${provider_id}
         RETURNING *;` 
         console.log(sql)
         const deleted_description = await db.query(sql)

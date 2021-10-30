@@ -7,8 +7,8 @@ const db = pool
 class EquipmentController {
 
     async createEquipment (req, res) {
-        const {equipment_name, equipment_id,  capacity} = req.body
-        const new_equipment = await equipmentmodel.create(equipment_name, equipment_id,  capacity)               
+        const {equipment_name, activity_id,  capacity} = req.body
+        const new_equipment = await equipmentmodel.create(equipment_name, activity_id,  capacity)               
         if (new_equipment.rows[0].id ) {
             const result = { success: "Equipment successfully created" }
             res.json(result)
@@ -55,7 +55,8 @@ class EquipmentController {
     }
 
     async deleteEquipment (req, res) {
-        const deleted_equipment = await equipmentmodel.delete(req, res)
+        const equipment_id = req.params.id 
+        const deleted_equipment = await equipmentmodel.delete(equipment_id)
         if (deleted_equipment.rows.length !== 0) {
             const result = { success: "Equipment successfully deleted" }
             res.json(result)
@@ -70,7 +71,8 @@ class EquipmentController {
     }
 
     async getEquipment (req, res) {
-        const get_activity = await equipmentmodel.getOne(req, res)
+        const equipment_id = req.params.id 
+        const get_activity = await equipmentmodel.getOne(equipment_id)
         if (get_activity.rows.length == 0) {
             const result = { Error: "Equipment not found" }
             res.json(result) 

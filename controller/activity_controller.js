@@ -27,7 +27,7 @@ class ActivityController {
         if (updated_activity) {
             const result = { success: "Activity successfully updated" }
             res.json(result)
-            console.log(updated_activity.rows[0], result)
+            console.log(updated_activity.rows, result)
         } else {
             const result = { success: "Error" }
             res.json(result)

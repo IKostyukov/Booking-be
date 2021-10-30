@@ -22,7 +22,8 @@ class UsersModel {
     }
 
     async update(req, res) {
-        const {user_id, active, email, phone, first_name, last_name, patronymic, dob, mtime = "NOW()", roles } = req.body
+        const user_id = req.params.id
+        const {active, email, phone, first_name, last_name, patronymic, dob, mtime = "NOW()", roles } = req.body
         const roles_arr = Array.from(roles.split(','), Number)
         //  Нужно проверку  на получение результатов от БД.  Вариант  - нет такого пользователя
         const updated_user = await db.query(`UPDATE users
@@ -45,7 +46,8 @@ class UsersModel {
     }
 
     async activate(req, res) {
-        const {user_id, active} = req.body
+        const user_id = req.params.id
+        const {active} = req.body
         const activated_person = await db.query(`UPDATE users
         SET active = $2
         WHERE id = $1
@@ -55,14 +57,14 @@ class UsersModel {
     }
 
     async delete(req, res) {
-        const { user_id } = req.body
+        const user_id = req.params.id
         const deleted_person = await db.query(`DELETE FROM users 
         WHERE id = $1 RETURNING *;`, [ user_id])
         return deleted_person
     }
 
     async getOne(req, res) {
-        const { user_id } = req.body
+        const user_id = req.params.id        
         const get_user = await db.query(`SELECT id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
         FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id WHERE users.id = ${user_id};`)
         // console.log(get_user)

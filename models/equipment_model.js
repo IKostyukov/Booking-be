@@ -4,20 +4,21 @@ const db = pool
 class EquipmentModel {
 
 
-    async create (equipment_name, equipment_id,  capacity) {
+    async create (equipment_name, activity_id,  capacity) {
         // const equipment_obj = await db.query(`SELECT id FROM activities WHERE equipment_name = '${equipment_name}'`);
         // const equipment_id = equipment_obj.rows[0].id
-        console.log(equipment_name, equipment_id, capacity) 
+        console.log(equipment_name, activity_id, capacity) 
         const new_equipment = await db.query(`INSERT INTO equipments 
-        (equipment_name, equipment_id, capacity) 
+        (equipment_name, activity_id, capacity) 
         VALUES ($1, $2, $3) 
-        RETURNING *;`, [equipment_name, equipment_id, capacity])
+        RETURNING *;`, [equipment_name, activity_id, capacity])
         return new_equipment
     }
 
 
     async update (req, res) {
-        const {equipment_id, equipment_name, capacity  } = req.body
+        const equipment_id = req.params.id
+        const {equipment_name, capacity  } = req.body
         console.log(equipment_name, equipment_id, capacity)
         //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
         const updated_equipment = await db.query(`UPDATE equipments
@@ -34,15 +35,13 @@ class EquipmentModel {
         return  activated_equipment
     }
 
-    async delete(req, res) {
-        const { equipment_id } = req.body
+    async delete(equipment_id) {
         const deleted_equipment = await db.query(`DELETE FROM equipments WHERE id = $1
         RETURNING *;`, [equipment_id])
         return deleted_equipment
     }
 
-    async getOne(req, res) {
-        const { equipment_id } = req.body
+    async getOne(equipment_id) {
         const sql_query = `SELECT id AS equipment_id, equipment_name 
         FROM equipments WHERE id = ${equipment_id};`
         const one_equipment = await db.query(sql_query)

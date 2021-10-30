@@ -19,11 +19,8 @@ router.get('/bestProviders', recipient_controller.getBestRecipients);
 router.post('/provider/:id/services', recipient_controller.addServicesToProvider);
 router.patch('/provider/:id/services', recipient_controller.updateServicesOfProvider);
 router.post('/provider/:id/description', recipient_controller.createDescription);
-router.patch('/provider/description/:id', recipient_controller.updateDescription);
-router.delete('/provider/description/:id', recipient_controller.deleteDescription);
-
-
-
+router.patch('/provider/:id/description', recipient_controller.updateDescription);
+router.delete('/provider/:id/description', recipient_controller.deleteDescription);
 
 //  ### Services
 
@@ -41,51 +38,54 @@ router.delete('/equipmentprovider/:id', recipient_controller.deleteEquipmentProv
 
 //  ### Fares 
 
-router.post('/createFare', recipient_controller.createFare);
+router.post('/fare', recipient_controller.createFare);
 router.patch('/fare/:id', recipient_controller.updateFare);
 router.delete('/fare/:id', recipient_controller.deleteFare);
 
 //  ### Timetable
 
-router.post('/createTimetable', recipient_controller.createTimetable);
+router.post('/timetable', recipient_controller.createTimetable);
 router.patch('/timetable/:id', recipient_controller.updateTimetable);
 router.delete('/timetable/:id', recipient_controller.deleteTimetable);
 
 //  ### Extratimetable
 
-router.post('/createExtratimetable', recipient_controller.createExtratimetable);
+router.post('/extratimetable', recipient_controller.createExtratimetable);
 router.patch('/extratimetable/:id', recipient_controller.updateExtratimetable);
 router.delete('/extratimetable/:id', recipient_controller.deleteExtratimetable);
 
 
 //  ### Users
 
-router.post('/createUser', user_controller.createUser );
-router.post('/updateUser', user_controller.updateUser );
-router.post('/activateUser', user_controller.activateUser );
-router.delete('/deleteUser', user_controller.deleteUser );
-router.get('/getUser', user_controller.getUser );
-router.get('/getUsers', user_controller.getUsers);
+router.post('/user', user_controller.createUser );
+router.post('/user/:id', user_controller.updateUser );
+router.post('/user/:id/activation', user_controller.activateUser );
+router.delete('/user/:id', user_controller.deleteUser );
+router.get('/user/:id', user_controller.getUser );
+router.get('/users', user_controller.getUsers);
 
 
 //  ### Activivies
 
-router.post('/createActivity', activity_controller.createActivity);
-router.post('/updateActivity', activity_controller.updateActivtiy);
-router.post('/activateActivtiy', activity_controller.activateActivtiy);
-router.delete('/deleteActivity', activity_controller.deleteActivity);
-router.get('/getActivity', activity_controller.getActivity);
-router.get('/getActivities', activity_controller.getActivities);
+router.post('/activity', activity_controller.createActivity);
+router.patch('/activity/:id', activity_controller.updateActivtiy);
+router.patch('/activity/:id/activation', activity_controller.activateActivtiy);
+router.delete('/activity/:id', activity_controller.deleteActivity);
+router.get('/activity/:id', activity_controller.getActivity);
+router.get('/activities', activity_controller.getActivities);
 router.get('/popularActivities', activity_controller.getPopularActivities);
 
 //  Equipment
 
-router.post('/createEquipment', equipment_controller.createEquipment);
-router.post('/updateEquipment', equipment_controller.updateEquipment);
-router.post('/equipment/:id/activation', equipment_controller.activateEquipment);
-router.delete('/deleteEquipment', equipment_controller.deleteEquipment);
-router.get('/getEquipment', equipment_controller.getEquipment);
-router.get('/getEquipments', equipment_controller.getEquipments);
+router.post('/equipment', equipment_controller.createEquipment);
+router.patch('/equipment/:id', equipment_controller.updateEquipment);
+router.patch('/equipment/:id/activation', equipment_controller.activateEquipment);
+router.delete('/equipment/:id', equipment_controller.deleteEquipment);
+router.get('/equipment/:id', equipment_controller.getEquipment);
+router.get('/equipments', equipment_controller.getEquipments);
+
+//  Searches
+
 router.get('/searchEquipment', equipment_controller.getSearchEquipment);
 
 
