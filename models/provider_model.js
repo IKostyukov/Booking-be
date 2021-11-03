@@ -5,48 +5,48 @@ import { languages_enums } from '../DataLocale/languages_enums.js';
 import { timetablemodel } from './timetable_model.js';
 import { servicemodel } from './service_model.js';
 import { descriptionmodel } from './description_model.js';
-import { equipmentrecipientmodel } from './equipmentrecipient_model.js';
+import { equipmentprovidermodel } from './equipmentprovider_model.js';
 import { faremodel } from './fare_model.js';
 
 
 const db = pool
 
-class RecipientModel {
+class ProviderModel {
 
 
 //  ### Лучшие провайдеры услуг  ###
      
     async getBest(req, res) {
-        const best_recipients = await db.query(`SELECT 
-        r.id, recipientofservices_name, 
+        const best_providers = await db.query(`SELECT 
+        r.id, provider_name, 
         location, address, distance_from_center, rating, 
         COUNT(f.id) as feedbacks  
-        FROM recipientofservices r 
+        FROM providers r 
         INNER  JOIN feedbacks f
-            ON  r.id = f.recipientofservices_id 
+            ON  r.id = f.provider_id 
         WHERE rating > 90  
         GROUP BY r.id;`)
-        return best_recipients
+        return best_providers
     }
-
+    
  //  ### Сщздать провафйдера услуг ###
+ 
+    async createNewProvider(provider_name, user_id, timetable_id, providertype_id, location, address, post_index, geolocation) {     
 
-    async createNewRecipient(recipientofservices_name, user_id, timetable_id, recipientofservicestype_id, location, address, post_index, geolocation) {     
-
-        const new_recipient = await db.query(`INSERT INTO recipientofservices(
-            recipientofservices_name, user_id, timetable_id, recipientofservicestype_id,
+        const new_provider = await db.query(`INSERT INTO providers(
+            provider_name, user_id, timetable_id, providertype_id,
             location, address, post_index, geolocation)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8 ) RETURNING * ; `,
-            [recipientofservices_name, user_id, timetable_id, recipientofservicestype_id,
+            [provider_name, user_id, timetable_id, providertype_id,
             location, address, post_index, geolocation])    
-        // console.log(new_recipient.rows, "Test recipient")
-        return new_recipient
+        // console.log(new_provider.rows, "Test provider")
+        return new_provider
     }
     
      //  ### Активировать провайдера
 
     async activateOneProvider(provider_id, active) {
-        const sql = `UPDATE recipientofservices
+        const sql = `UPDATE providers
         SET active = ${active}
         WHERE id = ${provider_id} RETURNING *;`
         console.log(sql)
@@ -56,9 +56,9 @@ class RecipientModel {
 
     //  ### Обновить общую информацию о провайдере
 
-    async updateOneProvider(recipientofservices_name, recipientofservicestype_id, user_id, location, address, post_index, provider_id) {
-        const sql = `UPDATE recipientofservices
-        SET recipientofservices_name='${recipientofservices_name}', user_id =${user_id}, recipientofservicestype_id=${recipientofservicestype_id},
+    async updateOneProvider(provider_name, providertype_id, user_id, location, address, post_index, provider_id) {
+        const sql = `UPDATE providers
+        SET provider_name='${provider_name}', user_id =${user_id}, providertype_id=${providertype_id},
         location='${location}', address='${address}', post_index=${post_index}, mtime = NOW()
         WHERE id = ${provider_id} RETURNING *;`
         console.log(sql)
@@ -70,7 +70,7 @@ class RecipientModel {
      //  ### Удалить  провайдера
 
      async deleteOneProvider(provider_id) {
-        const sql = `DELETE FROM recipientofservices
+        const sql = `DELETE FROM providers
         WHERE id = ${provider_id} RETURNING *;`
         console.log(sql)
         const deleted_provider = await db.query(sql)
@@ -80,7 +80,7 @@ class RecipientModel {
     //  ### Получить  провайдера 
 
     async getOneProvider(provider_id) {
-        const sql = `SELECT  *  FROM recipientofservices
+        const sql = `SELECT  *  FROM providers
         WHERE id = ${provider_id};`
         console.log(sql)
         const provider = await db.query(sql)
@@ -89,22 +89,22 @@ class RecipientModel {
 
      //  ### Получить несколько провайдеров
 
-    async getListProviders( recipientofservices_name,
-                            recipientofservicestype_id,
+    async getListProviders( provider_name,
+                            providertype_id,
                             user_id,
                             location,
                             address,
                             post_index,
                             rating,
                             distance_from_center) {
-        // const sql = `SELECT  *  FROM recipientofservices
+        // const sql = `SELECT  *  FROM provider
         // WHERE id = ${provider_id};`
         // console.log(sql)
 
-        const providers = await db.query(`SELECT *  FROM recipientofservices  
+        const providers = await db.query(`SELECT *  FROM providers  
         WHERE 
-        recipientofservices_name LIKE '%'||$1||'%' 
-        OR recipientofservicestype_id = $2
+        provider_name LIKE '%'||$1||'%' 
+        OR providertype_id = $2
         OR user_id = $3
         OR location LIKE '%'||$4||'%'
         OR address LIKE '%'||$5||'%'
@@ -112,8 +112,8 @@ class RecipientModel {
         OR rating = $7
         OR distance_from_center = $8 ;`, 
             [
-                recipientofservices_name,
-                recipientofservicestype_id,
+                provider_name,
+                providertype_id,
                 user_id,
                 location,
                 address,
@@ -126,16 +126,16 @@ class RecipientModel {
 // Иначе invalid input syntax for type integer: "NaN"
         return providers
     }
-
+    
     //  ### Добавление удобствa  провайдеру ###
-    async addOneServiceToProvider (recipientofservices_id, service_id) {
-        console.log('recipientofservices_id -', recipientofservices_id, 'service_id -', service_id)
+    async addOneServiceToProvider (provider_id, service_id) {
+        console.log('provider_id -', provider_id, 'service_id -', service_id)
         //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
-        const added_service = await db.query(`INSERT INTO services_recipientofservices(
-            recipientofservices_id, service_id)
+        const added_service = await db.query(`INSERT INTO services_providers(
+            provider_id, service_id)
             VALUES ($1, $2)
             RETURNING *;`,
-        [recipientofservices_id, service_id])
+        [provider_id, service_id])
 
         return added_service
     }
@@ -143,16 +143,18 @@ class RecipientModel {
     //  ###  Удаление удобствa у провайдера ###
 
     async deleteOneServicesOfProvider (provider_id) {
-        const deleted_service = await db.query(`DELETE FROM services_recipientofservices
-        WHERE recipientofservices_id = ${provider_id} RETURNING *;`);
+        const deleted_service = await db.query(`DELETE FROM services_providers
+        WHERE provider_id = ${provider_id} RETURNING *;`);
         return deleted_service
     }
 
     //  ### Редактирование удобстa у провайдера ###
 
+        // delete + create
+
 
 
 }
 
-const recipientmodel = new RecipientModel()
-export { recipientmodel } 
+const providermodel = new ProviderModel()
+export { providermodel } 

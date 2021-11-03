@@ -1,10 +1,10 @@
 import { pool } from '../db.js';
 import { activity } from '../models/activity_model.js';
-import { recipientmodel } from  '../models/recipient_model.js';
+import { providermodel } from  '../models/provider_model.js';
 import { timetablemodel } from '../models/timetable_model.js'; 
 import { servicemodel } from '../models/service_model.js';
 import { descriptionmodel } from '../models/description_model.js';
-import { equipmentrecipientmodel } from '../models/equipmentrecipient_model.js'; 
+import { equipmentprovidermodel } from '../models/equipmentprovider_model.js'; 
 import { extratimetablemodel } from '../models/extratimetable_model.js';
 import { faremodel } from '../models/fare_model.js';
 
@@ -12,17 +12,17 @@ import { faremodel } from '../models/fare_model.js';
 const db = pool
 
 
-class RecipientController {
+class ProviderController {
 
     //  Этот код пригодиться для валидации. 
 
     // const {object, owner, location_descript } = description
     //     // console.log( object, owner, location_descript )
-    //     const languages_recipient = Array.from(languages[0].split(','), Number)
-    //     languages_recipient.forEach(languages_recipient_id => {
+    //     const languages_provider = Array.from(languages[0].split(','), Number)
+    //     languages_provider.forEach(languages_provider_id => {
     //         languages_enums.forEach(language => {
     //             console.log(language.id, "language id from language_enums")
-    //             if (language.id == languages_recipient_id) {
+    //             if (language.id == languages_provider_id) {
     //                 const locale = language.locale
     //                 const new_description = descriptionmodel.createNewDescription(provider_id, locale, object, owner, location_descript)
     //                 createNewDescription (provider_id, locale, descriptiontype, content) 
@@ -33,12 +33,12 @@ class RecipientController {
 
     //     ### Provider ###
 
-    async createRecipient(req, res) {
+    async createProvider(req, res) {
         // console.log(req.body)
         // console.log(req.body.equipments[0].fares)
         const {
-            recipientofservices_name,
-            recipientofservicestype_id,
+            provider_name,
+            providertype_id,
             recreationfacilitytype_id, 
             user_id, 
             timetable,
@@ -52,8 +52,8 @@ class RecipientController {
             description
             } = req.body
 
-        console.log(recipientofservices_name,
-            recipientofservicestype_id,
+        console.log(provider_name,
+            providertype_id,
             recreationfacilitytype_id, 
             user_id, 
             timetable,
@@ -73,19 +73,19 @@ class RecipientController {
         // console.log(new_timetable, "new_timetable")
 
         //  Создание провайдера оказания услуг         
-        const new_recipient = await recipientmodel.createNewRecipient(recipientofservices_name, user_id, timetable_id, recipientofservicestype_id,
+        const new_provider = await providermodel.createNewProvider(provider_name, user_id, timetable_id, providertype_id,
             location, address, post_index, geolocation)
-        const provider_id = new_recipient.rows[0].id
+        const provider_id = new_provider.rows[0].id
 
         //  Добавление  удобств сщзданному провайдеру
         const services_id = Array.from(services[0].split(','), Number)
         services_id.forEach( service_id => {
-            // console.log(service_id, "service_id from createNewRecipient Model")
-            const new_services_recipientofservices = recipientmodel.addOneServiceToProvider(provider_id, service_id)
+            // console.log(service_id, "service_id from createNewProvider Model")
+            const new_provider = providermodel.addOneServiceToProvider(provider_id, service_id)
         // Редактирование удобств перестало работать, так как addOneServiceToProvider был перенесен 
         //  из servicemodel в  providermodel  то есть в this
         // Проблема решится при переносе кода сщздания провайдера из модели в конероллер 
-            console.log(new_services_recipientofservices, "Tect services_recipientofservices")
+            console.log(new_provider, "Tect servicesproviders")
         });  
 
         //  Описание провайдера (descriptions) 
@@ -95,31 +95,32 @@ class RecipientController {
             const new_description = descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)        
         })
 
-        //   Инвентарь от объект отдыха  (equipments_recipientofcervices) 
+        //   Инвентарь от объект отдыха  (equipmentprovider) 
         //   И тарификация (fares) 
     equipments.forEach(equipment => {
         const {equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable, fares} = equipment
-        const equipment_recipient = equipmentrecipientmodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)
-        console.log("Test of equipment_recipient", equipment_recipient) 
-        equipment_recipient.then(function(result){
-            const equipment_recipientofservices_id =  result.rows[0].id
-            console.log(equipment_recipientofservices_id)
+        const equipmentprovider = equipmentprovidermodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)
+        console.log("Test of equipmentprovider", equipmentprovider) 
+        equipmentprovider.then(function(result){
+            const equipmentprovider_id =  result.rows[0].id
+            console.log(equipmentprovider_id)
             fares.forEach(fare_item => {
                 const {duration, time_unit, fare} = fare_item
-                const added_fare = faremodel.createNewFare(equipment_recipientofservices_id, duration, time_unit, fare)
+                const added_fare = faremodel.createNewFare(equipmentprovider_id, duration, time_unit, fare)
             })
         })
     })
 
-        if (new_recipient.rows[0].id) {
+        if (new_provider.rows[0].id) {
             //  AND .... Другие условия
-            const result = { success: "Recipient successfully created" }
+            const result = { success: "Provider successfully created" }
             res.json(result)
-            console.log(new_recipient.rows, result)
+            console.log(new_provider.rows, result)
         } else {
             const result = { success: "Error" }
             res.json(result)
         }
+         //  Надо добавитьт  recreationfacilitytype_id  в таблицу recreationfacilitytype
     }
 
 
@@ -127,7 +128,7 @@ class RecipientController {
         const {active} = req.body
         const provider_id = req.params.id        
         console.log(provider_id)
-        const activated_provider = await recipientmodel.activateOneProvider(provider_id, active)
+        const activated_provider = await providermodel.activateOneProvider(provider_id, active)
         if (activated_provider.rows[0].active == true) {
             const result = { success: "Provider successfully activated" }
             res.json(result)
@@ -145,8 +146,8 @@ class RecipientController {
 
     async updateProvider(req, res) {
         const {                    
-            recipientofservices_name,
-            recipientofservicestype_id,  
+            provider_name,
+            providertype_id,  
             recreationfacilitytype_id,
             user_id,
             location,
@@ -155,10 +156,10 @@ class RecipientController {
             } = req.body
         const provider_id = req.params.id
 
-        //  Надо добавитьт редактирование recreationfacilitytype_id 
+        //  Надо добавитьт  recreationfacilitytype_id  в таблицу recreationfacilitytype?
         
         console.log(post_index)
-        const apdated_provider = await recipientmodel.updateOneProvider(recipientofservices_name, recipientofservicestype_id, user_id, location, address, post_index, provider_id)
+        const apdated_provider = await providermodel.updateOneProvider(provider_name, providertype_id, user_id, location, address, post_index, provider_id)
         if (apdated_provider.rows[0].id) {
             //  AND .... Другие условия
             const result = { success: true }
@@ -174,7 +175,7 @@ class RecipientController {
     async deleteProvider(req, res) {
         const provider_id = req.params.id        
         console.log(provider_id)
-        const deleted_provider = await recipientmodel.deleteOneProvider(provider_id)
+        const deleted_provider = await providermodel.deleteOneProvider(provider_id)
         if (deleted_provider.rows[0].id) {
             //  AND .... Другие условия
             const result = { success: true }
@@ -190,7 +191,7 @@ class RecipientController {
     async getProvider(req, res) {        
         const provider_id = req.params.id        
         console.log(provider_id)
-        const provider = await recipientmodel.getOneProvider(provider_id)
+        const provider = await providermodel.getOneProvider(provider_id)
         if (provider.rows[0]) {
             const result =  provider.rows[0]
             res.json(result)
@@ -204,20 +205,20 @@ class RecipientController {
 
     async getProviders(req, res) {
         const {                    
-            recipientofservices_name,
+            provider_name,
             location,
             address,
             post_index
             } = req.body
-        const recipientofservicestype_id = +req.body.recipientofservicestype_id
+        const providertype_id = +req.body.providertype_id
         const recreationfacilitytype_id = +req.body.recreationfacilitytype_id
         const user_id = +req.body.user_id
         const rating = +req.body.rating
         const distance_from_center = +req.body.distance_from_center
-        console.log(recipientofservices_name, location, address, typeof(recipientofservicestype_id))
-        const provider = await recipientmodel.getListProviders(
-            recipientofservices_name,
-            recipientofservicestype_id,
+        console.log(provider_name, location, address, typeof(providertype_id))
+        const provider = await providermodel.getListProviders(
+            provider_name,
+            providertype_id,
             user_id,
             location,
             address,
@@ -235,9 +236,9 @@ class RecipientController {
         }
     }
 
-    async getBestRecipients(req, res) {
-        const best_Recipients = await recipient.getBest(req, res)
-        res.json((best_Recipients).rows)
+    async getBestProviders(req, res) {
+        const best_providers = await providermodel.getBest(req, res)
+        res.json((best_providers).rows)
     }
 
      //     ### Timetable ###
@@ -287,14 +288,30 @@ class RecipientController {
         }
     }
 
+    async getTimetable (req, res) {
+        const timetable_id = req.params.id
+        const one_timetable = await timetablemodel.getOneTimetable(timetable_id)               
+        if (one_timetable.rows[0] !== undefined) {
+            const result = one_timetable.rows[0]
+            res.json(result)
+            console.log(deleted_timetable.rows[0], result)
+            // res.json(deleted_timetable.rows[0].id)
+        } else {
+            //  не работает для уже удаленной записию См коммент выше
+            const result = { Error: "Error" }
+            res.json(result)
+        }
+    }
+
+
 
 
     //     ### Extratimetable ###
 
     async createExtratimetable (req, res) {
         console.log('Test')
-        const {recipientofservices_id, date, start_time, end_time} = req.body
-        const new_extratimetable = await extratimetablemodel.createNewExtratimetable(recipientofservices_id, date, start_time, end_time)               
+        const {provider_id, date, start_time, end_time} = req.body
+        const new_extratimetable = await extratimetablemodel.createNewExtratimetable(provider_id, date, start_time, end_time)               
         if (new_extratimetable.rows[0].id ) {
             const result = { success: "Extratimetable successfully created" }
             res.json(result)
@@ -308,9 +325,9 @@ class RecipientController {
 
     async updateExtratimetable (req, res) {
         console.log('Test')
-        const {recipientofservices_id, date, start_time, end_time} = req.body
+        const {provider_id, date, start_time, end_time} = req.body
         const extratimetable_id = req.params.id
-        const updatad_extratimetable = await extratimetablemodel.updateNewExtratimetable(extratimetable_id, recipientofservices_id, date, start_time, end_time)               
+        const updatad_extratimetable = await extratimetablemodel.updateNewExtratimetable(extratimetable_id, provider_id, date, start_time, end_time)               
         if (updatad_extratimetable.rows[0].id ) {
             const result = { success: true }
             res.json(result)
@@ -336,21 +353,55 @@ class RecipientController {
             res.json(result)
         }
     }
-    // ####  Инвентарь от объект отдыха  (equipments_recipientofcervices) ###
+
+    async getOneExtratimetable (req, res) {
+        console.log('Test')
+        const extratimetable_id = req.params.id
+        
+        const one_extratimetable = await extratimetablemodel.getOneExtratimetableOfProvider(extratimetable_id)               
+        if (one_extratimetable.rows[0] !== undefined ) {
+            const result = one_extratimetable.rows[0]
+            res.json(result)
+            console.log(one_extratimetable.rows[0], result)
+            // res.json( one_extratimetable.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+   
+
+
+    async getAllExtratimetable (req, res) {
+        console.log('Test')
+        const  {provider_id} = req.body
+        const all_extratimetable = await extratimetablemodel.getAllExtratimetableOfProvider(provider_id)               
+        if (all_extratimetable.rows[0] !== undefined ) {
+            const result = all_extratimetable.rows
+            res.json(result)
+            console.log(all_extratimetable.rows, result)
+            // res.json(all_extratimetable.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+    // ####  Инвентарь от объект отдыха  (equipmentprovider) ###
 
     async createEquipmentProvider (req, res) {
         console.log('Test')
         const {
-            recipientofservices_id,
+            provider_id,
             equipment_id,
             quantity, 
             availabilitydate, 
             cancellationdate, 
             discountnonrefundable
         } = req.body
-        const new_equipments = await equipmentrecipientmodel.createNewEquipmentProvider(recipientofservices_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)               
+        const new_equipments = await equipmentprovidermodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)               
         if (new_equipments.rows[0].id ) {
-            const result = { success: "Equipments of Recipientofcervices successfully created" }
+            const result = { success: "Equipments of Provider successfully created" }
             res.json(result)
             console.log(new_equipments.rows[0], result)
             // res.json( new_person.rows[0].id)
@@ -369,11 +420,11 @@ class RecipientController {
             cancellationdate, 
             discountnonrefundable
         } = req.body
-        const recipientofservices_id = req.params.id
-        const new_equipments = await equipmentrecipientmodel.updateOneEquipmentProvider(recipientofservices_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)                              
+        const provider_id = req.params.id
+        const new_equipments = await equipmentprovidermodel.updateOneEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)                              
         // console.log(new_equipments)
         if (new_equipments.rows) {
-            const result = { success: "Equipments of Recipientofcervices successfully updated" }
+            const result = { success: "Equipments of Provider successfully updated" }
             res.json(result)
             console.log(result)
             // res.json( new_person.rows[0].id)
@@ -386,8 +437,8 @@ class RecipientController {
     async activateEquipmentProvider (req, res) {
         // console.log(req.params.id)
         const {active} = req.body
-        const equipmentrecipientofservices_id = req.params.id
-        const activated_equipmentprovider = await equipmentrecipientmodel.activateOneEquipmentProvider(equipmentrecipientofservices_id, active)
+        const equipmentprovider_id = req.params.id
+        const activated_equipmentprovider = await equipmentprovidermodel.activateOneEquipmentProvider(equipmentprovider_id, active)
         // console.log(activated_serviceprovider)
         if (activated_equipmentprovider.rows &&  active == "true") {
             const result = { success: "Equipment of provider successfully activated" }
@@ -406,9 +457,9 @@ class RecipientController {
     async deleteEquipmentProvider(req, res) { 
         console.log(req.params.id)
         const{equipment_id} = req.body
-        const recipientofservices_id = req.params.id
-        console.log(recipientofservices_id, "Test deleteService")
-        const deleted_equipmentprovider = await equipmentrecipientmodel.deleteOneEquipmentProvider(recipientofservices_id, equipment_id)
+        const provider_id = req.params.id
+        console.log(provider_id, "Test delete equipmentprovider")
+        const deleted_equipmentprovider = await equipmentprovidermodel.deleteOneEquipmentProvider(provider_id, equipment_id)
         if (deleted_equipmentprovider.rows) {
             const result = { success: "true" }
             res.json(result)
@@ -417,15 +468,45 @@ class RecipientController {
             const result = { success: "Error" }
             res.json(result)
         }
-     }    
+     }   
+     
+    async getOneEquipmentProvider(req, res) { 
+        console.log(req.params.id)
+        const equipmentprovider_id = req.params.id
+        console.log(equipmentprovider_id, "Test equipmentprovider")
+        const one_equipmentprovider = await equipmentprovidermodel.getOneEquipmentOfProvider(equipmentprovider_id)
+        if (one_equipmentprovider.rows.length !== 0) {
+            const result = one_equipmentprovider.rows[0]
+            res.json(result)
+            console.log(one_equipmentprovider.rows, result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+     }  
+
+     async getAllEquipmentProvider(req, res) { 
+        console.log(req.params.id)
+        const {provider_id} = req.body
+        console.log(provider_id, "Test get_all_equipmentprovider")
+        const all_equipmentprovider = await equipmentprovidermodel.getAllEquipmentOfProvider(provider_id)
+        if (all_equipmentprovider.rows.lenth !== 0) {
+            const result = all_equipmentprovider.rows
+            res.json(result)
+            console.log(all_equipmentprovider.rows, result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+     }  
 
     //  ###  Тарификация (fares)  ###
 
     async createFare (req, res) {
-        const {equipment_recipientofservices_id, duration, time_unit, fare} = req.body
-        console.log(equipment_recipientofservices_id)
+        const {equipmentprovider_id, duration, time_unit, fare} = req.body
+        console.log(equipmentprovider_id)
 
-        const new_fare = await faremodel.createNewFare (equipment_recipientofservices_id, duration, time_unit, fare)              
+        const new_fare = await faremodel.createNewFare (equipmentprovider_id, duration, time_unit, fare)              
         if (new_fare.rows[0].id ) {
             const result = { success: "Fare  successfully created" }
             res.json(result)
@@ -438,11 +519,11 @@ class RecipientController {
     }
 
     async updateFare (req, res) {
-        const {equipment_recipientofservices_id, duration, time_unit, fare} = req.body
+        const {equipmentprovider_id, duration, time_unit, fare} = req.body
         const id = req.params.id
-        console.log(equipment_recipientofservices_id)
+        console.log(equipmentprovider_id)
 
-        const new_fare = await faremodel.updateNewFare (id, equipment_recipientofservices_id, duration, time_unit, fare)              
+        const new_fare = await faremodel.updateNewFare (id, equipmentprovider_id, duration, time_unit, fare)              
         if (new_fare.rows[0].id ) {
             const result = { success: "Fare  successfully updated" }
             res.json(result)
@@ -463,6 +544,21 @@ class RecipientController {
             res.json(result)
             console.log(deleted_fare.rows[0], result)
             // res.json( deleted_fare.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+    async getFare (req, res) {
+        const fare_id = req.params.id
+        console.log(fare_id)
+        const one_fare = await faremodel.getOneFare(fare_id)              
+        if (one_fare.rows.length !== 0 ) {
+            const result = one_fare.rows[0]
+            res.json(result)
+            console.log(result)
+            // res.json( one_fare.rows[0].id)
         } else {
             const result = { success: "Error" }
             res.json(result)
@@ -548,18 +644,54 @@ class RecipientController {
         }
     }
 
+    
+    
+    async getDescription (req, res) {
+        console.log('Test')
+        const description_id = req.params.id
+        console.log(req.params)
+
+        const one_description = await descriptionmodel.getOneDescription(description_id)               
+        if (one_description.rows[0] !== undefined ) {
+            const result = one_description.rows[0]
+            res.json(result)
+            console.log(one_description.rows[0], result)
+            // res.json( one_description.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+    async getAllDescriptions (req, res) {
+        console.log('Test')
+        const provider_id = req.params.id
+        console.log(req.params)
+
+        const all_descriptions = await descriptionmodel.getAllDescriptionsOfProvider(provider_id)               
+        if (all_descriptions.rows[0] !== undefined ) {
+            const result = all_descriptions.rows
+            res.json(result)
+            console.log(result)
+            // res.json( all_descriptions.rows)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
 //  ### Yдобства у Провайдера ###
 
     async addServicesToProvider (req, res) {
         const {services} = req.body
-        const recipientofservices_id = req.params.id
+        const provider_id = req.params.id
         const services_id = Array.from(services[0].split(','), Number)
         let services_list =[]
         services_id.forEach( service_id => {
-            console.log(service_id, "service_id from addServicesToProvider of recipientcontroller")
-            const added_service = recipientmodel.addOneServiceToProvider(recipientofservices_id, service_id)  
+            console.log(service_id, "service_id from addServicesToProvider of providercontroller")
+            const added_service = providermodel.addOneServiceToProvider(provider_id, service_id)  
             const serv = added_service.then(function(service) {    
-                console.log(service.rows, "Tect of adding services to recipientofservices")                 
+                console.log(service.rows, "Tect of adding services to provideres")                 
                 // return  added_service
             })           
             services_list.push(serv)
@@ -580,14 +712,14 @@ class RecipientController {
         const {services} = req.body
         const services_id = Array.from(services[0].split(','), Number)
         const provider_id = req.params.id
-        recipientmodel.deleteOneServicesOfProvider(provider_id)
+        providermodel.deleteOneServicesOfProvider(provider_id)
 
         let services_list =[]
         services_id.forEach(service_id => {
-            console.log(service_id, "service_id from addServicesToProvider of recipientcontroller")
-            const updated_service = recipientmodel.addOneServiceToProvider(provider_id, service_id)  
+            console.log(service_id, "service_id from addServicesToProvider of providercontroller")
+            const updated_service = providermodel.addOneServiceToProvider(provider_id, service_id)  
             const serv = updated_service.then(function(service) {    
-                console.log(service.rows, "Tect of adding services to recipientofservices")                 
+                console.log(service.rows, "Tect of adding services to provideres")                 
                 // return  updated_service
                 })           
             services_list.push(serv)
@@ -603,7 +735,7 @@ class RecipientController {
 
 }
 
-const recipient_controller = new RecipientController();
-export { recipient_controller }
+const provider_controller = new ProviderController();
+export { provider_controller }
 
 

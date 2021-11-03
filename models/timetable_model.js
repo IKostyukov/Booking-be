@@ -41,13 +41,35 @@ class TimetableModel {
         return updated_timetable
        }
        
-       async deleteOneTimetable(timetable_id) {
+    async deleteOneTimetable(timetable_id) {
         console.log(timetable_id) 
         const deleted_timetable = await db.query(`DELETE FROM  timetables
         WHERE  id = $1
         RETURNING *;`, [timetable_id])
         return deleted_timetable
        }
+
+    async getOneTimetable(timetable_id) {
+            const sql_query = `SELECT  
+            id AS timetable_id,
+            monday_start_time,
+            monday_end_time,
+            tuesday_start_time,
+            tuesday_end_time,
+            wednesday_start_time,
+            wednesday_end_time,
+            thursday_start_time,
+            thursday_end_time,
+            friday_start_time,
+            friday_end_time,
+            saturday_start_time,
+            saturday_end_time,
+            sunday_start_time,
+            sunday_end_time
+            FROM timetables WHERE id = ${timetable_id};`
+            const one_timetable = await db.query(sql_query)
+            return one_timetable
+        }
 }
 
     const timetablemodel = new TimetableModel()
