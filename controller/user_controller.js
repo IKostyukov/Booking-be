@@ -1,5 +1,7 @@
 import { pool } from '../db.js';
 import { user } from '../models/user_model.js';
+import { favoriteequipment_model } from '../models/favoriteequipment_model.js';
+
 
 const db = pool
 
@@ -71,6 +73,53 @@ class UserController {
             console.log(req.body)
         const get_users = await user.getMany(req, res)
         res.json(get_users)
+    }
+
+    async addFavoriteEquipment(req, res) {
+        const equipmentprovider_id = req.params.equipmentproviderId
+        const user_id = req.params.userId
+        const new_favoriteequipment = await favoriteequipment_model.AddFavorite(equipmentprovider_id, user_id)
+        if (new_favoriteequipment.rows[0].id) {
+            const result = { success: true }
+            res.json(result)
+            console.log(new_favoriteequipment.rows, result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+    async deleteFavoriteEquipment(req, res) {
+        const equipmentprovider_id = req.params.equipmentproviderId
+        const user_id = req.params.userId
+        const deleted_favoriteequipment = await favoriteequipment_model.deleteFavorite(equipmentprovider_id, user_id)
+        if (deleted_favoriteequipment.rows.length !== 0) {
+            const result = { success: true }
+            res.json(result)
+            console.log( deleted_favoriteequipment.rows, "Successfully deleted!")
+        } else if (deleted_favoriteequipment.rows.length == 0) {
+            const result = { Error: "Favoriteequipment not found" }
+            res.json(result) 
+        }else {
+            const result = { Error: "Error" }
+            res.json(result)
+        }
+    }
+
+    async getFavoriteEquipment(req, res) {
+        const user_id = req.params.userId
+        const list_favoriteequipment = await favoriteequipment_model.getFavorite(user_id)
+        if (list_favoriteequipment.rows.length !== 0) {
+            const result = list_favoriteequipment.rows
+            res.json(result)
+            console.log(list_favoriteequipment.rows)
+        } else if (list_favoriteequipment.rows.length == 0) {
+            const result = { Error: "Favoriteequipment not found" }
+            res.json(result) 
+        }else {
+            const result = { Error: "Error" }
+            res.json(result)
+        }
     }
 }
 

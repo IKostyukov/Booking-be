@@ -39,6 +39,15 @@ class FareModel {
     return one_fare
    }
 
+
+   async getAllFares(equipmentprovider_id) {
+    console.log(equipmentprovider_id) 
+    const all_fares = await db.query(`SELECT id AS fare_id,
+    equipmentprovider_id, duration, time_unit, fare
+	FROM fares WHERE equipmentprovider_id = ${equipmentprovider_id};`)
+    return all_fares
+   }
+
 }
 
 const faremodel = new FareModel();

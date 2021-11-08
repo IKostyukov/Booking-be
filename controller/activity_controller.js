@@ -22,7 +22,7 @@ class ActivityController {
         }
     }
 
-    async updateActivtiy (req, res) {
+    async updateActivity (req, res) {
         const updated_activity = await activity.update(req, res) 
         if (updated_activity) {
             const result = { success: "Activity successfully updated" }
@@ -34,7 +34,7 @@ class ActivityController {
         }
     }
 
-    async activateActivtiy (req, res) {
+    async activateActivity (req, res) {
         const activated_activity = await activity.activate(req, res)
         if (activated_activity.rows[0].active == true) {
             const result = { success: "Activity successfully activated" }
@@ -88,12 +88,8 @@ class ActivityController {
     }
 
     // Поисковые запросы
-
-    
-
-
     async getPopularActivities(req, res) {
-        const popular_activities = await activity.getPopular(req, res)
+        const popular_activities = await activity.getPopular()
         console.log((popular_activities).rows)
         res.json((popular_activities).rows)
     }

@@ -56,21 +56,22 @@ class ActivityModel {
     //     OR phone LIKE '%'||$4||'%' ;`, [first_name, last_name, email, phone ])
 
 
-    async getPopular(req, res) {
+    async getPopular() {
         const sql_query = `SELECT  
         COUNT(b.id) as orders, activity_name, 
         MIN(f.fare) as start_price
         FROM activities a 
-        LEFT JOIN equipments e ON a.id = e.activity_id 
-        LEFT JOIN equipments_recipientofservices r 
-            ON e.id = r.equipment_id 
+        LEFT JOIN equipments e 
+        ON a.id = e.activity_id 
+        LEFT JOIN equipmentsproviders r 
+        ON e.id = r.equipment_id 
         LEFT JOIN bookings b 
-            ON r.id = b.equipment_recipientofservices_id 
+        ON r.id = b.equipmentprovider_id 
         LEFT JOIN fares f  
-            ON f.equipment_recipientofservices_id = b.equipment_recipientofservices_id 
+        ON f.equipmentprovider_id = b.equipmentprovider_id 
         WHERE f.fare = 
                 (SELECT MIN(f.fare) FROM fares f 
-                WHERE f.equipment_recipientofservices_id = b.equipment_recipientofservices_id )
+                WHERE f.equipmentprovider_id = b.equipmentprovider_id )
         GROUP BY activity_name
         ORDER BY orders DESC LIMIT 3;`
         const popular_activities = await db.query(sql_query)

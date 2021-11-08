@@ -32,6 +32,12 @@ class EquipmentProviderModel {
         return  activated_equipmentprovider
     }
 
+    async deleteOneEquipmentProvider(equipmentprovider_id) {
+        const activated_equipmentprovider = await db.query(`DELETE FROM equipmentsproviders
+        WHERE id = $1 RETURNING *;`,[equipmentprovider_id])
+        return  activated_equipmentprovider
+    }
+
     async getOneEquipmentOfProvider(equipmentprovider_id) {
         const one_equipmentprovider = await db.query(`SELECT id as equipmentprovider_id, active, provider_id, equipment_id, quantity,  availabilitydate, cancellationdate, discountnonrefundable
         FROM equipmentsproviders

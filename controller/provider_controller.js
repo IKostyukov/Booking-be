@@ -1,12 +1,13 @@
 import { pool } from '../db.js';
-import { activity } from '../models/activity_model.js';
+import { advantagemodel } from '../models/advantage_model.js';
 import { providermodel } from  '../models/provider_model.js';
 import { timetablemodel } from '../models/timetable_model.js'; 
-import { servicemodel } from '../models/service_model.js';
+import { serviceprovidermodel } from '../models/serviceprovider_model.js';
 import { descriptionmodel } from '../models/description_model.js';
 import { equipmentprovidermodel } from '../models/equipmentprovider_model.js'; 
 import { extratimetablemodel } from '../models/extratimetable_model.js';
 import { faremodel } from '../models/fare_model.js';
+import { promotionmodel } from '../models/promotion_model.js';
 
 
 const db = pool
@@ -81,11 +82,11 @@ class ProviderController {
         const services_id = Array.from(services[0].split(','), Number)
         services_id.forEach( service_id => {
             // console.log(service_id, "service_id from createNewProvider Model")
-            const new_provider = providermodel.addOneServiceToProvider(provider_id, service_id)
+            const service_provider = serviceprovidermodel.addOneServiceToProvider(provider_id, service_id)
         // Редактирование удобств перестало работать, так как addOneServiceToProvider был перенесен 
         //  из servicemodel в  providermodel  то есть в this
         // Проблема решится при переносе кода сщздания провайдера из модели в конероллер 
-            console.log(new_provider, "Tect servicesproviders")
+            console.log(service_provider, "Tect servicesproviders")
         });  
 
         //  Описание провайдера (descriptions) 
@@ -456,10 +457,9 @@ class ProviderController {
 
     async deleteEquipmentProvider(req, res) { 
         console.log(req.params.id)
-        const{equipment_id} = req.body
-        const provider_id = req.params.id
-        console.log(provider_id, "Test delete equipmentprovider")
-        const deleted_equipmentprovider = await equipmentprovidermodel.deleteOneEquipmentProvider(provider_id, equipment_id)
+        const equipmentprovider_id = req.params.id
+        console.log(equipmentprovider_id, "Test delete equipmentprovider")
+        const deleted_equipmentprovider = await equipmentprovidermodel.deleteOneEquipmentProvider(equipmentprovider_id)
         if (deleted_equipmentprovider.rows) {
             const result = { success: "true" }
             res.json(result)
@@ -550,6 +550,7 @@ class ProviderController {
         }
     }
 
+    
     async getFare (req, res) {
         const fare_id = req.params.id
         console.log(fare_id)
@@ -565,7 +566,118 @@ class ProviderController {
         }
     }
 
+    async getFares (req, res) {
+        const equipmentprovider_id = req.params.id
+        console.log(equipmentprovider_id)
+        const all_fare = await faremodel.getAllFares(equipmentprovider_id)              
+        if (all_fare.rows.length !== 0 ) {
+            const result = all_fare.rows
+            res.json(result)
+            console.log(result)
+            // res.json( one_fare.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
 
+//     ### Promotions ###
+
+async createPromotion (req, res) {
+    console.log('Test')
+    const {equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
+    const new_promotion = await promotionmodel.createNewPromotion(equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end )               
+    if (new_promotion.rows[0].id ) {
+        const result = { success: "Promotion successfully created" }
+        res.json(result)
+        console.log(new_promotion.rows[0], result)
+        // res.json( new_promotion.rows[0].id)
+    } else {
+        const result = { success: "Error" }
+        res.json(result)
+    }
+}
+
+async updatePromotion (req, res) {
+    console.log('Test')
+    const {equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
+    const promotion_id = req.params.id
+    const updatad_promotion = await promotionmodel.updateNewPromotion(promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end )               
+    if (updatad_promotion.rows[0].id ) {
+        const result = { success: true }
+        res.json(result)
+        console.log(updatad_promotion.rows[0], result)
+        // res.json( updatad_promotion.rows[0].id)
+    } else {
+        const result = { success: "Error" }
+        res.json(result)
+    }
+}
+
+async activatePromotion (req, res) {
+    const promotion_id = req.params.promotionId
+    const {active} = req.body
+    console.log('Test', active)
+    const activated_promotion = await promotionmodel.deleteOnePromotion(promotion_id, active)               
+    if (activated_promotion.rows &&  active == "true") {
+        const result = { success: "Promotion successfully activated" }
+        res.json(result)
+        // console.log(activated_equipmentprovider.rows[0], result)
+    } else if (activated_promotion.rows && active == "false") {
+        const result = { success: "Promotion successfully deactivated" }
+        res.json(result)
+        console.log(activated_promotion.rows, result)
+    } else {
+        const result = { Error: "Error" }
+        res.json(result)
+    }  
+}
+
+async deletePromotion (req, res) {
+    console.log('Test')
+    const promotion_id = req.params.promotionId
+    const deleted_promotion = await promotionmodel.deleteOnePromotion(promotion_id)               
+    if (deleted_promotion.rows[0] !== undefined ) {
+        const result = { success: true }
+        res.json(result)
+        console.log(deleted_promotion.rows[0], result)
+        // res.json( deleted_promotion.rows[0].id)
+    } else {
+        const result = { success: "Error" }
+        console.log(deleted_promotion.rows[0], result)
+        res.json(result)
+    }
+}
+
+async getOnePromotion (req, res) {
+    const promotion_id = req.params.id
+    console.log('Test', promotion_id)    
+    const one_promotion = await promotionmodel.getOnePromotionOfProvider(promotion_id)               
+    if (one_promotion.rows[0] !== undefined ) {
+        const result = one_promotion.rows[0]
+        res.json(result)
+        console.log(one_promotion.rows[0], result)
+        // res.json( one_promotion.rows[0].id)
+    } else {
+        const result = { success: "Error" }
+        res.json(result)
+    }
+}
+
+async getAllPromotions (req, res) {
+    const equipmentprovider_id = req.params.id
+    console.log('Test', equipmentprovider_id)
+    const all_promotion = await promotionmodel.getAllPromotionsOfProvider(equipmentprovider_id)               
+    if (all_promotion.rows[0] !== undefined ) {
+        const result = all_promotion.rows
+        res.json(result)
+        console.log(all_promotion.rows, result)
+        // res.json(all_promotion.rows[0].id)
+    } else {
+        const result = { success: "Error" }
+        res.json(result)
+    }
+}
 
     //  ### Описание объекта (descriptions) ###
 
@@ -679,45 +791,18 @@ class ProviderController {
             res.json(result)
         }
     }
-
-//  ### Yдобства у Провайдера ###
+    
+//  ### Yдобства у Провайдера ###    
 
     async addServicesToProvider (req, res) {
         const {services} = req.body
-        const provider_id = req.params.id
-        const services_id = Array.from(services[0].split(','), Number)
-        let services_list =[]
-        services_id.forEach( service_id => {
-            console.log(service_id, "service_id from addServicesToProvider of providercontroller")
-            const added_service = providermodel.addOneServiceToProvider(provider_id, service_id)  
-            const serv = added_service.then(function(service) {    
-                console.log(service.rows, "Tect of adding services to provideres")                 
-                // return  added_service
-            })           
-            services_list.push(serv)
-        }); 
-        console.log(services_list) 
-        console.log(services_list.length, services_id.length)            
-        if (services_list.length == services_id.length) {
-            const result = { success: "Services added  successfully " }
-            res.json(result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
-        }
-    }
-    
-
-    async updateServicesOfProvider (req, res) {
-        const {services} = req.body
         const services_id = Array.from(services[0].split(','), Number)
         const provider_id = req.params.id
-        providermodel.deleteOneServicesOfProvider(provider_id)
-
+        serviceprovidermodel.deleteAllServicesOfProvider(provider_id)
         let services_list =[]
         services_id.forEach(service_id => {
             console.log(service_id, "service_id from addServicesToProvider of providercontroller")
-            const updated_service = providermodel.addOneServiceToProvider(provider_id, service_id)  
+            const updated_service = serviceprovidermodel.addOneServiceToProvider(provider_id, service_id)  
             const serv = updated_service.then(function(service) {    
                 console.log(service.rows, "Tect of adding services to provideres")                 
                 // return  updated_service
@@ -732,6 +817,56 @@ class ProviderController {
             res.json(result)
         }
     }  
+
+    async getServicesOfProvider (req, res) {
+        const provider_id = req.params.id
+        console.log(provider_id)
+        const all_services = await serviceprovidermodel.getAllServicesOfProvider(provider_id)  
+        console.log(all_services)            
+        if (all_services.rows) {
+            const result = all_services.rows
+            res.json(result)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+//  ### Преимущуства провайдера ###
+
+    
+    async addAdvantageToProvider (req, res) {
+        console.log('Test', req.params)
+        const advantage_id = req.params.advantageId
+        const {provider_id} = req.body
+        const added_advantage = await advantagemodel.addNewAdvantageToProvider(provider_id, advantage_id)             
+        if (added_advantage.rows[0] ) {
+            const result = { success: true }
+            res.json(result)
+            console.log(added_advantage.rows[0])
+            // res.json( added_advantage.rows[0])
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+    async deleteAdvantageFromProvider (req, res) {
+        console.log('Test')
+        const advantage_id = req.params.advantageId
+        const {provider_id} = req.body
+        const deleted_advantage = await advantagemodel.deleteOneAdvantageFromProvider(provider_id, advantage_id)               
+        if (deleted_advantage.rows[0] !== undefined ) {
+            const result = { success: true }
+            res.json(result)
+            console.log(deleted_advantage.rows[0], result)
+            // res.json( deleted_advantage.rows[0].id)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+    }
+
+
 
 }
 

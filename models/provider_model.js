@@ -126,34 +126,6 @@ class ProviderModel {
 // Иначе invalid input syntax for type integer: "NaN"
         return providers
     }
-    
-    //  ### Добавление удобствa  провайдеру ###
-    async addOneServiceToProvider (provider_id, service_id) {
-        console.log('provider_id -', provider_id, 'service_id -', service_id)
-        //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
-        const added_service = await db.query(`INSERT INTO services_providers(
-            provider_id, service_id)
-            VALUES ($1, $2)
-            RETURNING *;`,
-        [provider_id, service_id])
-
-        return added_service
-    }
-
-    //  ###  Удаление удобствa у провайдера ###
-
-    async deleteOneServicesOfProvider (provider_id) {
-        const deleted_service = await db.query(`DELETE FROM services_providers
-        WHERE provider_id = ${provider_id} RETURNING *;`);
-        return deleted_service
-    }
-
-    //  ### Редактирование удобстa у провайдера ###
-
-        // delete + create
-
-
-
 }
 
 const providermodel = new ProviderModel()

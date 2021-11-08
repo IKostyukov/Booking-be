@@ -72,6 +72,38 @@ class ServiceControlller{
         }
      }    
 
+     //  ### Получить одно удобство ###
+     async getService(req, res) { 
+        const service_id = req.params.id
+        console.log(service_id, "Test getService")
+        const one_service = await servicemodel.getOneService(service_id)
+        if (one_service.rows[0]) {
+            const result = one_service.rows[0]
+            res.json(result)
+            console.log(one_service.rows)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+     }    
+
+     //  ### Получить все удобства ###
+     async getServices(req, res) { 
+        console.log(req.params.id)
+        const service_id = req.params.id
+        console.log(service_id, "Test deleteService")
+
+        const all_services = await servicemodel.getAllServices()
+        if (all_services.rows[0]) {
+            const result = all_services.rows
+            res.json(result)
+            console.log(all_services.rows)
+        } else {
+            const result = { success: "Error" }
+            res.json(result)
+        }
+     }    
+
 }
 
 const service_controller = new ServiceControlller();
