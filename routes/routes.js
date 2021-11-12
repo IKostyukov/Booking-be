@@ -6,18 +6,12 @@ import { provider_controller } from '../controller/provider_controller.js';
 import { service_controller } from '../controller/service_controller.js';
 import { booking_controller } from '../controller/booking_controller.js';
 import { advantage_controller } from '../controller/advantage_controller.js';
+import { message_controller } from '../controller/message_controller.js';
+import { feedback_controller } from '../controller/feedback_controller.js';
+import { rating_controller } from '../controller/rating_controller.js';
+
 const Router = express.Router;
 const router = new Router()
-
-//  ### Advantage
-
-router.post('/advantage', advantage_controller.createAdvantage);
-router.patch('/advantage/:id', advantage_controller.updateAdvantage);
-router.patch('/advantage/:id/activation', advantage_controller.activateAdvantage);
-router.delete('/advantage/:id', advantage_controller.deleteAdvantage);
-router.get('/advantage/:id', advantage_controller.getAdvantage);
-router.get('/advantage', advantage_controller.getAdvantages);
-
 
 //  ### Provider
 
@@ -52,6 +46,15 @@ router.patch('/service/:id', service_controller.updateService);
 router.delete('/service/:id', service_controller.deleteService);
 router.get('/service/:id', service_controller.getService);
 router.get('/service', service_controller.getServices);
+
+//  ### Advantage
+
+router.post('/advantage', advantage_controller.createAdvantage);
+router.patch('/advantage/:id', advantage_controller.updateAdvantage);
+router.patch('/advantage/:id/activation', advantage_controller.activateAdvantage);
+router.delete('/advantage/:id', advantage_controller.deleteAdvantage);
+router.get('/advantage/:id', advantage_controller.getAdvantage);
+router.get('/advantage', advantage_controller.getAdvantages);
 
 //  ### Activivies
 
@@ -136,10 +139,31 @@ router.post('/user/:userId/favoritequioment/:equipmentproviderId', user_controll
 router.delete('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.deleteFavoriteEquipment);
 router.get('/user/:userId/favoritequioment', user_controller.getFavoriteEquipment);
 
+//  ### Messages
 
+router.post('/message', message_controller.createMessage);
+router.patch('/message/:messageId', message_controller.updateMessage);
+router.patch('/message/:messageId/activation', message_controller.activateMessage);
+router.delete('/message/:messageId', message_controller.deleteMessage);
+router.get('/messages', message_controller.getMessages);
+router.get('/messagethreads', message_controller.getThreads);
 
+//  ### Feedbaks
 
-//  Searches
+router.post('/feedback', feedback_controller.createFeedback);
+router.patch('/feedback/:feedbackId', feedback_controller.updateFeedback);
+router.patch('/feedback/:feedbackId/activation', feedback_controller.activateFeedback);
+router.delete('/feedback/:feedbackId', feedback_controller.deleteFeedback);
+router.get('/feedbacks', feedback_controller.getFeedbacks);
+
+//  ### Ratings
+
+router.post('/rating', rating_controller.addRate);
+router.patch('/rating/:ratingId', rating_controller.updateRate);
+router.delete('/rating/:ratingId', rating_controller.deleteRate);
+router.post('/rating/:ratingId/message/:messageId', rating_controller.connectRatingToFeedback);
+
+//  ### Searches
 
 router.get('/searchEquipment', equipment_controller.getSearchEquipment);
 
