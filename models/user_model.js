@@ -63,7 +63,22 @@ class UsersModel {
         return deleted_person
     }
 
-    async getOne(req, res) {
+    async findOne(user_name, caback) { 
+        // const {user_name} = req.body 
+        // const {user_name} = user_name
+
+        const sql = `SELECT id, active, email, phone, first_name, last_name, patronymic, dob 
+        FROM users
+        WHERE last_name = '${user_name}' LIMIT 1;`     
+
+        console.log(sql, 'sql -test')
+        const user = await db.query(sql)
+        
+        console.log(user.rows, 'findOne -test')
+        return user
+    }
+
+    async getOneWithRoles(req, res) {
         const user_id = req.params.id        
         const get_user = await db.query(`SELECT id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
         FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id WHERE users.id = ${user_id};`)

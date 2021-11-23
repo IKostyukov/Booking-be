@@ -104,7 +104,8 @@ class ProviderController {
         console.log("Test of equipmentprovider", equipmentprovider) 
         equipmentprovider.then(function(result){
             const equipmentprovider_id =  result.rows[0].id
-            console.log(equipmentprovider_id)
+
+            console.log(equipmentprovider_id)            
             fares.forEach(fare_item => {
                 const {duration, time_unit, fare} = fare_item
                 const added_fare = faremodel.createNewFare(equipmentprovider_id, duration, time_unit, fare)

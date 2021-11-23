@@ -64,7 +64,7 @@ class UserController {
     }
 
     async getUser(req, res) {
-        const get_user = await user.getOne(req, res)
+        const get_user = await user.getOneWithRoles(req, res)
         res.json(get_user)
         console.log(get_user)
     }

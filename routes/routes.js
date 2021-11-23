@@ -10,8 +10,23 @@ import { message_controller } from '../controller/message_controller.js';
 import { feedback_controller } from '../controller/feedback_controller.js';
 import { rating_controller } from '../controller/rating_controller.js';
 
+import passport  from  'passport';
+// import jwt from 'jsonwebtoken';
+// import {pool} from "../db.js";
+
+
 const Router = express.Router;
 const router = new Router()
+
+    //  Test
+// import {user} from "../models/user_model.js";
+// router.post('/login', user.findOne);
+const authenticate = passport.authenticate('local', {session: true});
+console.log(authenticate, "Test from routes (const authenticate)")
+router.post('/login', authenticate, (req, res, next) => {
+    console.log(req.body)
+    res.send({"Succees": "!!"}) ;
+  });
 
 //  ### Provider
 
