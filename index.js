@@ -1,21 +1,18 @@
 import express from 'express';
 import passport from 'passport';
-// import passport  from  'passport-jwt';
+import session from'express-session';
 import cors from 'cors';
 
 import {user} from "./models/user_model.js";
 import {router} from './routes/routes.js';
+import {secure_route} from './routes/secure-routes.js';
 import {local_strategy} from './config/passport.js';
+import {jwt_strategy} from './config/passport.js';
+
 
 const Router = router
 const port =  8080;
 const app = express();
-
-// app.use(passport.session());
-app.use(passport.initialize());
-passport.use('local', local_strategy);
-
-
 
 // app.post('/login',
 // user_authenticate.authenticate('local'),
@@ -26,6 +23,25 @@ passport.use('local', local_strategy);
 //     res.redirect('/users/' + req.user.username);
 //   });
 
+function checkAuth() {
+    return app.use((req, res, next) => {
+      if (req.user) next()
+      // else res.redirect('/login')
+      else res.send("Not auntithicated")
+    })
+  };
+
+//   const sessionMiddleware = session({
+//     secret: 'keyboard cat',
+//     resave: true,
+//     rolling: true,
+//     saveUninitialized: false,
+//     cookie: {
+//       maxAge: 10 * 60 * 1000,
+//       httpOnly: false,
+//     },
+//   });
+
 
 app.use(cors({
     origin: ['http://localhost:4200']
@@ -33,7 +49,30 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(session({secret: 'keyboard cat'}))
+// app.use(sessionMiddleware);
+app.use(passport.initialize());
+app.use(passport.session());
+// app.use(passport.session({
+//     secret: 'keyboard cat',
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: { secure: true }
+//   }));
+passport.serializeUser(function (user, done) {
+    done(null, user);
+  });
+passport.deserializeUser((user, done) => done(null, user));
+passport.use('local', local_strategy);
+passport.use('jwt',  jwt_strategy);
+
 app.use('/', Router);
+app.use('/user',  passport.authenticate('jwt', { session: true }), secure_route);
+
+app.get('/home', checkAuth(), (req, res) => {
+    res.send("Home page. You're authorized.")
+  })
+
 app.listen(port, () => console.log(`server started on port ${port}`))
 
 

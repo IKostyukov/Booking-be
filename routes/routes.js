@@ -9,32 +9,146 @@ import { advantage_controller } from '../controller/advantage_controller.js';
 import { message_controller } from '../controller/message_controller.js';
 import { feedback_controller } from '../controller/feedback_controller.js';
 import { rating_controller } from '../controller/rating_controller.js';
+import {local_strategy} from '../config/passport.js';
+import {jwt_strategy} from '../config/passport.js';
 
 import passport  from  'passport';
-// import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+
+
 // import {pool} from "../db.js";
 
 
 const Router = express.Router;
-const router = new Router()
+const router = new Router();
 
     //  Test
-// import {user} from "../models/user_model.js";
-// router.post('/login', user.findOne);
-const authenticate = passport.authenticate('local', {session: true});
-console.log(authenticate, "Test from routes (const authenticate)")
-router.post('/login', authenticate, (req, res, next) => {
-    console.log(req.body)
-    res.send({"Succees": "!!"}) ;
-  });
 
+// console.log(local_strategy, "test local_strategy routs.js-27")
+// console.log(jwt_strategy, "test jwt_strategy routs.js-28")
+
+
+  // ### Аутентификация
+
+  function mustAuthenticated(req, res, next) {
+    console.log(req.session.passport, "req.session.passport", 
+    req.isAuthenticated, "req.isAuthenticated")
+    if (!req.isAuthenticated()) {
+      return res.status(HTTPStatus.UNAUTHORIZED).send({});
+    }
+    next();
+  }
+
+// router.post('/login', 
+//   // call passport authentication passing the "local" strategy name and a callback function
+//   passport.authenticate('local', {session: true}),
+//   //  function to call once successfully authenticated
+//   function (req, res) {
+//     console.log(req.headers, "req.hedars")
+//     res.status(200).send(req.user);
+//   });
+
+router.post('/logout', mustAuthenticated, (req, res) => {
+  req.logOut();
+  res.send({});
+});
+
+// ### (Аутентификация) То же самое для тестирования 
+//                      с результатами ошибок в консоль 
+
+// router.post('/login', function (req, res, next) {
+//     // call passport authentication passing the "local" strategy name and a callback function
+//     passport.authenticate('local', function (error, user, info) {
+//       // this will execute in any case, even if a passport strategy will find an error
+//       // log everything to console
+//       console.log(req.body, "Test req res from routes.js-44");
+//       console.log(error, "Test error from routes.js-45");
+//       console.log(user, "Test user from routes.js-46");
+//       console.log(info, "Test info from routes.js-47");
+
+//       if (error) {
+//         res.status(400).send(error);
+//       } else if (!user) {
+//         res.status(401).send(info);
+//       } else {
+//         next();
+//       }
+//       res.status(401).send(info);
+//     })(req, res);
+//   },
+//   // function to call once successfully authenticated
+//   function (req, res) {
+//     res.status(200).send('logged in!');
+//   });
+
+
+
+
+  // ### Авторизация по токену JWT
+
+router.post('/login', async (req, res, next) => {
+    passport.authenticate('local', {session: true}, async (err, user, info) => {
+        try {
+            console.log(req.body, "Test req res from routes.js-77");
+            console.log(err, "Test error from routes.js-78");
+            console.log(user, "Test user from routes.js-79");
+            console.log(info, "Test info from routes.js-80");
+            if (err || !user) {
+              const error = new Error('An error occurred.');
+              res.status(400).send(info);
+              console.log(info, "Test error rout.js-84")
+              return next(error);
+            }
+            console.log(req.login, "req.login")
+            const session = req.headers
+            console.log(session)
+            // next()
+            // return res.json({session})
+            // req.login(user, { session: true }, async (error) => {
+            //   if (error) return next(error);
+              // const body = { _id: user._id, email: user.email };
+              // const token = jwt.sign({ user: body }, 'TOP_SECRET');
+              // return res.json({ token });
+            // });
+        } 
+        catch (error) {
+            return next(error);
+        }
+    })(req, res, next);
+},
+function (req, res) {
+        res.status(200).send('logged in!');
+      }
+    );    
+  
+    //  ### Защищенный маршрут
+
+router.get('/provider/:id', passport.authenticate('jwt', { session: true }),provider_controller.getProvider);
+
+// ### Пример из интернета (2013)
+function setUserIDResponseCookie(req, res, next) {
+  // if user-id cookie is out of date, update it
+  if (req.user?.id != req.cookies["myapp-userid"]) {
+      // if user successfully signed in, store user-id in cookie
+      if (req.user) {
+          res.cookie("myapp-userid", req.user.id, {
+              // expire in year 9999 (from: https://stackoverflow.com/a/28289961)
+              expires: new Date(253402300000000),
+              httpOnly: false, // allows JS code to access it
+          });
+      } else {
+          res.clearCookie("myapp-userid");
+      }
+  }
+  next();
+}
 //  ### Provider
 
 router.post('/provider', provider_controller.createProvider);
 router.patch('/provider/:id/activation', provider_controller.activateProvider);
 router.patch('/provider/:id', provider_controller.updateProvider);
 router.delete('/provider/:id', provider_controller.deleteProvider);
-router.get('/provider/:id', provider_controller.getProvider);
+// router.get('/provider/:id', provider_controller.getProvider);
 router.get('/provider', provider_controller.getProviders);
 router.get('/bestProviders', provider_controller.getBestProviders);
 
@@ -144,15 +258,15 @@ router.get('/equipmentprovider/:equipmentproviderId/booking', booking_controller
 
 //  ### Users
 
-router.post('/user', user_controller.createUser);
-router.post('/user/:id', user_controller.updateUser);
-router.post('/user/:id/activation', user_controller.activateUser);
-router.delete('/user/:id', user_controller.deleteUser);
-router.get('/user/:id', user_controller.getUser);
-router.get('/users', user_controller.getUsers);
-router.post('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.addFavoriteEquipment);
-router.delete('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.deleteFavoriteEquipment);
-router.get('/user/:userId/favoritequioment', user_controller.getFavoriteEquipment);
+// router.post('/user', user_controller.createUser);
+// router.post('/user/:id', user_controller.updateUser);
+// router.post('/user/:id/activation', user_controller.activateUser);
+// router.delete('/user/:id', user_controller.deleteUser);
+// router.get('/user/:id', user_controller.getUser);
+// router.get('/users', user_controller.getUsers);
+// router.post('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.addFavoriteEquipment);
+// router.delete('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.deleteFavoriteEquipment);
+// router.get('/user/:userId/favoritequioment', user_controller.getFavoriteEquipment);
 
 //  ### Messages
 

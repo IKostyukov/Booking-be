@@ -63,20 +63,43 @@ class UsersModel {
         return deleted_person
     }
 
-    async findOne(user_name, caback) { 
-        // const {user_name} = req.body 
-        // const {user_name} = user_name
-
-        const sql = `SELECT id, active, email, phone, first_name, last_name, patronymic, dob 
+    async findOne(username, callback) { 
+        console.log(username, "username comes to model")
+        const sql = `SELECT id, active, email, phone, first_name, last_name, patronymic, dob, password 
         FROM users
-        WHERE last_name = '${user_name}' LIMIT 1;`     
-
+        WHERE last_name = '${username.last_name}' LIMIT 1;` 
         console.log(sql, 'sql -test')
-        const user = await db.query(sql)
-        
-        console.log(user.rows, 'findOne -test')
-        return user
+
+        const found_user = await db.query(sql)        
+        console.log(found_user.rows, 'test findOne from user_model.js-73')
+
+        if (found_user.rows == undefined) {
+            const err = found_user // "Error 400 "
+            const user = null   
+            console.log(err, user, "test user_model.js-78")         
+            callback(err, user)
+        }
+        if (found_user.rows.length == 0) {
+            const err = null 
+            const user = null   
+            console.log(err, user, "test (err, user) Error 401 (User not found) user_model.js -84")         
+            callback(err, user)
+
+        } else if (found_user.rows[0]) {
+            const err = null
+            const user = found_user.rows[0]
+            console.log(err, user, "test (err, user) (User found) user_model.js -90") 
+            callback(err, user)
+        }        
     }
+
+    // async validPassword(password) {
+    //     if (password == user.password) {
+    //         return true
+    //     } else {
+    //         return false
+    //     }
+    // }
 
     async getOneWithRoles(req, res) {
         const user_id = req.params.id        
