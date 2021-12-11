@@ -1,4 +1,6 @@
 import express from 'express';
+import passport  from  'passport';
+import jwt from 'jsonwebtoken';
 import {activity_controller} from '../controller/activity_controller.js';
 import {equipment_controller} from '../controller/equipment_controller.js';
 import { user_controller } from '../controller/user_controller.js';
@@ -12,10 +14,6 @@ import { rating_controller } from '../controller/rating_controller.js';
 import {local_strategy} from '../config/passport.js';
 import {jwt_strategy} from '../config/passport.js';
 
-import passport  from  'passport';
-import jwt from 'jsonwebtoken';
-
-
 // import {pool} from "../db.js";
 
 
@@ -28,35 +26,37 @@ const router = new Router();
 // console.log(jwt_strategy, "test jwt_strategy routs.js-28")
 
 
-  // ### Аутентификация
 
-  function mustAuthenticated(req, res, next) {
-    console.log(req.session.passport, "req.session.passport", 
-    req.isAuthenticated, "req.isAuthenticated")
+  function mustAuthenticated(req, res, next) {  // Working
+    console.log(req.session, req._passport, "req.session (routs.js-34)", 
+    req.isAuthenticated, "req.isAuthenticated (routs.js-35")
     if (!req.isAuthenticated()) {
-      return res.status(HTTPStatus.UNAUTHORIZED).send({});
+      return res.status(400).send({foo: "!req.isAuthenticated" });
     }
     next();
   }
 
-// router.post('/login', 
+// router.post('/login',  // Working
 //   // call passport authentication passing the "local" strategy name and a callback function
-//   passport.authenticate('local', {session: true}),
+//   passport.authenticate('local', {session: false}),
 //   //  function to call once successfully authenticated
 //   function (req, res) {
-//     console.log(req.headers, "req.hedars")
+//     console.log(req.headers, "req.hedars routes-45")
+//     console.log(req.session, "req.session routes-46")
 //     res.status(200).send(req.user);
 //   });
 
-router.post('/logout', mustAuthenticated, (req, res) => {
-  req.logOut();
-  res.send({});
-});
+  // ### Аутентификация? 
 
-// ### (Аутентификация) То же самое для тестирования 
-//                      с результатами ошибок в консоль 
+// router.post('/logout', mustAuthenticated, (req, res) => {  // Working
+//   console.log(req.logOut);
+//   res.send({'success' : "logout mustAuthenticated"});
+// });
 
-// router.post('/login', function (req, res, next) {
+// ### (Аутентификация) 
+//  То же самое для тестирования  с результатами ошибок в консоль 
+
+// router.post('/login', function (req, res, next) {  // Working
 //     // call passport authentication passing the "local" strategy name and a callback function
 //     passport.authenticate('local', function (error, user, info) {
 //       // this will execute in any case, even if a passport strategy will find an error
@@ -81,52 +81,109 @@ router.post('/logout', mustAuthenticated, (req, res) => {
 //     res.status(200).send('logged in!');
 //   });
 
+  // ### Аутентификация, которая возвращает токен JWT
 
-
-
-  // ### Авторизация по токену JWT
-
-router.post('/login', async (req, res, next) => {
-    passport.authenticate('local', {session: true}, async (err, user, info) => {
-        try {
-            console.log(req.body, "Test req res from routes.js-77");
-            console.log(err, "Test error from routes.js-78");
-            console.log(user, "Test user from routes.js-79");
-            console.log(info, "Test info from routes.js-80");
-            if (err || !user) {
-              const error = new Error('An error occurred.');
-              res.status(400).send(info);
-              console.log(info, "Test error rout.js-84")
-              return next(error);
-            }
-            console.log(req.login, "req.login")
-            const session = req.headers
-            console.log(session)
-            // next()
-            // return res.json({session})
-            // req.login(user, { session: true }, async (error) => {
-            //   if (error) return next(error);
-              // const body = { _id: user._id, email: user.email };
-              // const token = jwt.sign({ user: body }, 'TOP_SECRET');
-              // return res.json({ token });
-            // });
-        } 
-        catch (error) {
-            return next(error);
-        }
-    })(req, res, next);
-},
-function (req, res) {
-        res.status(200).send('logged in!');
-      }
-    );    
+  router.post('/login',  passport.authenticate('local', {session: false}), (req, res, next) => {
+            req.login(req.user, { session: false }, async (error) => {  // Working
+              if (error) return next(error);
+              const body = { _id: req.user._id, email: req.user.email };
+              const token = jwt.sign({ user: body }, 'TOP_SECRET');
+              return res.json({ token });
+            });        
+    });
+ 
+    // ### Аутентификация, которая возвращает токен JWT   
+    //  То же самое для тестирования  с результатами ошибок в консоль 
+    
+// router.post('/login', async (req, res, next) => {  // Working
+//     passport.authenticate('local', {session: false}, async (err, user, info) => {
+//         try {
+//             console.log(req.body, "Test req res from routes.js-77");
+//             console.log(err, "Test error from routes.js-78");
+//             console.log(user, "Test user from routes.js-79");
+//             console.log(info, "Test info from routes.js-80");
+//             if (err || !user) {
+//               const error = new Error('An error occurred.');
+//               res.status(400).send(info);
+//               console.log(info, "Test error rout.js-84")
+//               return next(error);
+//             }
+//             req.login(user, { session: false }, async (error) => {  // Working
+//               if (error) return next(error);
+//               const body = { _id: user._id, email: user.email };
+//               const token = jwt.sign({ user: body }, 'TOP_SECRET');
+//               return res.json({ token });
+//             });
+//         } 
+//         catch (error) {
+//             return next(error);
+//         }
+//     })(req, res, next);
+// },
+// function (req, res) {
+//         res.status(200).send('logged in!');
+//       }
+//     );    
   
-    //  ### Защищенный маршрут
+    //  ### Защищенный маршрут 
 
-router.get('/provider/:id', passport.authenticate('jwt', { session: true }),provider_controller.getProvider);
+router.get('/provider/:id', passport.authenticate(['session', 'jwt']),provider_controller.getProvider); // Working
+
+
+// router.get('/provider/:id', passport.authenticate('jwt', { session: true }),provider_controller.getProvider); // Working
+// router.get('/provider/:id', passport.authenticate('session'),provider_controller.getProvider); // Working
+// router.get('/provider/:id', mustAuthenticated, provider_controller.getProvider); // Working
+// router.get('/provider/:id', async (req, res, next) => {  
+//   console.log(req.user, req.session, req._passport, "from routs.js-130")      
+//   passport.authenticate('session')(req, res, next);
+//   },
+//    provider_controller.getProvider);
+
+// router.get('/provider/:id', async (req, res, next) => {
+//   // Файлы cookie, которые не были подписаны 
+//   console.log( 'Cookies: routs - 130' ,  req.cookies ) // cookie-parser не работает
+//   // Файлы cookie, подписанные 
+//   console.log( 'Подписанные файлы cookie: routs - 133' ,  req.signedCookies ) // cookie-parser не работает
+//   const session = req.headers
+//   console.log(session, "session from routs.js-136")
+//   console.log(req.user, req.session, "_passport:", req._passport, " from routs.js-137")
+      
+//   passport.authenticate('jwt', async (err, user, info) => {
+//           console.log(req.body, "Test req res from routes.js-139");
+//           console.log(err, "Test error from routes.js-140");
+//           console.log(user, "Test user from routes.js-141");
+//           console.log(info, "Test info from routes.js-142");
+//           if (err || !user) {
+//             const error = new Error('An error occurred. roures.js-143');
+//             res.status(400).send(info);
+//             console.log(info, "Test error rout.js-146")
+//             return next(error);
+//           }
+//           console.log(req.login, "req.login roters.js-148")
+//           const session = req.headers
+//           console.log(session, "session from routs.js-150")
+//           return next()
+//           // return res.json({session})
+//           // req.login(user, { session: true }, async (error) => {
+//           //   if (error) return next(error);
+//             // const body = { _id: user._id, email: user.email };
+//             // const token = jwt.sign({ user: body }, 'TOP_SECRET');
+//             // return res.json({ token });
+//           // });
+      
+//       if (error) {
+//           return next(error);
+//       }
+//   })(req, res, next);
+// },
+// provider_controller.getProvider
+//     );
+
+
+
 
 // ### Пример из интернета (2013)
-function setUserIDResponseCookie(req, res, next) {
+function setUserIDResponseCookie(req, res, next) { // Not working
   // if user-id cookie is out of date, update it
   if (req.user?.id != req.cookies["myapp-userid"]) {
       // if user successfully signed in, store user-id in cookie
@@ -258,15 +315,15 @@ router.get('/equipmentprovider/:equipmentproviderId/booking', booking_controller
 
 //  ### Users
 
-// router.post('/user', user_controller.createUser);
-// router.post('/user/:id', user_controller.updateUser);
-// router.post('/user/:id/activation', user_controller.activateUser);
-// router.delete('/user/:id', user_controller.deleteUser);
-// router.get('/user/:id', user_controller.getUser);
-// router.get('/users', user_controller.getUsers);
-// router.post('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.addFavoriteEquipment);
-// router.delete('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.deleteFavoriteEquipment);
-// router.get('/user/:userId/favoritequioment', user_controller.getFavoriteEquipment);
+router.post('/user', user_controller.createUser);
+router.post('/user/:id', user_controller.updateUser);
+router.post('/user/:id/activation', user_controller.activateUser);
+router.delete('/user/:id', user_controller.deleteUser);
+router.get('/user/:id', user_controller.getUser);
+router.get('/users', user_controller.getUsers);
+router.post('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.addFavoriteEquipment);
+router.delete('/user/:userId/favoritequioment/:equipmentproviderId', user_controller.deleteFavoriteEquipment);
+router.get('/user/:userId/favoritequioment', user_controller.getFavoriteEquipment);
 
 //  ### Messages
 

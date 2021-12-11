@@ -79,6 +79,7 @@ class UsersModel {
             console.log(err, user, "test user_model.js-78")         
             callback(err, user)
         }
+        
         if (found_user.rows.length == 0) {
             const err = null 
             const user = null   
@@ -90,6 +91,36 @@ class UsersModel {
             const user = found_user.rows[0]
             console.log(err, user, "test (err, user) (User found) user_model.js -90") 
             callback(err, user)
+        }        
+    }
+
+
+    async findOneGoogle(profile) { 
+        console.log(profile, "profile comes to model")
+        const sql = `SELECT id, active, email, phone, first_name, last_name, patronymic, dob, password 
+        FROM users
+        WHERE email = '${profile.email}' LIMIT 1;` 
+        console.log(sql, 'sql -test')
+
+        const found_user = await db.query(sql)        
+        console.log(found_user.rows, 'test findOne from user_model.js-106')
+
+        if (found_user.rows == undefined) {
+            const err = found_user // "Error 400 "
+            const user = null   
+            console.log(err, user, "test user_model.js-111")         
+        }
+        
+        if (found_user.rows.length == 0) {
+            const err = null 
+            const user = null   
+            console.log(err, user, "test (err, user) Error 401 (User not found) user_model.js -118")         
+
+        } else if (found_user.rows[0]) {
+            const err = null
+            const user = found_user.rows[0]
+            console.log(err, user, "test (err, user) (User found) user_model.js -124") 
+
         }        
     }
 
