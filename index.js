@@ -79,7 +79,7 @@ app.use(passport.session()); // passport.session() и session() - это раз�
 // app.use(sessionMiddleware);
 
 passport.serializeUser(function (user, done) {
-  console.log(user, "serializeUser index-76") // Working
+  console.log(user, "serializeUser index-82") // Working
     done(null, user);
   });
 
@@ -93,7 +93,7 @@ passport.serializeUser(function (user, done) {
 //   });
 // });
 passport.deserializeUser(function(user, done) {
-  console.log(user, "deserializeUser from index.js-90") // Working
+  console.log(user, "deserializeUser from index.js-96") // Working
    done(null, user);
 });
 
@@ -125,18 +125,19 @@ passport.use(
       // 'https://www.getpostman.com/auth/google/callback'
       //    'http://127.0.0.1:8080/auth/google/callback',
 
-    // (accessToken, refreshToken, profile, done) => {
-    //   return done(null, profile)
-    // }
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        console.log('accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
-        const user = await user.findOneGoogle({ google_email: profile.email })
-        return done(null, user.toJSON())
-      } catch (err) {
-        return done(err)
-      }
+    (req, accessToken, refreshToken, profile, done) => {
+      return done(null, profile)
     }
+    // async (req, accessToken, refreshToken, profile, done) => {
+    //   try {
+    //     console.log(req.session,'accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
+    //     const found_user = await user.findOneGoogle({ google_email: profile.emails[0].value })
+    //     console.log(found_user)
+    //     return done(null, found_user.toJSON())
+    //   } catch (err) {
+    //     return done(err)
+    //   }
+    // }
     )
 );
   
