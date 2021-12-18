@@ -4,7 +4,8 @@ import expressSession from'express-session';
 import cors from 'cors';
 import cookieParser from'cookie-parser';
 import connect_pg from 'connect-pg-simple';
-import google_oauth from 'passport-google-oauth20';
+
+
 import flash from 'connect-flash';
 
 
@@ -14,6 +15,10 @@ import {router} from './routes/routes.js';
 import {secure_route} from './routes/secure-routes.js';
 import {local_strategy} from './config/passport.js';
 import {jwt_strategy} from './config/passport.js';
+import {google_strategy} from './config/passport.js';
+import {facebook_strategy} from './config/passport.js';
+
+
 import {pool} from "./db.js";
 
 
@@ -22,7 +27,6 @@ const Router = router
 const port =  8080;
 const app = express();
 const pgSession = connect_pg(expressSession);
-const GoogleStrategy = google_oauth.Strategy;
 
 
 app.use(express.json());
@@ -83,6 +87,11 @@ passport.serializeUser(function (user, done) {
     done(null, user);
   });
 
+passport.deserializeUser(function(user, done) {
+  console.log(user, "deserializeUser from index.js-96") // Working
+  done(null, user);
+});
+
 // passport.deserializeUser((id = "Петров", done) => { // Test
 //   console.log("")
 //   user.findBiId({ user_id }).then((user) => {
@@ -92,10 +101,6 @@ passport.serializeUser(function (user, done) {
 //     return console.log("");
 //   });
 // });
-passport.deserializeUser(function(user, done) {
-  console.log(user, "deserializeUser from index.js-96") // Working
-   done(null, user);
-});
 
 function checkAuth() {
   return app.use((req, res, next) => {
@@ -108,41 +113,12 @@ function checkAuth() {
 
 passport.use('local', local_strategy);
 passport.use('jwt',  jwt_strategy);
+passport.use('google', google_strategy);
+passport.use('facebook', facebook_strategy)
 
 //  ### GOOGLE 
-
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: '637412737162-9lcg0qc8dv7s4e1l6p9ncjk4r0se84qc.apps.googleusercontent.com', //YOUR GOOGLE_CLIENT_ID
-      clientSecret: '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', //YOUR GOOGLE_CLIENT_SECRET
-      callbackURL: 
-         'http://127.0.0.1:8080/auth/google/callback',        
-      passReqToCallback   : true
-       
-       
-    },
-      // 'https://www.getpostman.com/auth/google/callback'
-      //    'http://127.0.0.1:8080/auth/google/callback',
-
-    (req, accessToken, refreshToken, profile, done) => {
-      return done(null, profile)
-    }
-    // async (req, accessToken, refreshToken, profile, done) => {
-    //   try {
-    //     console.log(req.session,'accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
-    //     const found_user = await user.findOneGoogle({ google_email: profile.emails[0].value })
-    //     console.log(found_user)
-    //     return done(null, found_user.toJSON())
-    //   } catch (err) {
-    //     return done(err)
-    //   }
-    // }
-    )
-);
   
-
-app.get('/login', (req, res) => {
+app.get('/login', (req, res) => { //Working
   res.send('Login page. Please, authorize.')
 })
 
@@ -151,29 +127,47 @@ app.get('/auth/google',
     scope: ['profile', 'email'],
   })
 )
-
-// app.get(
-//   '/auth/google', (req, res, next) => {
-//     console.log(req.body, "FFFFFFFFFFFF")
-//   passport.authenticate('google', {
-//     scope: ['profile'],
-//   })(req, res, next)
-//   // console.log(profile) //ReferenceError: profile is not defined
-//   })
-
 app.get(
   '/auth/google/callback',
   passport.authenticate('google', {
     failureRedirect: '/login',
-    successRedirect: '/provider/107',
-  })
-)
+    // successRedirect: '/provider/107',
+  }),
+  function(req, res) {
+    // req.login(user, function(err) {
+    //   if (err) { return res.redirect('/login'); }
+      // res.redirect('/');
+      console.log(req.user, "-0-------0-------------0----------0-")
+      res.json(req.user);
+        
+    // })
+  }
+);
 
 // app.get('/provider/107', checkAuth(), (req, res) => {
 //   res.send("Home page. You're authorized.")
 // })
 
-//  END GOOGLE
+  // ### FACEBOOK
+
+app.get('/auth/facebook',
+  passport.authenticate('facebook'));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  function(req, res) {
+    // req.login(user, function(err) {
+    //   if (err) { return res.redirect('/login'); }
+      // res.redirect('/');
+      console.log(req.user, "-0-------0-------------0----------0-")
+      res.json(req.user);
+    // });
+    // console.log(req.user, 'facebook callback index.js-205')
+    // Successful authentication, redirect home.
+    // res.redirect('/');
+    // res.json(req.user) // req.user exists == {"id":"612308676651704","displayName":"Игорь Костюков","name":{},"provider":"facebook","_raw":"{\"name\":\"\\u0418\\u0433\\u043e\\u0440\\u044c \\u041a\\u043e\\u0441\\u0442\\u044e\\u043a\\u043e\\u0432\",\"id\":\"612308676651704\"}","_json":{"name":"Игорь Костюков","id":"612308676651704"}}
+  });                  // It is facebook user - not our database
+
 
 app.use('/', Router);
 // app.use('/user',  passport.authenticate('jwt', { session: false }), secure_route);

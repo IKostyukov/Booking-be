@@ -20,13 +20,7 @@ import {jwt_strategy} from '../config/passport.js';
 const Router = express.Router;
 const router = new Router();
 
-    //  Test
-
-// console.log(local_strategy, "test local_strategy routs.js-27")
-// console.log(jwt_strategy, "test jwt_strategy routs.js-28")
-
-
-
+   
   function mustAuthenticated(req, res, next) {  // Working
     console.log(req.session, req._passport, "req.session (routs.js-34)", 
     req.isAuthenticated, "req.isAuthenticated (routs.js-35")
@@ -125,12 +119,23 @@ const router = new Router();
 //       }
 //     );    
   
-    //  ### Защищенный маршрут 
+    //  ### Защищенный маршрут  
 
-router.get('/provider/:id', passport.authenticate(['session', 'jwt']),provider_controller.getProvider); // Working
+// router.get('/provider/:id', passport.authenticate(['facebook', 'jwt', 'session', 'google' ]),provider_controller.getProvider); // Working
+// router.get('/login', passport.authenticate(['google', 'facebook', 'jwt', 'session'  ]),provider_controller.getProvider); // Working
+// router.get('/provider/:id', passport.authenticate(['jwt', 'google',  'facebook' ]  ),provider_controller.getProvider); // Working jwt + google with global scope
+// router.get('/provider/:id', passport.authenticate('google', {scope: ['profile']} ),provider_controller.getProvider); // Working  google with scope
+// router.get('/provider/:id', passport.authenticate(['jwt', 'facebook' ]  ),provider_controller.getProvider); // Working jwt + facebook
+router.get('/provider/:id', passport.authenticate(['jwt', 'facebook', 'session' ]  ),provider_controller.getProvider); // Working jwt + facebook
 
 
-// router.get('/provider/:id', passport.authenticate('jwt', { session: true }),provider_controller.getProvider); // Working
+// При этом, все стратегии применяются с условием логическое ИЛИ. 
+// Срабатывает первая из удачных стратегий. Если произошла ошибка, и ее обработали функцией done(err), 
+// то дальше авторизация не проходит. 
+// Поэтому во всех стратегиях, кроме последней в списке авторизации,
+//  ошибка должна обрабтываться вызовом done(null, false).
+
+// router.get('/provider/:id', passport.authenticate('jwt', { session: false }),provider_controller.getProvider); // Working
 // router.get('/provider/:id', passport.authenticate('session'),provider_controller.getProvider); // Working
 // router.get('/provider/:id', mustAuthenticated, provider_controller.getProvider); // Working
 // router.get('/provider/:id', async (req, res, next) => {  
