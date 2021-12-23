@@ -99,7 +99,7 @@ class BookingControlller{
      //  ### Получить все бронирование ###
      async getBookings(req, res) { 
 
-        const equipmentprovider_id = req.params.equipmentproviderId
+        const {equipmentprovider_id} = req.body
         console.log(equipmentprovider_id, "Test getBookings")
 
         const all_bookings = await bookingmodel.getAllBookings(equipmentprovider_id)

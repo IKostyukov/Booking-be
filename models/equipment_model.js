@@ -16,10 +16,7 @@ class EquipmentModel {
     }
 
 
-    async update (req, res) {
-        const equipment_id = req.params.id
-        const {equipment_name, capacity  } = req.body
-        console.log(equipment_name, equipment_id, capacity)
+    async update (equipment_name, equipment_id, capacity) {        
         //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
         const updated_equipment = await db.query(`UPDATE equipments
         SET equipment_name = $1, capacity = $2 WHERE equipments.id = $3 RETURNING *;`,
@@ -48,8 +45,7 @@ class EquipmentModel {
         return one_equipment
     }
 
-    async getAll(req, res) {
-        const { equipment_name } = req.body    
+    async getAll(equipment_name) {           
         const sql_query = `SELECT id AS equipment_id, equipment_name 
         FROM equipments WHERE equipment_name LIKE '%'||'${equipment_name}'||'%';`
         const all_equipments = await db.query(sql_query)
@@ -91,44 +87,44 @@ class EquipmentModel {
             short
         } = req.body
         console.log(typeof(price_start))
-        const sql_begining_query = `SELECT  r.id, recipientofservices_name, 
+        const sql_begining_query = `SELECT  prv.id, provider_name, 
         location, address, distance_from_center as to_center, rating, 
         (SELECT COUNT(f.id) as feedbacks FROM feedbacks f
-        WHERE r.id = f.recipientofservices_id), 
-        eq.id as equipment_id, eqr.id as eqr_id, eq.equipment_name,  eqr.quantity,
-        eqr.quantity - (SELECT  COUNT(bk.equipment_recipientofservices_id) as taken   FROM bookings bk 
-            WHERE (bk.booking_start,  bk.booking_end)  OVERLAPS 
+        WHERE prv.id = f.provider_id), 
+        eqt.id as equipment_id, eqpr.id as eqr_id, eqt.equipment_name,  eqpr.quantity,
+        eqpr.quantity - (SELECT  COUNT(bk.equipmentprovider_id) as taken   FROM bookings bk 
+            WHERE (bk.activity_start,  bk.activity_end)  OVERLAPS 
             (DATE '${date_start}' + TIME '${time_start}', DATE '${date_end}' + TIME '${time_end}')
-            AND  bk.equipment_recipientofservices_id = eqr.id)  as avaliable, 
-        MIN(fs.fare) as start_price
-        FROM recipientofservices r
-        LEFT JOIN services_recipientofservices s_r 
-                ON r.id = s_r.recipientofservices_id  
-        LEFT JOIN equipments_recipientofservices eqr 
-            ON  r.id = eqr.recipientofservices_id 
-        LEFT JOIN equipments eq  
-            ON eqr.equipment_id = eq.id
-        LEFT JOIN fares fs
-            ON eqr.id = fs.equipment_recipientofservices_id
+            AND  bk.equipmentprovider_id = eqpr.id)  as avaliable, 
+        MIN(frs.fare) as start_price
+        FROM providers prv
+        LEFT JOIN services_providers s_p 
+                ON prv.id = s_p.provider_id  
+        LEFT JOIN equipmentsproviders eqpr 
+            ON  prv.id = eqpr.provider_id 
+        LEFT JOIN equipments eqt  
+            ON eqpr.equipment_id = eqt.id
+        LEFT JOIN fares frs
+            ON eqpr.id = frs.equipmentprovider_id
         WHERE 
         distance_from_center < ${max_distance_from_center}
-        AND location != '${location}' AND eq.id in (${equipment_id})
-        AND fs.fare = (SELECT MIN(f.fare) FROM fares f 
-            WHERE f.equipment_recipientofservices_id = eqr.id  AND f.fare >= ${price_start}  AND f.fare <= ${price_end})
-        AND eqr.id  not in
-            (SELECT bk.equipment_recipientofservices_id FROM bookings bk 
-            WHERE (bk.booking_start,  bk.booking_end)  OVERLAPS 
+        AND location != '${location}' AND eqt.id in (${equipment_id})
+        AND frs.fare = (SELECT MIN(frs.fare) FROM fares frs 
+            WHERE frs.equipmentprovider_id = eqpr.id  AND frs.fare >= ${price_start}  AND frs.fare <= ${price_end})
+        AND eqpr.id  not in
+            (SELECT bk.equipmentprovider_id FROM bookings bk 
+            WHERE (bk.activity_start,  bk.activity_end)  OVERLAPS 
             (DATE '${date_start}' + TIME '${time_start}', DATE '${date_end}' + TIME '${time_end}')
-            AND  bk.equipment_recipientofservices_id = eqr.id
-            AND eqr.quantity <
-                (SELECT  COUNT(bk.equipment_recipientofservices_id)   FROM bookings bk 
-                WHERE (bk.booking_start,  bk.booking_end)  OVERLAPS 
+            AND  bk.equipmentprovider_id = eqpr.id
+            AND eqpr.quantity <
+                (SELECT  COUNT(bk.equipmentprovider_id)   FROM bookings bk 
+                WHERE (bk.activity_start,  bk.activity_end)  OVERLAPS 
                 (DATE '${date_start}' + TIME '${time_start}', DATE '${date_end}' + TIME '${time_end}')
-                AND  bk.equipment_recipientofservices_id = eqr.id) 
+                AND  bk.equipmentprovider_id = eqpr.id) 
             )`;
 
-        const sql_services_query = ` AND s_r.service_id  in (${services}) `;
-        const sql_ending_query = ` GROUP BY r.id, eq.id, eq.equipment_name, eqr.id, eqr.quantity;`;
+        const sql_services_query = ` AND s_p.service_id  in (${services}) `;
+        const sql_ending_query = ` GROUP BY prv.id, eqt.id, eqt.equipment_name, eqpr.id, eqpr.quantity;`;
         let sql_query = ``        
         if ( services == undefined) {
             sql_query = sql_begining_query + sql_ending_query;

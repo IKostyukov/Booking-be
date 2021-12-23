@@ -262,7 +262,7 @@ class ProviderController {
 
     async updateTimetable (req, res) {
         const {start_time, end_time} = req.body
-        const timetable_id = req.params.id
+        const timetable_id = req.params.timetableId
         const updatted_timetable = await timetablemodel.updateOneTimetable(timetable_id, start_time, end_time)               
         if (updatted_timetable.rows[0]) {
             const result = { success: true }
@@ -276,7 +276,7 @@ class ProviderController {
     }
 
     async deleteTimetable (req, res) {
-        const timetable_id = req.params.id
+        const timetable_id = req.params.timetableId
         const deleted_timetable = await timetablemodel.deleteOneTimetable(timetable_id)               
         if (deleted_timetable.rows[0] !== undefined) {
             const result = { success: true }
@@ -291,7 +291,7 @@ class ProviderController {
     }
 
     async getTimetable (req, res) {
-        const timetable_id = req.params.id
+        const timetable_id = req.params.timetableId
         const one_timetable = await timetablemodel.getOneTimetable(timetable_id)               
         if (one_timetable.rows[0] !== undefined) {
             const result = one_timetable.rows[0]
@@ -328,9 +328,9 @@ class ProviderController {
     async updateExtratimetable (req, res) {
         console.log('Test')
         const {provider_id, date, start_time, end_time} = req.body
-        const extratimetable_id = req.params.id
+        const extratimetable_id = req.params.extradateId
         const updatad_extratimetable = await extratimetablemodel.updateNewExtratimetable(extratimetable_id, provider_id, date, start_time, end_time)               
-        if (updatad_extratimetable.rows[0].id ) {
+        if (updatad_extratimetable.rows[0] !== undefined ) {
             const result = { success: true }
             res.json(result)
             console.log(updatad_extratimetable.rows[0], result)
@@ -343,7 +343,7 @@ class ProviderController {
 
     async deleteExtratimetable (req, res) {
         console.log('Test')
-        const extratimetable_id = req.params.id
+        const extratimetable_id = req.params.extradateId
         const deleted_extratimetable = await extratimetablemodel.deleteOneExtratimetable(extratimetable_id)               
         if (deleted_extratimetable.rows[0] !== undefined ) {
             const result = { success: true }
@@ -358,7 +358,7 @@ class ProviderController {
 
     async getOneExtratimetable (req, res) {
         console.log('Test')
-        const extratimetable_id = req.params.id
+        const extratimetable_id = req.params.extradateId
         
         const one_extratimetable = await extratimetablemodel.getOneExtratimetableOfProvider(extratimetable_id)               
         if (one_extratimetable.rows[0] !== undefined ) {
@@ -394,13 +394,13 @@ class ProviderController {
     async createEquipmentProvider (req, res) {
         console.log('Test')
         const {
-            provider_id,
             equipment_id,
             quantity, 
             availabilitydate, 
             cancellationdate, 
             discountnonrefundable
         } = req.body
+        const provider_id = req.params.providerId
         const new_equipments = await equipmentprovidermodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)               
         if (new_equipments.rows[0].id ) {
             const result = { success: "Equipments of Provider successfully created" }
@@ -473,7 +473,7 @@ class ProviderController {
      
     async getOneEquipmentProvider(req, res) { 
         console.log(req.params.id)
-        const equipmentprovider_id = req.params.id
+        const equipmentprovider_id = req.params.equipmentId
         console.log(equipmentprovider_id, "Test equipmentprovider")
         const one_equipmentprovider = await equipmentprovidermodel.getOneEquipmentOfProvider(equipmentprovider_id)
         if (one_equipmentprovider.rows.length !== 0) {
@@ -521,10 +521,10 @@ class ProviderController {
 
     async updateFare (req, res) {
         const {equipmentprovider_id, duration, time_unit, fare} = req.body
-        const id = req.params.id
+        const fare_id = req.params.fareId
         console.log(equipmentprovider_id)
 
-        const new_fare = await faremodel.updateNewFare (id, equipmentprovider_id, duration, time_unit, fare)              
+        const new_fare = await faremodel.updateNewFare (fare_id, equipmentprovider_id, duration, time_unit, fare)              
         if (new_fare.rows[0].id ) {
             const result = { success: "Fare  successfully updated" }
             res.json(result)
@@ -537,7 +537,7 @@ class ProviderController {
     }
 
     async deleteFare (req, res) {
-        const fare_id = req.params.id
+        const fare_id = req.params.fareId
         console.log(fare_id)
         const deleted_fare = await faremodel.deleteOneFare(fare_id)              
         if (deleted_fare.rows[0] !== undefined ) {
@@ -553,7 +553,7 @@ class ProviderController {
 
     
     async getFare (req, res) {
-        const fare_id = req.params.id
+        const fare_id = req.params.fareId
         console.log(fare_id)
         const one_fare = await faremodel.getOneFare(fare_id)              
         if (one_fare.rows.length !== 0 ) {
@@ -568,7 +568,7 @@ class ProviderController {
     }
 
     async getFares (req, res) {
-        const equipmentprovider_id = req.params.id
+        const equipmentprovider_id = req.params.equipmentId
         console.log(equipmentprovider_id)
         const all_fare = await faremodel.getAllFares(equipmentprovider_id)              
         if (all_fare.rows.length !== 0 ) {
@@ -588,7 +588,7 @@ async createPromotion (req, res) {
     console.log('Test')
     const {equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
     const new_promotion = await promotionmodel.createNewPromotion(equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end )               
-    if (new_promotion.rows[0].id ) {
+    if (new_promotion.rows[0] !== undefined ) {
         const result = { success: "Promotion successfully created" }
         res.json(result)
         console.log(new_promotion.rows[0], result)
@@ -602,9 +602,9 @@ async createPromotion (req, res) {
 async updatePromotion (req, res) {
     console.log('Test')
     const {equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
-    const promotion_id = req.params.id
+    const promotion_id = req.params.promotionId
     const updatad_promotion = await promotionmodel.updateNewPromotion(promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end )               
-    if (updatad_promotion.rows[0].id ) {
+    if (updatad_promotion.rows[0] !== undefined) {
         const result = { success: true }
         res.json(result)
         console.log(updatad_promotion.rows[0], result)
@@ -651,7 +651,7 @@ async deletePromotion (req, res) {
 }
 
 async getOnePromotion (req, res) {
-    const promotion_id = req.params.id
+    const promotion_id = req.params.promotionId
     console.log('Test', promotion_id)    
     const one_promotion = await promotionmodel.getOnePromotionOfProvider(promotion_id)               
     if (one_promotion.rows[0] !== undefined ) {
@@ -666,7 +666,7 @@ async getOnePromotion (req, res) {
 }
 
 async getAllPromotions (req, res) {
-    const equipmentprovider_id = req.params.id
+    const equipmentprovider_id = req.params.equipmentId
     console.log('Test', equipmentprovider_id)
     const all_promotion = await promotionmodel.getAllPromotionsOfProvider(equipmentprovider_id)               
     if (all_promotion.rows[0] !== undefined ) {
@@ -761,7 +761,8 @@ async getAllPromotions (req, res) {
     
     async getDescription (req, res) {
         console.log('Test')
-        const description_id = req.params.id
+        const description_id = req.params.descriptionId
+        // const provider_id = req.params.providerId
         console.log(req.params)
 
         const one_description = await descriptionmodel.getOneDescription(description_id)               
@@ -778,7 +779,7 @@ async getAllPromotions (req, res) {
 
     async getAllDescriptions (req, res) {
         console.log('Test')
-        const provider_id = req.params.id
+        const provider_id = req.params.providerId
         console.log(req.params)
 
         const all_descriptions = await descriptionmodel.getAllDescriptionsOfProvider(provider_id)               
@@ -820,7 +821,7 @@ async getAllPromotions (req, res) {
     }  
 
     async getServicesOfProvider (req, res) {
-        const provider_id = req.params.id
+        const provider_id = req.params.providerId
         console.log(provider_id)
         const all_services = await serviceprovidermodel.getAllServicesOfProvider(provider_id)  
         console.log(all_services)            
@@ -836,9 +837,9 @@ async getAllPromotions (req, res) {
 
     
     async addAdvantageToProvider (req, res) {
-        console.log('Test', req.params)
-        const advantage_id = req.params.advantageId
-        const {provider_id} = req.body
+        console.log('Test', req.params, req.body)
+        const {advantage_id} = req.body
+        const provider_id = req.params.providerId 
         const added_advantage = await advantagemodel.addNewAdvantageToProvider(provider_id, advantage_id)             
         if (added_advantage.rows[0] ) {
             const result = { success: true }

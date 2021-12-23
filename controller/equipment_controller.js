@@ -21,7 +21,10 @@ class EquipmentController {
     }
 
     async updateEquipment (req, res) {
-        const updated_equipment = await equipmentmodel.update(req, res) 
+        const equipment_id = req.params.equipmentId
+        const {equipment_name, capacity  } = req.body
+        console.log(equipment_name, equipment_id, capacity)
+        const updated_equipment = await equipmentmodel.update(equipment_name, equipment_id, capacity) 
         if (updated_equipment.rows[0]) {
             const result = { success: "Equipment successfully updated" }
             res.json(result)
@@ -34,7 +37,7 @@ class EquipmentController {
 
     async activateEquipment (req, res) {
         const {active} = req.body
-        const equipment_id = req.params.id
+        const equipment_id = req.params.equipmentId
         const activated_equipment = await equipmentmodel.activate(equipment_id, active)
         console.log(activated_equipment)
         if (activated_equipment.rowCount == 0) {
@@ -55,7 +58,7 @@ class EquipmentController {
     }
 
     async deleteEquipment (req, res) {
-        const equipment_id = req.params.id 
+        const equipment_id = req.params.equipmentId 
         const deleted_equipment = await equipmentmodel.delete(equipment_id)
         if (deleted_equipment.rows.length !== 0) {
             const result = { success: "Equipment successfully deleted" }
@@ -71,7 +74,7 @@ class EquipmentController {
     }
 
     async getEquipment (req, res) {
-        const equipment_id = req.params.id 
+        const equipment_id = req.params.equipmentId 
         const get_activity = await equipmentmodel.getOne(equipment_id)
         if (get_activity.rows.length == 0) {
             const result = { Error: "Equipment not found" }
@@ -82,8 +85,9 @@ class EquipmentController {
         }
     }
 
-    async getEquipments (req, res) {        
-        const get_equipments = await equipmentmodel.getAll(req, res)
+    async getEquipments (req, res) {
+        const { equipment_name } = req.body         
+        const get_equipments = await equipmentmodel.getAll(equipment_name)
         if (get_equipments.rows.length == 0) {
             const err = { Error: "Equipments not found" }
             res.json(err) 

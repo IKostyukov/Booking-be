@@ -26,14 +26,22 @@ class BookingModel {
         return updated_booking
     }
     
-    
-    async cancelOneBooking(booking_id) {
+    async approveOneBooking(booking_id) {
         const activated_booking = await db.query(`UPDATE bookings
-        SET approved = false
+        SET approved = true
         WHERE id = $1
         RETURNING *;`, [ booking_id])
         //console.log(activated_booking.rows)
         return activated_booking
+    }
+
+    async cancelOneBooking(booking_id) {
+        const deactivated_booking = await db.query(`UPDATE bookings
+        SET approved = false
+        WHERE id = $1
+        RETURNING *;`, [ booking_id])
+        //console.log(activated_booking.rows)
+        return deactivated_booking
     }
 
 

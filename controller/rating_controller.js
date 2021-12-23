@@ -46,9 +46,9 @@ class RatingController {
     }
 
     async connectRatingToFeedback(req, res) {
-        const rating_id = req.params.ratingId
-        const message_id = req.params.messageId
-        console.log(message_id, "provider_id")
+        const {message_id} = req.body
+        const rating_id  = req.params.ratingId
+        console.log(message_id, "message_id", rating_id, "provider_id")
         const connected_rating = await ratingmodel.connectToFeedback(rating_id, message_id)
         if (connected_rating.rows[0]) {
             const result = { success: "Rating successfully connected with feedback" }

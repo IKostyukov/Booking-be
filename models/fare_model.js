@@ -14,12 +14,12 @@ class FareModel {
     return new_fare
    }
 
-   async updateNewFare (equipmentprovider_id, duration, time_unit, fare) {
+   async updateNewFare (fare_id, equipmentprovider_id, duration, time_unit, fare) {
     console.log(equipmentprovider_id, fare) 
     const new_fare = await db.query(`UPDATE fares
-	SET  fare=$1  equipmentprovider_id=$2  duration=$3 time_unit=$4
+	SET  fare=$1,  equipmentprovider_id=$2,  duration=$3, time_unit=$4
 	WHERE  id = $5
-    RETURNING *;`, [fare, equipmentprovider_id, duration, time_unit, id])
+    RETURNING *;`, [fare, equipmentprovider_id, duration, time_unit, fare_id])
     return new_fare
    }
    
