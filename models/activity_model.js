@@ -1,18 +1,23 @@
 import { pool } from '../db.js';
+// import { validation } from '../validation/body_activity_validation.js';
 const db = pool
 
 class ActivityModel {
+
+    // async validate (activity_name) {
+    //     if (validation.isString(activity_name)){
+    //         return true
+    //     }else{return error}
+    // }
     
-    async create (req, res) {
-        const {activity_name} = req.body
+    async create (activity_name) {
+
         const new_activity = await db.query(`INSERT INTO activities 
         (activity_name) VALUES ($1) RETURNING *;`, [activity_name])
         return new_activity
     }
 
-    async update (req, res) {
-        const activity_id = req.params.id
-        const {activity_name } = req.body
+    async update (activity_id, activity_name) {        
         //  Нужно проверку на получение результатов от БД.  Вариант  - нет такой активности
         const updated_activity = await db.query(`UPDATE activities 
         SET activity_name = $1 WHERE id = $2 RETURNING *;`,
@@ -20,32 +25,27 @@ class ActivityModel {
         return updated_activity
     }
 
-    async activate(req, res) {
-        const activity_id = req.params.id
-        const {active} = req.body
+    async activate(activity_id, active) {        
         const activated_activity = await db.query(`UPDATE activities
         SET active = $2 WHERE id = $1 RETURNING *;`,
         [ activity_id, active])
         return  activated_activity
     }
 
-    async delete(req, res) {
-        const activity_id = req.params.id
+    async delete(activity_id) {
         const deleted_activity = await db.query(`DELETE FROM activities WHERE id = $1
         RETURNING *;`, [activity_id])
         return deleted_activity
     }
 
-    async getOne(req, res) {
-        const activity_id = req.params.id        
+    async getOne(activity_id) {
         const sql_query = `SELECT id AS activity_id, activity_name 
         FROM activities WHERE id = ${activity_id};`
         const one_activity = await db.query(sql_query)
         return one_activity
     }
 
-    async getAll(req, res) {
-        const { activity_name } = req.body    
+    async getAll(activity_name) {
         const sql_query = `SELECT id AS activity_id, activity_name 
         FROM activities WHERE activity_name LIKE '%'||'${activity_name}'||'%' ;`
         const all_activitirs = await db.query(sql_query)

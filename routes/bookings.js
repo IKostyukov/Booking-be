@@ -12,6 +12,6 @@ routerBookings.patch('/booking/:bookingId/approval', booking_controller.approveB
 routerBookings.patch('/booking/:bookingId/cancellation', booking_controller.cancelBooking);
 routerBookings.delete('/booking/:bookingId', booking_controller.deleteBooking);
 routerBookings.get('/booking/:bookingId', booking_controller.getBooking);
-routerBookings.get('/bookings', booking_controller.getBookings);
+routerBookings.get('/booking', booking_controller.getBookings);
 
 export { routerBookings };

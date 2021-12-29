@@ -34,7 +34,6 @@ import {pool} from "./db.js";
 import {user} from "./models/user_model.js";
 
 
-
 // const Router = router
 const port =  8080;
 const app = express();
