@@ -1,15 +1,87 @@
+import uid from 'uid2';
 import { pool } from '../db.js';
 import { user } from '../models/user_model.js';
 import { favoriteequipment_model } from '../models/favoriteequipment_model.js';
+import { check, body, param, oneOf, validationResult } from 'express-validator';
 
 
 const db = pool
 
 
+  //  UUID generaate
+
+const createUuid = () => {
+    let profile_id = uid(15)
+    console.log(profile_id, "createUuid from user_controller.js")
+    return profile_id
+};
+
+
 class UserController {
 
+    validationBodyRules = {
+        "forCreating" :  [
+            body('activity_name', 'activity_name could not be empty').notEmpty(),
+            body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
+                    ],
+        "forUpdating" :  [
+            param('activityId', 'activity_id must be integer').exists(),
+            param('activityId', 'activity_id must be integer').isInt(),
+            body('activity_name', 'activity_name could not be empty').notEmpty(),
+            body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
+            ],
+        "forActivation" : [
+            param('activityId', 'activity_id must be integer').exists(),
+            param('activityId', 'activity_id must be integer').isInt(),
+            body('active', 'active could not be empty').notEmpty(),
+            body('active', 'active must be boolean').isBoolean(),
+            ], 
+        "forGettinOne" :  [
+            param('activityId', 'activity_id must be integer').exists(),
+            param('activityId', 'activity_id must be integer').isInt(),            
+            ],
+        "forGettingAll" :  [            
+            body('activity_name', 'activity_name could not be empty').notEmpty(),
+            body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
+            ],     
+    }
+
+    checkRules (req, res, next) {
+        const validation_result = validationResult(req)
+        const hasError = !validation_result.isEmpty();
+        console.log(hasError, " ----> hasError", validation_result, "----> validation_result", ) 
+        if (hasError) {
+            const result = {
+                "success": false,
+                "error": {
+                    "code" : 400,
+                    "message" : "Invalid value(s)"
+                    },
+                "data": {
+                    "active" : validation_result.errors[0].msg,
+                }
+            }
+            console.log(result,  ` ----> in the ActivityController.validateActivity`)    
+            res.status(400).json(result)    
+        }else{
+            return next()
+        }         
+    }
+
+           
+
     async createUser(req, res) {
-        const new_person = await user.create(req, res)
+        const {email, phone, first_name, last_name, patronymic, dob, service, roles } = req.body
+        const roles_id = Array.from(roles.split(','), Number)
+        let profile_id;
+        // if (service == 'local') {
+            profile_id = createUuid()
+        // } else  {
+        //     // Добаваить Google profile_id
+        //     // Добаваить Facebook profile_id
+        // }
+       
+        const new_person = await user.create(email, phone, first_name, last_name, patronymic, dob ,profile_id, service,  roles_id)
         if (new_person.new_user.rows[0].id && new_person.new_role[0].rows[0].role_id) {
             const result = { success: "User successfully created" }
             res.json(result)
@@ -18,6 +90,8 @@ class UserController {
             const result = { success: "Error" }
             res.json(result)
         }
+        
+        
     }
 
     async updateUser(req, res) {

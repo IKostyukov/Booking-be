@@ -1,16 +1,10 @@
 import { pool } from '../db.js';
-// import { validation } from '../validation/body_activity_validation.js';
 const db = pool
 
 class ActivityModel {
 
-    // async validate (activity_name) {
-    //     if (validation.isString(activity_name)){
-    //         return true
-    //     }else{return error}
-    // }
     
-    async create (activity_name) {
+    async create (activity_name) { // Нужно бы завернкть в try...cach  и выбросить throw исцлючениее на верний узщмунь в контроллер
 
         const new_activity = await db.query(`INSERT INTO activities 
         (activity_name) VALUES ($1) RETURNING *;`, [activity_name])

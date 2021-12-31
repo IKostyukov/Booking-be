@@ -5,29 +5,35 @@ import cors from 'cors';
 import cookieParser from'cookie-parser';
 import connect_pg from 'connect-pg-simple';
 import flash from 'connect-flash';
+import path from 'path';
+import { I18n }  from 'i18n';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+
 
 
 import {local_strategy} from './config/passport.js';
 import {jwt_strategy} from './config/passport.js';
 import {google_strategy} from './config/passport.js';
 import {facebook_strategy} from './config/passport.js';
-import { mustAuthenticated } from './routes/access.js';
+import { mustAuthenticated } from './routes/access_routes.js';
 
-import {routerAccess} from './routes/access.js';
-import { routerActivities } from './routes/activities.js';
-import { routerAdvantages } from './routes/advantages.js';
-import { routerBookings } from './routes/bookings.js'; 
-import { routerEquipments } from './routes/equipments.js';
-import { routerFeedbaks } from './routes/feedbacks.js';
-import { routerMessages } from './routes/messages.js';
-import { routerNotifications } from './routes/notifications.js';
-import { routerProviders } from './routes/providers.js';
-import { routerRatings } from './routes/ratings.js';
-import { routerSearches } from './routes/searches.js';
-import { routerServices } from './routes/services.js';
-import { routerUsers } from './routes/users.js';
+import {routerAccess} from './routes/access_routes.js';
+import { routerActivities } from './routes/activity_routes.js';
+import { routerAdvantages } from './routes/advantage_routes.js';
+import { routerBookings } from './routes/booking_routes.js'; 
+import { routerEquipments } from './routes/equipment_routes.js';
+import { routerFeedbaks } from './routes/feedback_routes.js';
+import { routerMessages } from './routes/message_routes.js';
+import { routerNotifications } from './routes/notification_routes.js';
+import { routerProviders } from './routes/provider_routes.js';
+import { routerRatings } from './routes/rating_routes.js';
+import { routerSearches } from './routes/search_routes.js';
+import { routerServices } from './routes/service_routes.js';
+import { routerUsers } from './routes/user_routes.js';
 
-import {secure_route} from './routes/secure-routes.js';
+import {secure_route} from './routes/secure-routes.js';  //Tect
 
 
 import {pool} from "./db.js";
@@ -39,6 +45,11 @@ const port =  8080;
 const app = express();
 const pgSession = connect_pg(expressSession);
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const i18n = new I18n({
+  locales: ['en', 'ru', 'uk'],
+  directory: path.join(__dirname, 'locales')
+})
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -51,7 +62,15 @@ app.use(cors({
 //app.use(express.cookieParser()); //is no longer bundled with Express and must be installed separatel
 // app.use(express.session({ secret: 'SECRET' })); //is no longer bundled with Express and must be installed separatel
 
- app.use(cookieParser());
+app.use(cookieParser());
+
+          // ### i_18_n ###
+          
+app.use(i18n.init);
+app.get('/', function (req, res) {
+  res.send(res.__('Hello World'));
+});
+
 //  app.use(expressSession({secret: 'keyboard cat'}))
 app.use(expressSession({
   store: new pgSession({
@@ -111,6 +130,7 @@ passport.deserializeUser(function(user, done) {
 //     return console.log("");
 //   });
 // });
+
 
 
 passport.use('local', local_strategy);
@@ -204,6 +224,11 @@ app.post('/logout',  (req, res) => {  // Working
    console.log (`-------> Пользователь вышел из системы`) 
 })
 
+// app.use('/', () => {
+//   const language = 'ru_RU'
+//   return language
+// });
+
 // app.use('/', Router);
 app.use('/', mustAuthenticated, routerAccess);
 app.use('/', mustAuthenticated, routerActivities);
@@ -228,6 +253,7 @@ app.get('/test', function (req, res) { // Working
   res.sendStatus(200);
 });
 
+console.log(i18n.__('Hello, i18n !'))
 app.listen(port, () => console.log(`server started on port ${port}`))
 
 

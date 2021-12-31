@@ -2,6 +2,7 @@ import { pool } from '../db.js';
 import { activity } from '../models/activity_model.js';
 import { check, body, param, oneOf, validationResult } from 'express-validator';
 
+import { validationAlert } from '../Alerts/validation_alerts.js';
 const db = pool
 
 
@@ -9,7 +10,7 @@ class ActivityController {
 
     //  ### Activity
 
-    activityRules = {
+    validationBodyRules = {
         "forCreating" :  [
             body('activity_name', 'activity_name could not be empty').notEmpty(),
             body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
@@ -23,10 +24,10 @@ class ActivityController {
         "forActivation" : [
             param('activityId', 'activity_id must be integer').exists(),
             param('activityId', 'activity_id must be integer').isInt(),
-            body('active', 'active could not be empty').notEmpty(),
+            body('active', validationAlert.notEmpty('active')).notEmpty(),
             body('active', 'active must be boolean').isBoolean(),
             ], 
-        "forGettinOne" :  [
+        "forGettingOne" :  [
             param('activityId', 'activity_id must be integer').exists(),
             param('activityId', 'activity_id must be integer').isInt(),            
             ],
@@ -36,7 +37,7 @@ class ActivityController {
             ],     
     }
 
-    validateActivity(req, res, next) {
+    checkRules(req, res, next) {
         const validation_result = validationResult(req)
         const hasError = !validation_result.isEmpty();
         console.log(hasError, " ----> hasError", validation_result, "----> validation_result", ) 
