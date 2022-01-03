@@ -2,7 +2,12 @@
 	"Hello": {
 		"World": "Мир"
 	},
-	"Hello.World": "Hello.World",
+	"Hello.World": "Привет.Мир",
 	"could not be empty": " не должно быть пустым",
-	"must be Boolean": " должно быть Boolean"
+	"must be Boolean": " должно быть Boolean",
+	"world": "world",
+	"validation": {
+		"notEmpty": "%s не должно быть пустым",
+		"isBoolean": "%s должно быть Boolean"
+	}
 }

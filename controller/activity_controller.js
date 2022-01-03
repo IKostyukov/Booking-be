@@ -6,8 +6,10 @@ import { check, body, param, oneOf, validationResult } from 'express-validator';
 // import { dirname } from 'path';
 // import { fileURLToPath } from 'url';
 
-import { validationAlert } from '../Alerts/validation_alerts.js';
-import  { i18n } from '../server.js';
+// import { validationAlert } from '../Alerts/validation_alerts.js';
+import  i18n   from '../i18n.js';
+// import  i18n  from '../server.js';
+console.log(i18n, "--->i18n")
 const db = pool
 // var i18n =  new I18n({
 //     locales: ['en', 'ru', 'uk'],
@@ -16,12 +18,16 @@ const db = pool
 //     objectNotation: true
 //     });
 // i18n.init
-const test = (req, res) => {
-        res.send(res.__("Hello.World"));
-    }
+// const test2 = (req, res) => {
+//         res.send(res.__("Hello.World"));
+//     }
 
 
 class ActivityController {
+
+    test () {
+        console.log(i18n.__("Hello.World"))
+    }
 
     //  ### Activity
 
@@ -39,9 +45,9 @@ class ActivityController {
         "forActivation" : [
             param('activityId', 'activity_id must be integer').exists(),
             param('activityId', 'activity_id must be integer').isInt(),
-            // body('active', validationAlert.notEmpty('active')).notEmpty(),
-            body('active', 'could not be empty').notEmpty(),
-            body('active', 'must be Boolean').isBoolean(),
+            body('active', i18n.__('validation.notEmpty', 'active')).notEmpty(),
+            body('active', i18n.__('validation.isBoolean', 'active')).isBoolean(),
+            
             ], 
         "forGettingOne" :  [
             param('activityId', 'activity_id must be integer').exists(),
@@ -59,7 +65,8 @@ class ActivityController {
         console.log(hasError, " ----> hasError", validation_result, "----> validation_result", ) 
         if (hasError) {
             const param = validation_result.errors[0].param
-            const data = res.__(validation_result.errors[0].msg)
+            // const data = res.__(validation_result.errors[0].msg)
+            const data = validation_result.errors[0].msg
             const result = {
                 "success": false,
                 "error": {
@@ -67,7 +74,7 @@ class ActivityController {
                     "message" : "Invalid value(s)"
                     },
                 "data": {
-                   [param] : param + data,
+                   [param] :  data,
                 }
             }
             console.log(result,  ` ----> in the ActivityController.validateActivity`)   

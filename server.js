@@ -6,9 +6,9 @@ import cookieParser from'cookie-parser';
 import connect_pg from 'connect-pg-simple';
 import flash from 'connect-flash';
 import path from 'path';
-import { I18n }  from 'i18n';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import  pkg   from './i18n.js';
+// import { dirname } from 'path';
+// import { fileURLToPath } from 'url';
 
 
 
@@ -44,14 +44,29 @@ import {user} from "./models/user_model.js";
 const port =  8080;
 const app = express();
 const pgSession = connect_pg(expressSession);
+const i18n = pkg
+// const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-var i18n =  new I18n({
-      locales: ['en', 'ru', 'uk'],
-      // directory: path.join(__dirname, 'locales'),
-      directory: '/home/user/MyWorks/Wave/locales',
-      objectNotation: true
-      });
+// i18n.configure({
+//      locales: ['en', 'ru', 'uk'],
+//      // directory: path.join(__dirname, 'locales'),
+//      directory: '/home/user/MyWorks/Wave/locales',
+//      objectNotation: true
+//      });
+// export default i18n()
+
+ app.use(i18n.init);
+
+   
+// let i18n = () => {
+//    new I18n({
+//       locales: ['en', 'ru', 'uk'],
+//       // directory: path.join(__dirname, 'locales'),
+//       directory: '/home/user/MyWorks/Wave/locales',
+//       objectNotation: true
+//       });
+//   app.use(i18n.init);
+//     }
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -69,7 +84,7 @@ app.use(cookieParser());
 
           // ### i_18_n ###
           
-app.use(i18n.init);
+// app.use(i18n.init);
 app.get('/', function (req, res) {
   res.send(res.__("Hello.World"));
 });
@@ -193,10 +208,7 @@ passport.use('facebook', facebook_strategy)
 //  -- Working LOGIN (midleweare) and create sesion --
 
 app.post('/login', passport.authenticate('local'), function(req, res) {
-  // If this function gets called, authentication was successful.
-  // `req.user` contains the authenticated user.
-  console.log(req.user.last_name, '(req.user.last_name) -  test of authenticate index-187 ')
-  // res.redirect('/users/' + req.user.username);
+   console.log(req.user.last_name, '(req.user.last_name) -  test of authenticate index-187 ')
   return res.send('Login successful');
 });
 
@@ -227,10 +239,6 @@ app.post('/logout',  (req, res) => {  // Working
    console.log (`-------> Пользователь вышел из системы`) 
 })
 
-// app.use('/', () => {
-//   const language = 'ru_RU'
-//   return language
-// });
 
 // app.use('/', Router);
 app.use('/', mustAuthenticated, routerAccess);
@@ -256,11 +264,16 @@ app.get('/test', function (req, res) { // Working
   res.sendStatus(200);
 });
 
-console.log(i18n.__('Hello, i18n !'))
+// console.log(i18n.__('Hello, i18n !'))
 app.listen(port, () => console.log(`server started on port ${port}`))
 
-export { i18n  }
 
+// export { i18n  }
+// export default i18n()
+
+// export default () => {
+//   console.log(i18n.__('Hello'))
+// }
 
 
 // Сервер через Node.js

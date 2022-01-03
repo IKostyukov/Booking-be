@@ -16,6 +16,7 @@ routerActivities.post('/activity', activityFormCheck.forCreate, activity_control
 routerActivities.patch('/activity/:activityId', activityFormCheck.forCreate, activity_controller.validationBodyRules.forUpdating, activity_controller.checkRules, activity_controller.updateActivity);
 routerActivities.patch('/activity/:activityId/activation', activityFormCheck.forActivate, activity_controller.validationBodyRules.forActivation, activity_controller.checkRules, activity_controller.activateActivity);
 routerActivities.delete('/activity/:activityId',  activity_controller.deleteActivity);
+// routerActivities.patch('/activity/:activityId/activation', activityFormCheck.forActivate, activity_controller.test);
 
 
 export { routerActivities };
