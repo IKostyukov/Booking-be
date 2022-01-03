@@ -46,10 +46,12 @@ const app = express();
 const pgSession = connect_pg(expressSession);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const i18n = new I18n({
-  locales: ['en', 'ru', 'uk'],
-  directory: path.join(__dirname, 'locales')
-})
+var i18n =  new I18n({
+      locales: ['en', 'ru', 'uk'],
+      // directory: path.join(__dirname, 'locales'),
+      directory: '/home/user/MyWorks/Wave/locales',
+      objectNotation: true
+      });
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -57,6 +59,7 @@ app.use(flash());
 app.use(cors({
   origin: ['http://localhost:4200']
 }));
+
 
 // Middlewares, которые должны быть определены до passport:
 //app.use(express.cookieParser()); //is no longer bundled with Express and must be installed separatel
@@ -68,7 +71,7 @@ app.use(cookieParser());
           
 app.use(i18n.init);
 app.get('/', function (req, res) {
-  res.send(res.__('Hello World'));
+  res.send(res.__("Hello.World"));
 });
 
 //  app.use(expressSession({secret: 'keyboard cat'}))
@@ -256,7 +259,7 @@ app.get('/test', function (req, res) { // Working
 console.log(i18n.__('Hello, i18n !'))
 app.listen(port, () => console.log(`server started on port ${port}`))
 
-
+export { i18n  }
 
 
 

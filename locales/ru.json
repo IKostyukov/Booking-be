@@ -1,1 +1,8 @@
-{"Hello World": "Привет, мир"}
+{
+	"Hello": {
+		"World": "Мир"
+	},
+	"Hello.World": "Hello.World",
+	"could not be empty": " не должно быть пустым",
+	"must be Boolean": " должно быть Boolean"
+}

@@ -2,7 +2,6 @@ import PassportLocal from 'passport-local';
 import PassportJwt from 'passport-jwt';
 import google_oauth from 'passport-google-oauth20';
 import facebook from 'passport-facebook';
-import KeyJwt from './config.json';
 import {user} from "../models/user_model.js";
 
 const LocalStrategy = PassportLocal.Strategy;

@@ -1,6 +1,12 @@
 {
-	"Hello": "Hello",
-	"Hello i18n": "Hello i18n",
 	"Hello, i18n !": "Hello, i18n !",
-	"Hello World": "Hello World"
+	"Hello": {
+		"World": "Hello.World"
+	},
+	"could not be empty": " could not be empty",
+	"must be Boolean": " must be Boolean",
+	"Validation": {
+		"notEmpty": "Validation.notEmpty",
+		"isBoolean": "Validation.isBoolean"
+	}
 }
