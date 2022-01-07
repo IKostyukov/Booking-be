@@ -8,6 +8,12 @@
 	"world": "world",
 	"validation": {
 		"notEmpty": "%s не должно быть пустым",
-		"isBoolean": "%s должно быть Boolean"
+		"isBoolean": "%s должно быть Boolean",
+		"isString": "%s должно быть строкой",
+		"exists": "%s должно быть указано",
+		"isInt": "%s должно быть числом",
+		"isUUID": "%s должно быть UUID",
+		"isLength": "%s недопустимая длина строки",
+		"notFound": "Активность с activity_id = %s не существует"
 	}
 }

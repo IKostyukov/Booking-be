@@ -10,7 +10,7 @@ const countProperties = (obj) => {
 
 class ActivityFormCheck {    
 
-    forCreate (req, res, next) {
+    isName (req, res, next) {
 
         const count_properties = countProperties(req.body) 
         console.log(count_properties, "count of properties");    
@@ -49,7 +49,7 @@ class ActivityFormCheck {
         }
     }
 
-    forActivate (req, res, next) {
+    isActive (req, res, next) {
 
         const count_properties = countProperties(req.body) 
         console.log(count_properties, "count of properties");    

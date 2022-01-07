@@ -5,6 +5,12 @@
 	},
 	"validation": {
 		"notEmpty": "%s could not be empty",
-		"isBoolean": "%s must be Boolean"
+		"isBoolean": "%s must be Boolean",
+		"isString": "%s must be string",
+		"exists": "%s must be provided",
+		"isInt": "%s must be integer",
+		"isUUID": "%s must be UUID",
+		"isLength": "%s invalid string length",
+		"notFound": "Activity with activity_id = %s not exists"
 	}
 }

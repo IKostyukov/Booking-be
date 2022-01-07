@@ -1,72 +1,94 @@
 import { pool } from '../db.js';
 import { activity } from '../models/activity_model.js';
-import { check, body, param, oneOf, validationResult } from 'express-validator';
+import { body, param,  validationResult } from 'express-validator';
+import { checkSchema } from 'express-validator';
+import  i18n   from 'i18n';
 
-// import { I18n }  from 'i18n';
-// import { dirname } from 'path';
-// import { fileURLToPath } from 'url';
 
-// import { validationAlert } from '../Alerts/validation_alerts.js';
-import  i18n   from '../i18n.js';
-// import  i18n  from '../server.js';
-console.log(i18n, "--->i18n")
 const db = pool
-// var i18n =  new I18n({
-//     locales: ['en', 'ru', 'uk'],
-//     // directory: path.join(__dirname, 'locales'),
-//     directory: '/home/user/MyWorks/Wave/locales',
-//     objectNotation: true
-//     });
-// i18n.init
-// const test2 = (req, res) => {
-//         res.send(res.__("Hello.World"));
-//     }
 
+
+
+// console.log( i18n, " ---> i18n in the activity_controller.js")
 
 class ActivityController {
 
-    test () {
-        console.log(i18n.__("Hello.World"))
-    }
-
     //  ### Activity
+    
+    registrationSchema = {
+        activityId: {
+            // The location of the field, can be one or more of body, cookies, headers, params or query.
+            // If omitted, all request locations will be checked
+            in: ['params'],
+            isInt: {
+                if: value => {
+                    return value !== undefined;
+                  },
+                errorMessage: () => { return i18n.__('validation.isInt', 'activityId')},       
+                
+            },
+        },
+        activity_name: {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+            in: ['body'],
+            notEmpty: {
+                if: value => {
+                    return value !== undefined;
+                  },
+                errorMessage: () => { return i18n.__('validation.notEmpty', 'activity_name')},
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'activity_name')},
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'activity_name')},
+                options: {min:2, max:100 },
+                bail: true,
+            },    
+        },
+        active: {
 
-    validationBodyRules = {
-        "forCreating" :  [
-            // body('activity_name', __('validation.notEmpty', 'activity_name')).notEmpty(),
-            body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
-                    ],
-        "forUpdating" :  [
-            param('activityId', 'activity_id must be integer').exists(),
-            param('activityId', 'activity_id must be integer').isInt(),
-            body('activity_name', 'activity_name could not be empty').notEmpty(),
-            body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
-            ],
-        "forActivation" : [
-            param('activityId', 'activity_id must be integer').exists(),
-            param('activityId', 'activity_id must be integer').isInt(),
-            body('active', i18n.__('validation.notEmpty', 'active')).notEmpty(),
-            body('active', i18n.__('validation.isBoolean', 'active')).isBoolean(),
+            notEmpty: {
+                if: value => {
+                    return value !== undefined;
+                  },
+                errorMessage: () => { return i18n.__('validation.notEmpty', 'active')},
+                bail: true,
+            },                
+            isBoolean: { 
+                errorMessage: () => { return i18n.__('validation.isBoolean', 'active')},
+                bail: true,
+            },
+        },
             
-            ], 
-        "forGettingOne" :  [
-            param('activityId', 'activity_id must be integer').exists(),
-            param('activityId', 'activity_id must be integer').isInt(),            
-            ],
-        "forGettingAll" :  [            
-            body('activity_name', 'activity_name could not be empty').notEmpty(),
-            body('activity_name', 'activity_name must be srting').isString(),  // цифры тоже в формате строки проиходят
-            ],     
-    }
+        
+        //  Support bail functionality in schemas
+    //     active: {
+    //         in: ['body'],
 
-    checkRules(req, res, next) {
+    //         notEmpty: {
+    //             errorMessage: () => { return i18n.__('validation.notEmpty', 'active')},
+    //             bail: true,
+    //         },                
+    //         isBoolean: { 
+    //             errorMessage: () => { return i18n.__('validation.isBoolean', 'active')},
+    //             bail: true,
+    //       },
+    //     },
+      }
+
+    async checkResult(req, res, next)  {
+        console.log(" ----> checkResult" ) 
+
+        // console.log(i18n.getLocale(),'------> locale')
         const validation_result = validationResult(req)
         const hasError = !validation_result.isEmpty();
-        console.log(hasError, " ----> hasError", validation_result, "----> validation_result", ) 
+        console.log(hasError, " ----> hasError", validation_result, " ----> validation_result", ) 
         if (hasError) {
             const param = validation_result.errors[0].param
-            // const data = res.__(validation_result.errors[0].msg)
             const data = validation_result.errors[0].msg
+            // console.log(validation_result.errors, '-----> validation_result.errors')
             const result = {
                 "success": false,
                 "error": {
@@ -74,77 +96,212 @@ class ActivityController {
                     "message" : "Invalid value(s)"
                     },
                 "data": {
-                   [param] :  data,
+                    [param] :  data,
                 }
             }
-            console.log(result,  ` ----> in the ActivityController.validateActivity`)   
-            
-            console.log(i18n.__("Hello.World"))
-
-            // test(req, res) 
-            res.status(400).json(result)    
-            // res.__('Hello')
+            console.log(result,  ` ----> from the ActivityController.checkResult`) 
+            res.status(400).json(result) 
         }else{
-            return next()
-        }         
+            try{
+                const activity_id = req.params.activityId
+                console.log(activity_id, typeof(activity_id), '-------> req.params.activityId')
+        
+                const is_exist = await activity.isExist(activity_id) // нужна еще одна предварительная проверка по activity_name пред созданием новой записи в БД 
+                if (is_exist ) {
+                    return next()
+                }else{
+                    const result = {
+                        "success": false,
+                        "error": {
+                            "code" : 404,
+                            "message" : "Not Found"
+                        },
+                        "data": {
+                            "activity_id" : i18n.__('validation.notFound', `${activity_id}`),
+                            // `Activity with activity_id=${activity_id}  not exists`,
+                        }
+                    }
+                    console.log(result, " -----> from the ActivityController.checkResult")
+                    res.status(404).json(result) 
+                } 
+            } catch (err) {
+                res.status(500).json(err) 
+            }
+        }              
     }
 
-    async createActivity (req, res) {
-        const {activity_name} = req.body
-        const new_activity = await activity.create(activity_name)               
-        if (new_activity.rows[0].id ) {
-            const result = { success: true }
-            res.json(result)
-            console.log(new_activity.rows[0], " Activity successfully created")
-            // res.json( new_person.rows[0].id)
-        } else {
-            const result = {}
-            console.log(result)
-            res.json(result)
+    // validationRules = {
+    //     "forCreating" :  [
+    //         body('activity_name').notEmpty().withMessage(() => {
+    //             return i18n.__('validation.notEmpty', 'activity_name')
+    //             }),
+    //         ],
+    //     "forUpdating" :  [ 
+    //         param('activityId').not().isUUID().withMessage(() => {          // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')        // цифры в формате строки проиходят    
+    //             }),                                                      //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
+ 
+    //         body('activity_name').notEmpty().withMessage(() => {
+    //                 return i18n.__('validation.notEmpty', 'activity_name')
+    //             }).bail().isString().withMessage(() => {
+    //                 return i18n.__('validation.isString', 'activity_name')
+    //             }).bail().isLength({min:2, max:100 }).withMessage(() => {
+    //                 return i18n.__('validation.isLength', 'activity_name')
+    //             }),         
+    //         ],
+    //     "forActivation" : [
+    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят                                                                   
+    //             }),                                                             //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
+        
+    //         body('active').notEmpty().withMessage(() => {
+    //                 return i18n.__('validation.notEmpty', 'active')
+    //             }).bail().isBoolean().withMessage(() => {
+    //                 return i18n.__('validation.isBoolean', 'active')
+    //             }),     
+    //         ],  
+    //     "forDelete" : [
+    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят    
+    //             }),                                                              //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid                                                                  
+    //         ], 
+    //     "forGettingOne" :  [
+    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят    
+    //             }),                                                              //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
+    //         ],
+    //     "forGettingAll" :  [            
+    //         body('activity_name').notEmpty().withMessage(() => {
+    //             return i18n.__('validation.notEmpty', 'activity_name')
+    //         }).bail().isString().withMessage(() => {
+    //             return i18n.__('validation.isString', 'activity_name')
+    //         }).bail().isLength({min:2, max:5 }).withMessage(() => {
+    //             return i18n.__('validation.isLength', 'activity_name')
+    //         }),  
+    //     ],     
+    // }
+    
+    
+
+    // async checkRules(req, res, next) {
+    //     // console.log(i18n.getLocale(),'------> locale')
+    //     const validation_result = validationResult(req)
+    //     const hasError = !validation_result.isEmpty();
+    //     console.log(hasError, " ----> hasError", validation_result, " ----> validation_result", ) 
+    //     if (hasError) {
+    //         const param = validation_result.errors[0].param
+    //         const data = validation_result.errors[0].msg
+    //         // console.log(validation_result.errors, '-----> validation_result.errors')
+    //         const result = {
+    //             "success": false,
+    //             "error": {
+    //                 "code" : 400,
+    //                 "message" : "Invalid value(s)"
+    //                 },
+    //             "data": {
+    //                [param] :  data,
+    //             }
+    //         }
+    //         console.log(result,  ` ----> in the ActivityController.checkRules`) 
+    //         res.status(400).json(result) 
+    //     }else{
+    //         try{
+    //             const activity_id = req.params.activityId
+    //             console.log(activity_id, typeof(activity_id), '-------> req.params.activityId')
+        
+    //             const is_exist = await activity.isExist(activity_id)
+    //             if (is_exist ) {
+    //                 return next()
+    //             }else{
+    //                 const result = {
+    //                     "success": false,
+    //                     "error": {
+    //                         "code" : 404,
+    //                         "message" : "Not Found"
+    //                     },
+    //                     "data": {
+    //                         "activity_id" : `Activity with activity_id=${activity_id}  not exists`,
+    //                     }
+    //                 }
+    //                 console.log(result, " -----> from ActivityController.deleteActivity.getOne")
+    //                 res.status(404).json(result) 
+    //             } 
+    //         }catch(err) {
+    //             res.status(500).json(err) 
+    //         }
+    //     }         
+    // }
+
+    async createActivity (req, res) { // нужна проверка нет ли активности с таким именем
+        try{
+            const {activity_name} = req.body
+            const new_activity = await activity.create(activity_name)               
+            if (new_activity.rows[0].id ) {
+                const result = { success: true }
+                res.json(result)
+                console.log(new_activity.rows[0], " Activity successfully created")
+                // res.json( new_person.rows[0].id)
+            } else {
+                const result = {}   //?????
+                console.log(result)
+                res.json(result)
+            }
+        }catch(err) {
+            res.status(500).json(err) 
         }
     }
 
     async updateActivity (req, res) {
-        const activity_id = req.params.activityId
-        const {activity_name } = req.body
-        const updated_activity = await activity.update(activity_id, activity_name) 
-        if (updated_activity) {
-            const result = { success: true}
-            res.json(result)
-            console.log(updated_activity.rows, "Activity successfully updated" )
-        } else {
-            const result = {}
-            console.log(result)
-            res.json(result)
+        try{            
+            const activity_id = req.params.activityId
+            const {activity_name } = req.body
+            const updated_activity = await activity.update(activity_id, activity_name) 
+            if (updated_activity) {
+                const result = { success: true}
+                res.json(result)
+                console.log(updated_activity.rows, "Activity successfully updated" )
+            } else {
+                const result = {}
+                console.log(result)
+                res.json(result)
+            }
+        }catch(err) {
+            res.status(500).json(err) 
         }
     }
 
     async activateActivity (req, res) {
-        const activity_id = req.params.activityId
-        const {active} = req.body
-        console.log(activity_id, typeof(activity_id))
-        console.log( "------> controller is working in the activateActivity")      
+        try{
+            const activity_id = req.params.activityId
+            const {active} = req.body
+            console.log(activity_id, typeof(activity_id))
+            // console.log( "------> controller is working in the activateActivity")      
 
-        const activated_activity = await activity.activate(activity_id, active)
-        if (activated_activity.rows[0].active == true) {
-            const result = { success: true}
-            console.log(activated_activity.rows[0], "Activity successfully activated" )
-            res.json(result)
-        } else if (activated_activity.rows[0].active == false) {
-            const result = { success: true }
-            res.json(result)
-            console.log(activated_activity.rows[0], "Activity successfully deactivated")
-        } else {
-            const result = {}
-            console.log(result)
-            res.json(result)
+            const activated_activity = await activity.activate(activity_id, active)
+            // console.log(activated_activity.rows, " ----> activated_activity in activateActivity" )
+
+
+            if (activated_activity.rows[0].active == true) {
+                const result = { success: true}
+                console.log(activated_activity.rows[0], "Activity successfully activated" )
+                res.json(result)
+            } else if (activated_activity.rows[0].active == false) {
+                const result = { success: true }
+                res.json(result)
+                console.log(activated_activity.rows[0], "Activity successfully deactivated")
+            } else {
+                const result = {} //?????
+                console.log(result)
+                res.json(result)
+            }
+        } catch(err) {
+            res.status(500).json(err) 
         }
     }
 
     async deleteActivity (req, res) {
-        const activity_id = req.params.activityId
-        const get_activity = await activity.getOne(activity_id)
-        if (get_activity.rows.length !== 0 ) {
+        try{
+            const activity_id = req.params.activityId
             const deleted_activity = await activity.delete(activity_id)
             if (deleted_activity.rows.length !== 0) {
                 const result = { success: true }
@@ -165,91 +322,93 @@ class ActivityController {
                 res.status(404).json(result) 
             } else {
                 const result = {}
-                console.log(result)
+                console.log(result)  //????
                 res.json(result)
             }
-        }else{  // дублирует тоже что и предыдущий (else if)
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 404,
-                    "message" : "Not Found"
-                },
-                "data": {
-                    "activity_id" : `Activity with activity_id=${activity_id} not exist`,
-                }
-            }
-            console.log(result, " -----> from ActivityController.deleteActivity.getOne")
-            res.status(404).json(result) 
+        } catch(err) {
+            res.status(500).json(err) 
         }
+       
     }
 
     async getActivity (req, res) {
-        const activity_id = req.params.activityId 
-        const get_activity = await activity.getOne(activity_id)
-        if (get_activity.rows.length !== 0 ) {
-            const result = {
-                "success": true,
-                "data": get_activity.rows[0]
-            }
-            console.log(result)
-            res.json(result)            
-        }else {
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 404,
-                    "message" : "Not Found"
+        try{
+            const activity_id = req.params.activityId 
+            const get_activity = await activity.getOne(activity_id)
+            if (get_activity.rows.length !== 0 ) {
+                const result = {
+                    "success": true,
+                    "data": get_activity.rows[0]
                 }
+                console.log(result)
+                res.json(result)            
+            } else {
+                const result = {
+                    "success": false,
+                    "error": {
+                        "code" : 404,
+                        "message" : "Not Found"
+                    }
+                }
+                console.log(result, ` -----> activity with activity_id = ${activity_id} not exists; from ActivityController.getActivity`)
+                res.status(404).json(result) 
             }
-            console.log(result, ` -----> activity with activity_id = ${activity_id} not exists; from ActivityController.getActivity`)
-            res.status(404).json(result) 
+        }catch(err) {
+            res.status(500).json(err) 
         }
     }
 
-    async getActivities (req, res) {    
-        const { activity_name } = req.body  
-        const get_activities = await activity.getAll(activity_name)
-        if (get_activities.rows.length !== 0) {
-            const result = {
-                "success": true,
-                "data": get_activities.rows
-            }
-            console.log(result)
-            res.json(result)  
-        }else {
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 404,
-                    "message" : "Not Found"
+    async getActivities (req, res) {
+        try{    
+            const { activity_name } = req.body  
+            const get_activities = await activity.getAll(activity_name)
+            if (get_activities.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": get_activities.rows
                 }
+                console.log(result)
+                res.json(result)  
+            }else {
+                const result = {
+                    "success": false,
+                    "error": {
+                        "code" : 404,
+                        "message" : "Not Found"
+                    }
+                }
+                console.log(result, ` -----> activity with activity_name = ${activity_name} not exists; from ActivityController.getActivities`)
+                res.status(404).json(result) 
             }
-            console.log(result, ` -----> activity with activity_name = ${activity_name} not exists; from ActivityController.getActivities`)
-            res.status(404).json(result) 
+        }catch(err) {
+            res.status(500).json(err) 
         }
     }
 
     // Поисковые запросы
     async getPopularActivities(req, res) {
-        const popular_activities = await activity.getPopular()
-        if (popular_activities.rows.length !== 0) {
-            const result = {
-                "success": true,
-                "data": popular_activities.rows
-            }
-            console.log(result)
-            res.json(result)  
-        }else {
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 404,
-                    "message" : "Not Found"
+        try{
+            const popular_activities = await activity.getPopular()
+            if (popular_activities.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": popular_activities.rows
                 }
+                console.log(result)
+                res.json(result)  
+            }else {
+                const result = {
+                    "success": false,
+                    "error": {
+                        "code" : 404,
+                        "message" : "Not Found"
+                    }
+                }
+                console.log(result, ` -----> activity with activity_name = ${activity_name} not exists; from ActivityController.getActivities`)
+                res.status(404).json(result) 
             }
-            console.log(result, ` -----> activity with activity_name = ${activity_name} not exists; from ActivityController.getActivities`)
-            res.status(404).json(result) 
+        }catch(err) {
+            res.status(500).json(err) 
         }
     }
 }

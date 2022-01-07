@@ -5,12 +5,7 @@ import cors from 'cors';
 import cookieParser from'cookie-parser';
 import connect_pg from 'connect-pg-simple';
 import flash from 'connect-flash';
-import path from 'path';
-import  pkg   from './i18n.js';
-// import { dirname } from 'path';
-// import { fileURLToPath } from 'url';
-
-
+import  i18n   from './i18n.js';
 
 
 import {local_strategy} from './config/passport.js';
@@ -44,30 +39,10 @@ import {user} from "./models/user_model.js";
 const port =  8080;
 const app = express();
 const pgSession = connect_pg(expressSession);
-const i18n = pkg
-// const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// i18n.configure({
-//      locales: ['en', 'ru', 'uk'],
-//      // directory: path.join(__dirname, 'locales'),
-//      directory: '/home/user/MyWorks/Wave/locales',
-//      objectNotation: true
-//      });
-// export default i18n()
 
- app.use(i18n.init);
 
-   
-// let i18n = () => {
-//    new I18n({
-//       locales: ['en', 'ru', 'uk'],
-//       // directory: path.join(__dirname, 'locales'),
-//       directory: '/home/user/MyWorks/Wave/locales',
-//       objectNotation: true
-//       });
-//   app.use(i18n.init);
-//     }
-
+app.use(i18n);
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(flash());
@@ -81,13 +56,6 @@ app.use(cors({
 // app.use(express.session({ secret: 'SECRET' })); //is no longer bundled with Express and must be installed separatel
 
 app.use(cookieParser());
-
-          // ### i_18_n ###
-          
-// app.use(i18n.init);
-app.get('/', function (req, res) {
-  res.send(res.__("Hello.World"));
-});
 
 //  app.use(expressSession({secret: 'keyboard cat'}))
 app.use(expressSession({
@@ -264,40 +232,4 @@ app.get('/test', function (req, res) { // Working
   res.sendStatus(200);
 });
 
-// console.log(i18n.__('Hello, i18n !'))
 app.listen(port, () => console.log(`server started on port ${port}`))
-
-
-// export { i18n  }
-// export default i18n()
-
-// export default () => {
-//   console.log(i18n.__('Hello'))
-// }
-
-
-// Сервер через Node.js
-
-// const http = require('http');
-// const hostname = '127.0.0.1';
-// const server = http.createServer((req, res) => {
-//     res.statusCode = 200;
-//     res.setHeader('Content-Type', 'text/plain');
-//     res.end('Hello World');
-//   });
-
-// server.listen(port, hostname, () => {
-//     console.log(`Server running at http://${hostname}:${port}/`);
-//   });
-
-
-// Создать свое  событие
-
-// var events = require('events');
-// var myEmit = new events.EventEmitter();
-// 
-// myEmit.on('some', function(text) {
-    // console.log(text);
-// });
-// 
-// myEmit.emit('some', 'Работает');
