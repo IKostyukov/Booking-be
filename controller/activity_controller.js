@@ -16,19 +16,37 @@ class ActivityController {
     //  ### Activity
     
     registrationSchema = {
+
         activityId: {
             // The location of the field, can be one or more of body, cookies, headers, params or query.
             // If omitted, all request locations will be checked
             in: ['params'],
             isInt: {
-                if: value => {
-                    return value !== undefined;
+                if: activityId => {
+                    return activityId !== undefined;
                   },
                 errorMessage: () => { return i18n.__('validation.isInt', 'activityId')},       
+                bail: true,
+            },
+            custom: {
+                options:  (activityId, { req, location, path }) => {           
                 
+                    try{ return  activity.isExist(activityId).then(is_exist => {
+                            console.log(is_exist, '-------> is_exist from registrationSchema')
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Activity with activity_id = ${activityId} is not in DB (from activity_controller.js)')
+                                return Promise.reject(i18n.__('validation.notFound', `activity_id = ${activityId}`));
+                            }
+                        });
+                    }catch(err){
+                        console.log(err, " ---------------------------> never works")
+                    }
+                },
             },
         },
-        activity_name: {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+        activity_name: {
+
             in: ['body'],
             notEmpty: {
                 if: value => {
@@ -45,8 +63,30 @@ class ActivityController {
                 errorMessage: () => { return i18n.__('validation.isLength', 'activity_name')},
                 options: {min:2, max:100 },
                 bail: true,
+            },
+            custom: {                
+                options:  (value, { req, location, path }) => { 
+                    console.log(req.params, "----> req.params.activityId")
+                    if (req.params.activityId == undefined) {                       
+                    
+                        try{ return  activity.isUnique(value).then(is_unique => {
+                                // console.log(is_unique, '-------> is_unique from registrationSchema')
+                                if (is_unique.rows[0].exists == true) {
+                                        console.log('Activity with activity_name = ${value} is alredy exist in DB (from activity_controller.js)')
+                                        return Promise.reject(i18n.__('validation.isUnique', `${value}`));
+                                }
+                            });
+                        }catch(err){
+                            console.log(err, " ---------------------------> never works")
+                        }
+                    }else{
+                        return value
+                    }
+                },
+                bail: true,
             },    
         },
+
         active: {
 
             notEmpty: {
@@ -61,21 +101,6 @@ class ActivityController {
                 bail: true,
             },
         },
-            
-        
-        //  Support bail functionality in schemas
-    //     active: {
-    //         in: ['body'],
-
-    //         notEmpty: {
-    //             errorMessage: () => { return i18n.__('validation.notEmpty', 'active')},
-    //             bail: true,
-    //         },                
-    //         isBoolean: { 
-    //             errorMessage: () => { return i18n.__('validation.isBoolean', 'active')},
-    //             bail: true,
-    //       },
-    //     },
       }
 
     async checkResult(req, res, next)  {
@@ -102,135 +127,11 @@ class ActivityController {
             console.log(result,  ` ----> from the ActivityController.checkResult`) 
             res.status(400).json(result) 
         }else{
-            try{
-                const activity_id = req.params.activityId
-                console.log(activity_id, typeof(activity_id), '-------> req.params.activityId')
-        
-                const is_exist = await activity.isExist(activity_id) // нужна еще одна предварительная проверка по activity_name пред созданием новой записи в БД 
-                if (is_exist ) {
-                    return next()
-                }else{
-                    const result = {
-                        "success": false,
-                        "error": {
-                            "code" : 404,
-                            "message" : "Not Found"
-                        },
-                        "data": {
-                            "activity_id" : i18n.__('validation.notFound', `${activity_id}`),
-                            // `Activity with activity_id=${activity_id}  not exists`,
-                        }
-                    }
-                    console.log(result, " -----> from the ActivityController.checkResult")
-                    res.status(404).json(result) 
-                } 
-            } catch (err) {
-                res.status(500).json(err) 
-            }
+            return next()
         }              
     }
 
-    // validationRules = {
-    //     "forCreating" :  [
-    //         body('activity_name').notEmpty().withMessage(() => {
-    //             return i18n.__('validation.notEmpty', 'activity_name')
-    //             }),
-    //         ],
-    //     "forUpdating" :  [ 
-    //         param('activityId').not().isUUID().withMessage(() => {          // not() убрать когда заменим id на uuid
-    //                 return i18n.__('validation.isUUID', 'activityId')        // цифры в формате строки проиходят    
-    //             }),                                                      //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
- 
-    //         body('activity_name').notEmpty().withMessage(() => {
-    //                 return i18n.__('validation.notEmpty', 'activity_name')
-    //             }).bail().isString().withMessage(() => {
-    //                 return i18n.__('validation.isString', 'activity_name')
-    //             }).bail().isLength({min:2, max:100 }).withMessage(() => {
-    //                 return i18n.__('validation.isLength', 'activity_name')
-    //             }),         
-    //         ],
-    //     "forActivation" : [
-    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
-    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят                                                                   
-    //             }),                                                             //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
-        
-    //         body('active').notEmpty().withMessage(() => {
-    //                 return i18n.__('validation.notEmpty', 'active')
-    //             }).bail().isBoolean().withMessage(() => {
-    //                 return i18n.__('validation.isBoolean', 'active')
-    //             }),     
-    //         ],  
-    //     "forDelete" : [
-    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
-    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят    
-    //             }),                                                              //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid                                                                  
-    //         ], 
-    //     "forGettingOne" :  [
-    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
-    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят    
-    //             }),                                                              //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
-    //         ],
-    //     "forGettingAll" :  [            
-    //         body('activity_name').notEmpty().withMessage(() => {
-    //             return i18n.__('validation.notEmpty', 'activity_name')
-    //         }).bail().isString().withMessage(() => {
-    //             return i18n.__('validation.isString', 'activity_name')
-    //         }).bail().isLength({min:2, max:5 }).withMessage(() => {
-    //             return i18n.__('validation.isLength', 'activity_name')
-    //         }),  
-    //     ],     
-    // }
-    
-    
-
-    // async checkRules(req, res, next) {
-    //     // console.log(i18n.getLocale(),'------> locale')
-    //     const validation_result = validationResult(req)
-    //     const hasError = !validation_result.isEmpty();
-    //     console.log(hasError, " ----> hasError", validation_result, " ----> validation_result", ) 
-    //     if (hasError) {
-    //         const param = validation_result.errors[0].param
-    //         const data = validation_result.errors[0].msg
-    //         // console.log(validation_result.errors, '-----> validation_result.errors')
-    //         const result = {
-    //             "success": false,
-    //             "error": {
-    //                 "code" : 400,
-    //                 "message" : "Invalid value(s)"
-    //                 },
-    //             "data": {
-    //                [param] :  data,
-    //             }
-    //         }
-    //         console.log(result,  ` ----> in the ActivityController.checkRules`) 
-    //         res.status(400).json(result) 
-    //     }else{
-    //         try{
-    //             const activity_id = req.params.activityId
-    //             console.log(activity_id, typeof(activity_id), '-------> req.params.activityId')
-        
-    //             const is_exist = await activity.isExist(activity_id)
-    //             if (is_exist ) {
-    //                 return next()
-    //             }else{
-    //                 const result = {
-    //                     "success": false,
-    //                     "error": {
-    //                         "code" : 404,
-    //                         "message" : "Not Found"
-    //                     },
-    //                     "data": {
-    //                         "activity_id" : `Activity with activity_id=${activity_id}  not exists`,
-    //                     }
-    //                 }
-    //                 console.log(result, " -----> from ActivityController.deleteActivity.getOne")
-    //                 res.status(404).json(result) 
-    //             } 
-    //         }catch(err) {
-    //             res.status(500).json(err) 
-    //         }
-    //     }         
-    // }
+   
 
     async createActivity (req, res) { // нужна проверка нет ли активности с таким именем
         try{
@@ -278,24 +179,35 @@ class ActivityController {
             // console.log( "------> controller is working in the activateActivity")      
 
             const activated_activity = await activity.activate(activity_id, active)
-            // console.log(activated_activity.rows, " ----> activated_activity in activateActivity" )
+            // console.log(activated_activity, " ----> activated_activity in activateActivity" )
 
 
             if (activated_activity.rows[0].active == true) {
                 const result = { success: true}
                 console.log(activated_activity.rows[0], "Activity successfully activated" )
                 res.json(result)
-            } else if (activated_activity.rows[0].active == false) {
+            } else {
                 const result = { success: true }
                 res.json(result)
                 console.log(activated_activity.rows[0], "Activity successfully deactivated")
-            } else {
-                const result = {} //?????
-                console.log(result)
-                res.json(result)
             }
         } catch(err) {
-            res.status(500).json(err) 
+            if ( Object.keys(err).length == 0) {
+                const result = {
+                    "success": false,
+                    "error": {
+                        "code" : 400,
+                        "message" : "Invalid value(s)"
+                        },
+                    "data": {
+                        "activity_id" :  "Activity not found", // если зарос с БД с несушествующим id, то activated_activity.rows == 0
+                    }
+                }
+                console.log(result, ' ----> from activateActivity function in activity_controller.js')
+                res.status(400).json(result) 
+            }else{
+            res.status(500).json(err)
+            } 
         }
     }
 
@@ -411,6 +323,111 @@ class ActivityController {
             res.status(500).json(err) 
         }
     }
+
+          //  validationRules  &  checkRules заменены на  registrationSchema & checkResult соответственно
+
+     // validationRules = {
+    //     "forCreating" :  [
+    //         body('activity_name').notEmpty().withMessage(() => {
+    //             return i18n.__('validation.notEmpty', 'activity_name')
+    //             }),
+    //         ],
+    //     "forUpdating" :  [ 
+    //         param('activityId').not().isUUID().withMessage(() => {          // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')        // цифры в формате строки проиходят    
+    //             }),                                                      //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
+ 
+    //         body('activity_name').notEmpty().withMessage(() => {
+    //                 return i18n.__('validation.notEmpty', 'activity_name')
+    //             }).bail().isString().withMessage(() => {
+    //                 return i18n.__('validation.isString', 'activity_name')
+    //             }).bail().isLength({min:2, max:100 }).withMessage(() => {
+    //                 return i18n.__('validation.isLength', 'activity_name')
+    //             }),         
+    //         ],
+    //     "forActivation" : [
+    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят                                                                   
+    //             }),                                                             //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
+        
+    //         body('active').notEmpty().withMessage(() => {
+    //                 return i18n.__('validation.notEmpty', 'active')
+    //             }).bail().isBoolean().withMessage(() => {
+    //                 return i18n.__('validation.isBoolean', 'active')
+    //             }),     
+    //         ],  
+    //     "forDelete" : [
+    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят    
+    //             }),                                                              //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid                                                                  
+    //         ], 
+    //     "forGettingOne" :  [
+    //         param('activityId').not().isUUID().withMessage(() => {              // not() убрать когда заменим id на uuid
+    //                 return i18n.__('validation.isUUID', 'activityId')           // цифры в формате строки проиходят    
+    //             }),                                                              //   .bail().isLength({min:10, max: 10}),     // и добавить isLength()   когда заменим id на uuid      
+    //         ],
+    //     "forGettingAll" :  [            
+    //         body('activity_name').notEmpty().withMessage(() => {
+    //             return i18n.__('validation.notEmpty', 'activity_name')
+    //         }).bail().isString().withMessage(() => {
+    //             return i18n.__('validation.isString', 'activity_name')
+    //         }).bail().isLength({min:2, max:5 }).withMessage(() => {
+    //             return i18n.__('validation.isLength', 'activity_name')
+    //         }),  
+    //     ],     
+    // }
+    
+    
+
+    // async checkRules(req, res, next) {
+    //     // console.log(i18n.getLocale(),'------> locale')
+    //     const validation_result = validationResult(req)
+    //     const hasError = !validation_result.isEmpty();
+    //     console.log(hasError, " ----> hasError", validation_result, " ----> validation_result", ) 
+    //     if (hasError) {
+    //         const param = validation_result.errors[0].param
+    //         const data = validation_result.errors[0].msg
+    //         // console.log(validation_result.errors, '-----> validation_result.errors')
+    //         const result = {
+    //             "success": false,
+    //             "error": {
+    //                 "code" : 400,
+    //                 "message" : "Invalid value(s)"
+    //                 },
+    //             "data": {
+    //                [param] :  data,
+    //             }
+    //         }
+    //         console.log(result,  ` ----> in the ActivityController.checkRules`) 
+    //         res.status(400).json(result) 
+    //     }else{
+    //         try{
+    //             const activity_id = req.params.activityId
+    //             console.log(activity_id, typeof(activity_id), '-------> req.params.activityId')
+        
+    //             const is_exist = await activity.isExist(activity_id)
+    //             if (is_exist ) {
+    //                 return next()
+    //             }else{
+    //                 const result = {
+    //                     "success": false,
+    //                     "error": {
+    //                         "code" : 404,
+    //                         "message" : "Not Found"
+    //                     },
+    //                     "data": {
+    //                         "activity_id" : `Activity with activity_id=${activity_id}  not exists`,
+    //                     }
+    //                 }
+    //                 console.log(result, " -----> from ActivityController.deleteActivity.getOne")
+    //                 res.status(404).json(result) 
+    //             } 
+    //         }catch(err) {
+    //             res.status(500).json(err) 
+    //         }
+    //     }         
+    // }
+
 }
 
 const activity_controller = new ActivityController();

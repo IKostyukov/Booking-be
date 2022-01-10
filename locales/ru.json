@@ -14,6 +14,9 @@
 		"isInt": "%s должно быть числом",
 		"isUUID": "%s должно быть UUID",
 		"isLength": "%s недопустимая длина строки",
-		"notFound": "Активность с activity_id = %s не существует"
+		"notFound": "%s не существует",
+		"isUnique": "%s уже существует",
+
+		"test": "validation.test"
 	}
 }

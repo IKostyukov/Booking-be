@@ -182,8 +182,8 @@ class ActivityModel {
         FROM activities WHERE id = ${activity_id}) AS "exists";`
         try{
         const is_exist = await db.query(sql_query)
-        console.log(is_exist.rows)
-        return  is_exist.rows[0].exists  // true or false
+        console.log(is_exist)
+        return  is_exist
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with activity_id = ${activity_id}  in activiy_model.js`)
             console.log(err.name, ' -----> err.name')
@@ -196,6 +196,30 @@ class ActivityModel {
                 },
                 "data": {
                     "activity_id": err.message  
+                }
+            }
+        }
+    }
+
+    async isUnique(activity_name) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM activities WHERE activity_name = '${activity_name}') AS "exists";`
+        try{
+        const is_unique = await db.query(sql_query)
+        console.log(is_unique)
+        return  is_unique
+        } catch (err) {                                       
+            console.log(err, `-----> err in isExist function with activity_name = ${activity_name}  in activiy_model.js`)
+            console.log(err.name, ' -----> err.name')
+            console.log(err.message, '-----> err.message')                                                                   
+            throw {
+                "success": false,
+                "error": {
+                    "code": 500,
+                    "message": "Internal Server Error"
+                },
+                "data": {
+                    "activity_name": err.message  
                 }
             }
         }

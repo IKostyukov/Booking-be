@@ -11,6 +11,8 @@
 		"isInt": "%s must be integer",
 		"isUUID": "%s must be UUID",
 		"isLength": "%s invalid string length",
-		"notFound": "Activity with activity_id = %s not exists"
+		"notFound": "%s not exists",
+		"isUnique": "%s is alredy exist",
+		"test": "testy)))"
 	}
 }
