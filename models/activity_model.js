@@ -1,4 +1,7 @@
 import { pool } from '../db.js';
+import Api500Error from '../errors/api500_error.js';
+
+
 const db = pool
 
 class ActivityModel {
@@ -10,19 +13,11 @@ class ActivityModel {
                 (activity_name) VALUES ($1) RETURNING *;`, [activity_name])
             return new_activity
         } catch (err) {                                       
-            console.log(err, `-----> err in create function with activity_name = ${activity_name}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message  
-                }
-            }
+            console.log(err, `-----> err in create function with activity_name = ${activity_name}  at activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
+
         }
     }
 
@@ -32,19 +27,10 @@ class ActivityModel {
                 SET activity_name = $1 WHERE id = $2 RETURNING *;`,[activity_name, activity_id])
             return updated_activity
         } catch (err) {                                       
-            console.log(err, `-----> err in update function with activity_id = ${activity_id}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message  
-                }
-            }
+            console.log(err, `-----> err in update function with activity_id = ${activity_id}  at activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
     }
 
@@ -54,19 +40,10 @@ class ActivityModel {
                 SET active = $2 WHERE id = $1 RETURNING *;`,[ activity_id, active])
             return  activated_activity
         } catch (err) {                                       
-            console.log(err, `-----> err in activate function with activity_id = ${activity_id}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message  
-                }
-            }
+            console.log(err, `-----> err in activate function with activity_id = ${activity_id}  at activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message') 
+            throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
     }
 
@@ -76,19 +53,10 @@ class ActivityModel {
                 RETURNING *;`, [activity_id])
             return deleted_activity
         } catch (err) {                                       
-            console.log(err, `-----> error  in delete function with activity_id = ${activity_id}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message  
-                }
-            }
+            console.log(err, `-----> error  in delete function with activity_id = ${activity_id}  at activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_id', `${err.message}`)                                                                 
         }
     }
 
@@ -99,19 +67,10 @@ class ActivityModel {
             const one_activity = await db.query(sql_query)
             return one_activity
         } catch (err) {                                       
-            console.log(err, `-----> err  in getOne function with activity_id = ${activity_id}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message 
-                }
-            }
+            console.log(err, `-----> err  in getOne function with activity_id = ${activity_id}  at activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }        
     }
 
@@ -122,19 +81,10 @@ class ActivityModel {
             const all_activitirs = await db.query(sql_query)
             return all_activitirs
         } catch (err) {                                       
-            console.log(err, `-----> err  in getAll function with activity_name = ${activity_name}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message 
-                }
-            }
+            console.log(err, `-----> err  in getAll function with activity_name = ${activity_name}  at activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
         }        
     }
 
@@ -160,19 +110,8 @@ class ActivityModel {
             const popular_activities = await db.query(sql_query)
             return popular_activities
     } catch (err) {                                       
-        console.log(err, `-----> err in getPopular function in activiy_model.js`)
-        console.log(err.name, ' -----> err.name')
-        console.log(err.message, '-----> err.message')                                                                   
-        throw {
-            "success": false,
-            "error": {
-                "code": 500,
-                "message": "Internal Server Error"
-            },
-            "data": {
-                "activity_id": err.message 
-            }
-        }
+        console.log(err, `-----> err in getPopular function at activiy_model.js`)
+        throw new Api500Error( 'getPopular', `${err.message}`)                                                                  
     }
     }
 
@@ -185,19 +124,10 @@ class ActivityModel {
         console.log(is_exist)
         return  is_exist
         } catch (err) {                                       
-            console.log(err, `-----> err in isExist function with activity_id = ${activity_id}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_id": err.message  
-                }
-            }
+            console.log(err, `-----> err in isExist function with activity_id = ${activity_id}  at  activiy_model.js`)
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
     }
 
@@ -210,18 +140,9 @@ class ActivityModel {
         return  is_unique
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with activity_name = ${activity_name}  in activiy_model.js`)
-            console.log(err.name, ' -----> err.name')
-            console.log(err.message, '-----> err.message')                                                                   
-            throw {
-                "success": false,
-                "error": {
-                    "code": 500,
-                    "message": "Internal Server Error"
-                },
-                "data": {
-                    "activity_name": err.message  
-                }
-            }
+            // console.log(err.name, ' -----> err.name')
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
         }
     }
 }

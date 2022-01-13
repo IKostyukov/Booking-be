@@ -4,14 +4,14 @@
 		"World": "world"
 	},
 	"validation": {
-		"notEmpty": "%s could not be empty",
+		"isEmpty": "%s could not be empty",
 		"isBoolean": "%s must be Boolean",
 		"isString": "%s must be string",
 		"exists": "%s must be provided",
 		"isInt": "%s must be integer",
 		"isUUID": "%s must be UUID",
 		"isLength": "%s invalid string length",
-		"notFound": "%s not exists",
+		"isExist": "%s not exists",
 		"isUnique": "%s is alredy exist",
 		"test": "testy)))"
 	}
