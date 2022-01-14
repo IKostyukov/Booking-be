@@ -109,10 +109,10 @@ class ActivityModel {
                 ORDER BY orders DESC LIMIT 3;`
             const popular_activities = await db.query(sql_query)
             return popular_activities
-    } catch (err) {                                       
-        console.log(err, `-----> err in getPopular function at activiy_model.js`)
-        throw new Api500Error( 'getPopular', `${err.message}`)                                                                  
-    }
+        } catch (err) {                                       
+            console.log(err, `-----> err in getPopular function at activiy_model.js`)
+            throw new Api500Error( 'getPopular', `${err.message}`)                                                                  
+        }
     }
 
     
@@ -120,13 +120,13 @@ class ActivityModel {
         const sql_query = `SELECT EXISTS (SELECT 1
         FROM activities WHERE id = ${activity_id}) AS "exists";`
         try{
-        const is_exist = await db.query(sql_query)
-        console.log(is_exist)
-        return  is_exist
+            const is_exist = await db.query(sql_query)
+            console.log(is_exist)
+            return  is_exist
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with activity_id = ${activity_id}  at  activiy_model.js`)
             // console.log(err.name, ' -----> err.name')
-            // console.log(err.message, '-----> err.message')                                                                   
+            // console.log(err.message, '-----> err.message')                                                                  
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
     }
@@ -135,14 +135,14 @@ class ActivityModel {
         const sql_query = `SELECT EXISTS (SELECT 1
         FROM activities WHERE activity_name = '${activity_name}') AS "exists";`
         try{
-        const is_unique = await db.query(sql_query)
-        console.log(is_unique)
-        return  is_unique
-        } catch (err) {                                       
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique)
+            return  is_unique
+        }catch (err) {                                       
             console.log(err, `-----> err in isExist function with activity_name = ${activity_name}  in activiy_model.js`)
             // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
+            throw new Api500Error( 'activity_name', `${err.message}`)                                                                
         }
     }
 }

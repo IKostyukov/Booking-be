@@ -4,10 +4,11 @@
 		"World": "world"
 	},
 	"validation": {
+		"isMatch": "%s parameter(s) required but received %s",
+		"isProvided": "%s must be provided",
 		"isEmpty": "%s could not be empty",
 		"isBoolean": "%s must be Boolean",
 		"isString": "%s must be string",
-		"exists": "%s must be provided",
 		"isInt": "%s must be integer",
 		"isUUID": "%s must be UUID",
 		"isLength": "%s invalid string length",

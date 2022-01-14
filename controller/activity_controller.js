@@ -24,44 +24,43 @@ class ActivityController {
             // The location of the field, can be one or more of body, cookies, headers, params or query.
             // If omitted, all request locations will be checked
             in: ['params'],
-            // isInt: {
-            //     if: activityId => {
-            //         return activityId !== undefined;
-            //       },
-            //     errorMessage: () => { return i18n.__('validation.isInt', 'activityId')},       
-            //     bail: true,
-            // },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                if: activityId => {
+                    return activityId !== undefined;
+                  },
+                errorMessage: () => { return i18n.__('validation.isInt', 'activityId')},       
+                bail: true,
+            },
             custom: {
-                options:  (activityId, { req, location, path }, res) => {           
-                    
-                    return activity.isExist(activityId).then().catch(err => {
-                        if (err) {
-                        console.log(err, " ------------------> Server Error in validationSchema at activity_conrtoller.js")
-                        res.status(500).json(err) 
-
-                        // return Promise.reject(i18n.__('validation.isExist', `activity_id = ${activityId}`));
-                        }else{
-                            return  activity.isExist(activityId).then( is_exist => {
-                                console.log(is_exist, '-------> is_exist from validationSchema')
-            
-                                if ( is_exist.rows[0].exists !== true) {
-                                    console.log('Activity with activity_id = ${activityId} is not in DB (from activity_controller.js)')
-                                    return Promise.reject(i18n.__('validation.isExist', `activity_id = ${activityId}`));
-                                }
-                            })
+                options:  (activityId, { req, location, path}) => {   
+                            
+                    return activity.isExist(activityId).then( is_exist => {
+                        console.log(is_exist, '-------> is_exist activity from validationSchema')
+    
+                        if ( is_exist.rows[0].exists !== true) {
+                            console.log('Activity with activity_id = ${activityId} is not in DB (from activity_controller.js)')
+                            return Promise.reject('404 ' + i18n.__('validation.isExist', `activity_id = ${activityId}`));
                         }
-                        })
-                    
-                    
-                        // return  activity.isExist(activityId).then( is_exist => {
-                        //     console.log(is_exist, '-------> is_exist from validationSchema')
-        
-                        //     if ( is_exist.rows[0].exists !== true) {
-                        //         console.log('Activity with activity_id = ${activityId} is not in DB (from activity_controller.js)')
-                        //         return Promise.reject(i18n.__('validation.isExist', `activity_id = ${activityId}`));
-                        //     }
-                        // })
-                        
+                    }).catch(err => {
+                        if (err.error) {
+                            const server_error = {
+                                "success": false,
+                                "error": {
+                                    "code" : err.error.code,
+                                    "message" : err.error.message,
+                                    },
+                                "data": {
+                                    "activity_name" : err.data,
+                                }
+                                }
+                            console.log(server_error, " ------------------> Server Error in validationSchema at activity_conrtoller.js")
+                            return Promise.reject(server_error)
+                        }else {
+                            const msg = err
+                            return Promise.reject(msg)
+                        };
+                      
+                    })
                 },
             },
         },
@@ -73,25 +72,41 @@ class ActivityController {
                 if: value => {
                     return value !== undefined;
                   },
-                errorMessage: () => { return i18n.__('validation.notEmpty', 'activity_name')},
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'activity_name')},
                 bail: true,
             },
             custom: {                
-                options:  (value, { req, location, path }) => { 
+                
+                options:  (value, { req, location, path}) => {
                     console.log(value, req, "----> req.params.activityId")
-                    if (req.method !== 'GET' ) {                       
-                    
-                        return  activity.isUnique(value).then(is_unique => {
-                            // console.log(is_unique, '-------> is_unique from validationSchema')
-                            if (is_unique.rows[0].exists == true) {
-                                    console.log(`Activity with activity_name = ${value} is alredy exist in DB (from activity_controller.js)`)
-                                    return Promise.reject(i18n.__('validation.isUnique', `${value}`));
+                    if (req.method !== 'GET' ) {     
+                            
+                        return activity.isUnique(value).then( is_unique => {
+                            console.log(is_unique, '-------> is_unique activity from validationSchema')
+        
+                            if ( is_unique.rows[0].exists == true) {
+                                console.log('Activity with activity_name = ${value} is not in DB (from activity_controller.js)')
+                                return Promise.reject(i18n.__('validation.isUnique', `activity_name = ${value}`));
                             }
                         }).catch(err => {
-                        console.log(err, " ---------------------------> never works")
-                        });
-                    // }else{
-                    //     return value
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.error.code,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": {
+                                        "activity_name" : err.data,
+                                    }
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at activity_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };                        
+                        })
                     }
                 },
                 bail: true,
@@ -113,7 +128,7 @@ class ActivityController {
                 if: value => {
                     return value !== undefined;
                   },
-                errorMessage: () => { return i18n.__('validation.notEmpty', 'active')},
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'active')},
                 bail: true,
             },                
             isBoolean: { 
@@ -131,13 +146,25 @@ class ActivityController {
         const hasError = !validation_result.isEmpty();
         console.log(hasError, " ----> hasError", validation_result, " ----> validation_result", ) 
         if (hasError) {
-            const param = validation_result.errors[0].param
             const data = validation_result.errors[0].msg
-            // console.log(validation_result.errors, '-----> validation_result.errors')
-            const result = new Api400Error(param, data)
-    
-            console.log(result,  ` ----> from the ActivityController.checkResult`) 
-            res.status(400).json(result) 
+
+            if(typeof(data) !== 'object') {
+                if (data.startsWith('404')){
+                    const param = validation_result.errors[0].param
+                    const not_found_error = new Api404Error(param, data)
+                    console.log(not_found_error,  ` ----> not_found_error from the ActivityController.checkResult`) 
+                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                }else{
+                    const param = validation_result.errors[0].param
+                    const bad_request_error = new Api400Error(param, data)        
+                    console.log(bad_request_error,  ` ----> bad_request_error from the ActivityController.checkResult`) 
+                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                }              
+            }else{
+                const server_error = data
+                console.log(server_error,  ` ----> server_error from the ActivityController.checkResult`) 
+                res.status(server_error.error.code || 500).json(server_error) 
+            }
         }else{
             return next()
         }              
@@ -207,11 +234,9 @@ class ActivityController {
             }
         } catch(err) {
             // console.log(err, '----------> in activate (activity_controller.js) ')
-
-// Это можно использовать для деференцирования ошибки 404 и 500 в CheckResult() ---- А ВОТ И НЕЛЬЗЯ
             if ( Object.keys(err).length == 0) {
                 const result = new Api404Error( 'activity_id', i18n.__('validation.isExist', `activity_id = ${activity_id}`)) 
-                console.log(result, ' ----> err in activateActivity function with activity_id = ${activity_id} not exists at activity_controller.js;')
+                console.log(result, ` ----> err in activateActivity function with activity_id = ${activity_id} not exists at activity_controller.js;`)
                 res.status(404).json(result) 
             }else{
             console.error({err},  '----------> err in activateActivity function at activity_controller.js ')

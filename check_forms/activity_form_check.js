@@ -1,4 +1,8 @@
 
+import  i18n   from 'i18n';
+import Api400Error from '../errors/api400_error.js';
+
+
 const countProperties = (obj) => {
     let count = 0;    
     for(let prop in obj) {
@@ -12,79 +16,63 @@ class ActivityFormCheck {
 
     isName (req, res, next) {
 
+                // проверка на количество параметров
+
+        const count_require = 1
         const count_properties = countProperties(req.body) 
         console.log(count_properties, "count of properties");    
 
-        if (count_properties !== 1) { // проверка на количество параметров
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 400,
-                    "message" : "Bad Request"
-                    },
-                "data": {
-                    "activity_name" : `one parameter required but received ${count_properties}`,
-                }
-                }
-            console.log(result, ` --->  in the ActivityFormCheck.forCreate`)    
-            return res.status(400).json(result)
-        }
+        if (count_properties !== count_require) { 
 
-        if (req.body.hasOwnProperty('activity_name')) {  // проверка на налиние параметров
+            const param = 'activity_name'
+            const data = i18n.__('validation.isMatch', `${count_require}`, `${count_properties}`)
+            const bad_request_error = new Api400Error(param, data)        
+
+            console.log(bad_request_error, ` ------> bad_request_error in isName function at the activity_form_check.js`)    
+            return res.status(400).json(bad_request_error)
+        }
+                // проверка на налиние параметров
+
+        if (req.body.hasOwnProperty('activity_name')) {  
             console.log(req.body.activity_name, "activity_name")
             return next()
-        }else{    
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 400,
-                    "message" : "bad request"
-                    },
-                "data": {
-                    "activity_name" : "activity_name could not be absent.",
-                }
-                }
-            console.log(result,  ` ---> in the ActivityFormCheck.forCreate`)    
-            res.status(400).json(result)    
+        }else{   
+            const param = 'activity_name'
+            const data = i18n.__('validation.isProvided', 'activity_name' )
+            const bad_request_error = new Api400Error(param, data)
+
+            console.log(bad_request_error, ` ------> bad_request_error in isName function at the activity_form_check.js`)    
+            return res.status(400).json(bad_request_error) 
         }
     }
 
     isActive (req, res, next) {
 
+                // проверка на количество параметров
+                
+        const count_require = 1
         const count_properties = countProperties(req.body) 
         console.log(count_properties, "count of properties");    
 
-        if (count_properties !== 1) { // проверка на количество параметров
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 400,
-                    "message" : "Bad Request"
-                    },
-                "data": {
-                    "active" : `one parameter required but received ${count_properties}`,
-                }
-            }
-            console.log(result, ` ---> in the ActivityFormCheck.forActivate`)    
-            return res.status(400).json(result)
+        if (count_properties !== count_require) {             
+            const param = 'active'
+            const data = i18n.__('validation.isMatch', `${count_require}`, `${count_properties}`)
+            const bad_request_error = new Api400Error(param, data)  
+            console.log(bad_request_error, ` ---> bad_request_error in isActive function at the activity_form_check.js`)    
+            return res.status(400).json(bad_request_error)
         }
+                 // проверка на налиние параметров
 
-        if (req.body.hasOwnProperty('active')) {  // проверка на налиние параметров
-            console.log(req.body.active, " - active")
+        if (req.body.hasOwnProperty('active')) { 
+            console.log(req.body.active, " -----> active")
             return next()
-        }else{    
-            const result = {
-                "success": false,
-                "error": {
-                    "code" : 400,
-                    "message" : "bad request"
-                    },
-                "data": {
-                    "active" : "active could not be absent.",
-                }
-                }
-            console.log(result,  ` ---> in the ActivityFormCheck.forActivate`)    
-            res.status(400).json(result)    
+        }else{   
+            const param = 'active'
+            const data = i18n.__('validation.isProvided', 'active' )
+            const bad_request_error = new Api400Error(param, data)
+
+            console.log(bad_request_error, ` ------> bad_request_error in isActive function at the activity_form_check.js`)    
+            return res.status(400).json(bad_request_error) 
         }
     }
 }
