@@ -1,4 +1,4 @@
-import httpStatusCodes from'./http_status_codes.js';
+import httpStatusCodes from'../enums/http_status_codes_enums.js';
 import BaseError from './base_error.js';
 
 class Api400Error extends BaseError {
@@ -8,8 +8,9 @@ class Api400Error extends BaseError {
                 statusCode = httpStatusCodes.BAD_REQUEST,
                 name ='Bad Request.',
                 isOperational = true,
+                success = false
                 ) {
-        super(param, description,  statusCode,   name, isOperational)
+        super(param, description,  statusCode, name, isOperational, success)
     }
 }
 

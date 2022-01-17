@@ -1,4 +1,5 @@
-import httpStatusCodes from'./http_status_codes.js';
+import httpStatusCodes from'../enums/http_status_codes_enums.js';
+import BaseServerCondition from './base_error.js';
 import BaseError from './base_error.js';
 
 class Api404Error extends BaseError {
@@ -7,9 +8,10 @@ class Api404Error extends BaseError {
                 description,
                 statusCode = httpStatusCodes.NOT_FOUND,
                 name ='Not Found.',
-                isOperational = true
+                isOperational = true,
+                success = false
                 ) {
-        super(param, description,  statusCode,   name, isOperational)
+        super(param, description, statusCode,  name, isOperational, success )
     }
 }
 

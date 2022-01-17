@@ -1,6 +1,6 @@
 import { pool } from '../db.js';
-// import  languages_json  from '../DataLocale/languages.json';
-import { languages_enums } from '../DataLocale/languages_enums.js';
+// import  languages_json  from '../enums/languages.json';
+import { languages_enums } from '../enums/languages_enums.js';
 
 import { timetablemodel } from './timetable_model.js';
 import { servicemodel } from './service_model.js';
