@@ -5,7 +5,7 @@ import cors from 'cors';
 import cookieParser from'cookie-parser';
 import connect_pg from 'connect-pg-simple';
 import flash from 'connect-flash';
-import  i18n   from './i18n.js';
+import   i18n   from './i18n.js';
 
 
 import {local_strategy} from './config/passport.js';
