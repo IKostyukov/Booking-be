@@ -1,59 +1,97 @@
 import { pool } from '../db.js';
+import Api500Error from '../errors/api500_error.js';
+
 const db = pool
 
 class ServiceModel {
 
     //  ### Создать удобство ###
-    async ceateNewService (service_name) {
-        // console.log("Test")
-        const new_service = db.query(`INSERT INTO services
-            (service_name)
-            VALUES ($1) 
-            RETURNING * ;`, [service_name])
-        console.log(new_service)
-        return new_service          
+    async ceate (service_name) {
+        try {
+            // console.log("Test")
+            const new_service = db.query(`INSERT INTO services
+                (service_name)
+                VALUES ($1) 
+                RETURNING * ;`, [service_name])
+            console.log(new_service)
+            return new_service 
+        } catch (err) {                                       
+            console.log(err, `-----> err in create function with service_name = ${service_name}  at service_model.js`)                                                                  
+            throw new Api500Error( 'service_name', `${err.message}`)                                                                  
+        }         
     }
 
     //  ### Обновить удобство ###
-    async updateOneService (service_id, service_name) {
-        console.log(service_id, service_name)
-        const new_service = db.query(`UPDATE services
-        SET  service_id = $1
-        WHERE id = $2
-            RETURNING * ;`, [service_name, service_id])
-        console.log(new_service)
-        return new_service          
+    async update (service_id, service_name) {
+        try {
+            console.log(service_id, service_name)
+    
+            const new_service = db.query(`UPDATE services
+            SET  service_name = $1
+            WHERE id = $2
+                RETURNING * ;`, [service_name, service_id])
+            console.log(new_service)
+            return new_service   
+        }catch(err){                                       
+            console.log(err, `-----> err in update function with service_id = ${service_id}  at service_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'service_id', `${err.message}`)                                                                  
+        }       
     }
 
      //  ### Активировать удобство ###
-    async activateOneService(service_id, active) {
-        const activated_service = await db.query(`UPDATE services
-        SET active = $2 WHERE id = $1 RETURNING *;`,
-        [ service_id, active])
-        return  activated_service
+    async activate(service_id, active) {
+        try {
+            const activated_service = await db.query(`UPDATE services
+            SET active = $2 WHERE id = $1 RETURNING *;`,
+            [ service_id, active])
+            return  activated_service
+        }catch(err) {                                       
+            console.log(err, `-----> err in activate function with service_id = ${service_id}  at service_model.js`)
+            // console.log(err.message, '-----> err.message') 
+            throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
+        }
     }
 
      //  ###  Удалить удобство ###
-    async deleteOneService(service_id) {
-        const deleted_service = await db.query(`DELETE FROM services WHERE id = $1
-        RETURNING *;`, [service_id])
-        return deleted_service
+    async delete(service_id) {
+        try {
+            const deleted_service = await db.query(`DELETE FROM services WHERE id = $1
+            RETURNING *;`, [service_id])
+            return deleted_service
+        } catch (err) {                                       
+            console.log(err, `-----> error  in delete function with service_id = ${service_id}  at service_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'service_id', `${err.message}`)                                                                 
+        }
     }
 
      //  ###  Получить одно удобство ###
-     async getOneService(service_id) {
-        const sql = `SELECT id AS service_id, service_name, active
-        FROM services WHERE id = ${service_id};`
-        // console.log(sql)
-        const one_service = await db.query(sql)
-        return one_service
+     async getOne(service_id) {
+        try {
+            const sql = `SELECT id AS service_id, service_name, active
+            FROM services WHERE id = ${service_id};`
+            // console.log(sql)
+            const one_service = await db.query(sql)
+            return one_service
+        } catch (err) {                                       
+            console.log(err, `-----> err  in getOne function with service_id = ${service_id}  at service_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'service_id', `${err.message}`)                                                                  
+        }  
     }
 
      //  ###  Получить все удобства ###
-     async getAllServices() {
-        const all_service = await db.query(`SELECT id AS service_id, service_name, active
-        FROM services;`)
-        return all_service
+     async getAll() {
+        try {
+            const all_service = await db.query(`SELECT id AS service_id, service_name, active
+            FROM services;`)
+            return all_service
+        } catch (err) {                                       
+            console.log(err, `-----> err  in getAll function with service_name = ${service_name}  at service_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'service_name', `${err.message}`)                                                                  
+        } 
     }
 
     //  ### Добавление удобствa  провайдеру ###
@@ -68,6 +106,48 @@ class ServiceModel {
 
         return added_service
     }
+
+    async isExist(service_id) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM services WHERE id = ${service_id}) AS "exists";`
+        try{
+            const is_exist = await db.query(sql_query)
+            console.log(is_exist)
+            return  is_exist
+        } catch (err) {                                       
+            console.log(err, `-----> err in isExist function with service_id = ${service_id}  at  service_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                  
+            throw new Api500Error( 'service_id', `${err.message}`)                                                                  
+        }
+    }
+
+    async isUnique(service_name) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM services WHERE service_name = '${service_name}') AS "exists";`
+        try{
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique.rows, '---------> is_unique.rows')
+            return  is_unique
+        }catch (err) {                                       
+            console.log(err, `-----> err in isExist function with service_name = ${service_name}  in service_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'service_name', `${err.message}`)                                                                
+        }
+    }
+
+    //  ### Добавление удобствa  провайдеру ###
+    async addOneServiceToProvider (provider_id, service_id) {
+        console.log('provider_id -', provider_id, 'service_id -', service_id)
+        //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
+        const added_service = await db.query(`INSERT INTO services_providers(
+            provider_id, service_id)
+            VALUES ($1, $2)
+            RETURNING *;`,
+        [provider_id, service_id])
+
+        return added_service
+    }
+
 
     //  ###  Удаление удобствa у провайдера ###
 

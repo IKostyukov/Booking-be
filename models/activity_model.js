@@ -14,10 +14,8 @@ class ActivityModel {
             return new_activity
         } catch (err) {                                       
             console.log(err, `-----> err in create function with activity_name = ${activity_name}  at activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
-
         }
     }
 
@@ -28,7 +26,6 @@ class ActivityModel {
             return updated_activity
         } catch (err) {                                       
             console.log(err, `-----> err in update function with activity_id = ${activity_id}  at activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
@@ -41,7 +38,6 @@ class ActivityModel {
             return  activated_activity
         } catch (err) {                                       
             console.log(err, `-----> err in activate function with activity_id = ${activity_id}  at activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message') 
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
@@ -54,7 +50,6 @@ class ActivityModel {
             return deleted_activity
         } catch (err) {                                       
             console.log(err, `-----> error  in delete function with activity_id = ${activity_id}  at activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                 
         }
@@ -68,7 +63,6 @@ class ActivityModel {
             return one_activity
         } catch (err) {                                       
             console.log(err, `-----> err  in getOne function with activity_id = ${activity_id}  at activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }        
@@ -82,7 +76,6 @@ class ActivityModel {
             return all_activitirs
         } catch (err) {                                       
             console.log(err, `-----> err  in getAll function with activity_name = ${activity_name}  at activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
         }        
@@ -125,7 +118,6 @@ class ActivityModel {
             return  is_exist
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with activity_id = ${activity_id}  at  activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
             // console.log(err.message, '-----> err.message')                                                                  
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }
@@ -139,8 +131,7 @@ class ActivityModel {
             console.log(is_unique)
             return  is_unique
         }catch (err) {                                       
-            console.log(err, `-----> err in isExist function with activity_name = ${activity_name}  in activiy_model.js`)
-            // console.log(err.name, ' -----> err.name')
+            console.log(err, `-----> err in isUnique function with activity_name = ${activity_name}  in activiy_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_name', `${err.message}`)                                                                
         }

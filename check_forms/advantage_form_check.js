@@ -1,4 +1,3 @@
-
 import  i18n   from 'i18n';
 import Api400Error from '../errors/api400_error.js';
 
@@ -12,7 +11,7 @@ const countProperties = (obj) => {
     return count;
 }
 
-class ActivityFormCheck {    
+class AdvantageFormCheck {    
 
     forCreateUpdateGetAll (req, res, next) {
 
@@ -22,26 +21,26 @@ class ActivityFormCheck {
         const count_properties = countProperties(req.body) 
         console.log(count_properties, "count of properties");    
 
-        if (count_properties !== count_require) { 
+        if (count_properties < count_require || count_properties > count_require + 1) { 
 
-            const param = 'activity_name'
-            const data = i18n.__('validation.isMatch', `${count_require}`, `${count_properties}`)
+            const param = 'advantage_name'
+            const data = i18n.__('validation.isMatch', ` ${count_require} - ${count_require + 1}`, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)        
 
-            console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdateGetAll function at the activity_form_check.js`)    
+            console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdateGetAll function at the advantage_form_check.js`)    
             return res.status(bad_request_error.error.code || 400).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
-        if (req.body.hasOwnProperty('activity_name')) {  
-            console.log(req.body.activity_name, "activity_name")
+        if (req.body.hasOwnProperty('advantage_name')) {  
+            console.log(req.body.advantage_name, "advantage_name")
             return next()
         }else{   
-            const param = 'activity_name'
-            const data = i18n.__('validation.isProvided', 'activity_name' )
+            const param = 'advantage_name'
+            const data = i18n.__('validation.isProvided', 'advantage_name' )
             const bad_request_error = new Api400Error(param, data)
 
-            console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdateGetAll function at the activity_form_check.js`)    
+            console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdateGetAll function at the advantage_form_check.js`)    
             return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
         }
     }
@@ -55,27 +54,27 @@ class ActivityFormCheck {
         console.log(count_properties, "count of properties");    
 
         if (count_properties < count_require || count_properties > count_require) {              
-            const param = 'active'
+            const param = 'is_active'
             const data = i18n.__('validation.isMatch', `${count_require}`, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)  
-            console.log(bad_request_error, ` ---> bad_request_error in forActivate function at the activity_form_check.js`)    
+            console.log(bad_request_error, ` ---> bad_request_error in forActivate function at the advantage_form_check.js`)    
             return res.status(bad_request_error.error.code || 400).json(bad_request_error)
         }
                  // проверка на налиние параметров
 
-        if (req.body.hasOwnProperty('active')) { 
-            console.log(req.body.active, " -----> active")
+        if (req.body.hasOwnProperty('is_active')) { 
+            console.log(req.body.active, " -----> is_active")
             return next()
         }else{   
-            const param = 'active'
-            const data = i18n.__('validation.isProvided', 'active' )
+            const param = 'is_active'
+            const data = i18n.__('validation.isProvided', 'is_active' )
             const bad_request_error = new Api400Error(param, data)
 
-            console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the activity_form_check.js`)    
+            console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the advantage_form_check.js`)    
             return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
         }
     }
 }
 
-const activityFormCheck = new ActivityFormCheck();
-export {activityFormCheck}
+const advantageFormCheck = new AdvantageFormCheck();
+export {advantageFormCheck}

@@ -13,6 +13,34 @@ const db = pool
 
 class ProviderModel {
 
+    async isExist(provider_id) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM providers WHERE id = ${provider_id}) AS "exists";`
+        try{
+            const is_exist = await db.query(sql_query)
+            console.log(is_exist)
+            return  is_exist
+        } catch (err) {                                       
+            console.log(err, `-----> err in isExist function with provider_id = ${provider_id}  at  provider_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                  
+            throw new Api500Error( 'provider_id', `${err.message}`)                                                                  
+        }
+    }
+
+    async isUnique(provider_name) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM providers WHERE provider_name = '${provider_name}') AS "exists";`
+        try{
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique)
+            return  is_unique
+        }catch (err) {                                       
+            console.log(err, `-----> err in isUnique function with provider_name = ${provider_name}  in provider_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'provider_name', `${err.message}`)                                                                
+        }
+    } 
+
 
 //  ### Лучшие провайдеры услуг  ###
      

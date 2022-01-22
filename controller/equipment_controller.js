@@ -1,105 +1,495 @@
-import { pool } from '../db.js';
 import { equipmentmodel } from '../models/equipment_model.js';
+import { validationResult } from 'express-validator';
+import  i18n   from 'i18n';
 
-
-const db = pool
+import Api400Error from '../errors/api400_error.js';
+import Api404Error from '../errors/api404_error.js';
+import Api500Error from '../errors/api500_error.js';
+import httpStatusCodes from'../enums/http_status_codes_enums.js';
 
 class EquipmentController {
 
+              
+    validationSchema = {
+
+        equipmentId: {
+
+            in: ['params'],
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                if: equipmentId => {
+                    return equipmentId !== undefined;
+                },
+                errorMessage: () => { return i18n.__('validation.isInt', 'equipmentId')},       
+                bail: true,             
+            },
+            custom: {
+                options:  (equipmentId, { req, location, path}) => {   
+                            
+                    return equipmentmodel.isExist(equipmentId).then( is_exist => {
+                        console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
+    
+                        if ( is_exist.rows[0].exists !== true) {
+                            console.log('Equipment with equipment_id = ${equipmentId} is not in DB (from equipment_controller.js)')
+                            return Promise.reject('404 ' + i18n.__('validation.isExist', `equipment_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        }
+                    }).catch(err => {
+                        if (err.error) {
+                            const server_error = {
+                                "success": false,
+                                "error": {
+                                    "code" : err.error.code,
+                                    "message" : err.error.message,
+                                    },
+                                "data": err.data,
+                                }
+                            console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
+                            return Promise.reject(server_error)
+                        }else {
+                            const msg = err
+                            return Promise.reject(msg)
+                        };
+                      
+                    })
+                },
+            },
+        },
+
+        equipment_name: {
+
+            in: ['body'],
+            notEmpty: {
+                if: value => {
+                    return value !== undefined;
+                  },
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_name')},
+                bail: true,
+            },
+            custom: {                
+                
+                options:  (value, { req, location, path}) => {
+                    console.log(value, req, "----> req.params.equipmentId")
+                    if (req.method !== 'GET' ) {     
+                            
+                        return equipmentmodel.isUnique(value).then( is_unique => {
+                            console.log(is_unique.rows, '-------> is_unique.rows equipment from validationSchema')
+        
+                            if ( is_unique.rows[0].exists == true) {
+                                console.log('Equipment with equipment_name = ${value} is not in DB (from equipment_controller.js)')
+                                return Promise.reject(i18n.__('validation.isUnique', `equipment_name '${value}'`));
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.error.code,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": {
+                                        "equipment_name" : err.data,
+                                    }
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };                        
+                        })
+                    }
+                },
+                bail: true,
+            },    
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'equipment_name')},
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'equipment_name')},
+                options: {min:2, max:100 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        capacity: {  // в БД это (var char 2)
+            in: ['body'],
+            optional: true,
+            isNumeric:{
+                errorMessage: () => { return i18n.__('validation.isNumeric', 'capacity')},
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'capacity')},
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'capacity')},
+                options: {min:1, max:2 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        is_active: {
+            in: ['body'],
+            notEmpty: {
+                if: value => {
+                    return value !== undefined;
+                  },
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'is_active')},
+                bail: true,
+            },                
+            isBoolean: { 
+                errorMessage: () => { return i18n.__('validation.isBoolean', 'is_active')},
+                bail: true,
+            },
+        },
+
+        // Валидация для поисковаго запроса
+// Перенести в отдельный контроллер или же в провайдер, так будет легце делать check_form
+    //     "{
+    //         location: String,
+    //         acitvity_name: String,
+    //         date_start: Int,
+    //         date_end: Int,
+    //         time_start: Int,
+    //         time_end: Int,
+    //         capacity: Int,  ---> см выше
+    //         price_start: Int,
+    //         price_end: Int,
+    //         max_distance_from_center: Int,
+    //         services: [Int],
+    //         equipment_id: [Int],
+    //         short: Boolean
+    // }"
+
+        location: {
+            in: ['body'],
+            optional: true,
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'location')},
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'location')},
+                options: {min:1, max:30 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        acitvity_name: {
+            in: ['body'],
+            optional: true,
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'acitvity_name')},
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'acitvity_name')},
+                options: {min:1, max:100 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        date_start: {
+            in: ['body'],
+            optional: true,
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'date_start')},
+                bail: true,
+            },
+        },
+        date_end: {
+            in: ['body'],
+            optional: true,
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'date_end')},
+                bail: true,
+            },
+        },
+        time_start: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {  //isISO8601  требует представление даты и времени
+                // strict: true, 
+                // strictSeparator: true ,
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'time_start')},
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        time_end: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'time_end')},
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        price_start: {
+            in: ['body'],
+            optional: true,
+            isInt: {
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'price_start')},
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        price_end: {
+
+            // in: ['params'],
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: {
+                    min: 0,
+                    max: 1000000
+                },
+                errorMessage: () => { return i18n.__('validation.isInt', 'price_end')},       
+                bail: true,             
+            },
+        },
+
+        max_distance_from_center: {
+            in: ['body'],
+            optional: true,
+            isInt: {
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'max_distance_from_center')},
+                bail: true,
+            },
+        },
+        services: {
+            in: ['body'],
+            optional: true,
+            isNumeric:{ // не работает с запятыми
+                // no_symbols: true,
+                errorMessage: () => { return i18n.__('validation.isNumeric', 'services')},
+                bail: true,
+            },
+        },
+        equipment_id: {
+            in: ['body'],
+            optional: true,
+            isNumeric:{ // не работает с запятыми
+                // no_symbols: true,
+                errorMessage: () => { return i18n.__('validation.isNumeric', 'equipment_id')},
+                bail: true,
+            },
+        },
+        short: {
+            in: ['body'],
+            optional: true,
+            isBoolean: { 
+                errorMessage: () => { return i18n.__('validation.isBoolean', 'short')},
+                bail: true,
+            },
+        },
+      }
+
+    checkResult(req, res, next)  {
+        console.log(" ----> checkResult" ) 
+        // console.log(i18n.getLocale(),'------> locale')
+
+        const validation_result = validationResult(req)
+        const hasError = !validation_result.isEmpty();
+        console.log(hasError, " ----> hasError", validation_result.array(), " ----> validation_result", ) 
+        if (hasError) {
+            const data = validation_result.errors[0].msg
+
+            if(typeof(data) !== 'object') {
+                if (data.startsWith('404')){
+                    const param = validation_result.errors[0].param
+                    const not_found_error = new Api404Error(param, data)
+                    console.log(not_found_error,  ` ----> not_found_error from the EquipmentController.checkResult`) 
+                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                }else{
+                    const param = validation_result.errors[0].param
+                    const bad_request_error = new Api400Error(param, data)        
+                    console.log(bad_request_error,  ` ----> bad_request_error from the EquipmentController.checkResult`) 
+                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                }              
+            }else{
+                const server_error = data
+                console.log(server_error,  ` ----> server_error from the EquipmentController.checkResult`) 
+                res.status(server_error.error.code || 500).json(server_error) 
+            }
+        }else{
+            return next()
+        }              
+    }
+
     async createEquipment (req, res) {
-        const {equipment_name, activity_id,  capacity} = req.body
-        const new_equipment = await equipmentmodel.create(equipment_name, activity_id,  capacity)               
-        if (new_equipment.rows[0].id ) {
-            const result = { success: "Equipment successfully created" }
-            res.json(result)
-            console.log(new_equipment.rows[0], result)
-            // res.json( new_person.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try{    
+            const {equipment_name, activity_id,  capacity} = req.body
+            const new_equipment = await equipmentmodel.create(equipment_name, activity_id,  capacity)               
+            if (new_equipment.rows[0].id ) {
+                const result = { 
+                    success: true,
+                    data: " Equipment successfully created"
+                }
+                console.log(new_equipment.rows, result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error( 'equipment_name', 'Unhandled Error')
+                console.log(result, ' ----> err from createEquipment function at equipment_controller.js')
+                res.status(result.error.code || 400).json(result) 
+            }
+        }catch(err) {
+            console.error({err},  '-----> err in createEquipment function at equipment_controller.js ')
+            res.status(err.error.code || 500).json(err)
         }
     }
 
     async updateEquipment (req, res) {
-        const equipment_id = req.params.equipmentId
-        const {equipment_name, capacity  } = req.body
-        console.log(equipment_name, equipment_id, capacity)
-        const updated_equipment = await equipmentmodel.update(equipment_name, equipment_id, capacity) 
-        if (updated_equipment.rows[0]) {
-            const result = { success: "Equipment successfully updated" }
-            res.json(result)
-            console.log(updated_equipment, result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try{    
+            const equipment_id = req.params.equipmentId
+            const {equipment_name, capacity  } = req.body
+            console.log(equipment_name, equipment_id, capacity)
+            const updated_equipment = await equipmentmodel.update(equipment_name, equipment_id, capacity) 
+            if (updated_equipment.rows[0]) {
+                const result = { 
+                    success: true,
+                    data: " Equipment successfully updated"
+                }
+                res.status(httpStatusCodes.OK || 200).json(result)
+                console.log(updated_equipment.rows, result )
+            } else {
+                const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
+                console.log(result, ' ----> err from updateEquipment function at equipment_controller.js')
+                res.status(result.error.code || 400).json(result) 
+            }
+        }catch(err) {
+            console.error({err},  '-----> err in updateEquipment function at equipment_controller.js ')
+            res.status(err.error.code || 500).json(err) 
         }
     }
 
     async activateEquipment (req, res) {
-        const {active} = req.body
-        const equipment_id = req.params.equipmentId
-        const activated_equipment = await equipmentmodel.activate(equipment_id, active)
-        console.log(activated_equipment)
-        if (activated_equipment.rowCount == 0) {
-            const result = { Error: 404 }
-            res.json(result)
-        } else if (activated_equipment.rows[0].active == true) {
-            const result = { success: "Equipment successfully activated" }
-            res.json(result)
-            console.log(activated_equipment.rows[0], result)
-        } else if (activated_equipment.rows[0].active == false) {
-            const result = { success: "Equipment successfully deactivated" }
-            res.json(result)
-            console.log(activated_equipment.rows[0], result)
-        } else {
-            const result = { Error: "Error" }
-            res.json(result)
-        }  
+        try{    
+            const {active} = req.body
+            const equipment_id = req.params.equipmentId
+            const activated_equipment = await equipmentmodel.activate(equipment_id, active)
+            console.log(activated_equipment)
+            if (activated_equipment.rowCount == 0) {
+                const result = { 
+                    success: true,
+                    data: " Equipment successfully deactivated"
+                }
+                console.log(activated_equipment.rows, result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            }else if(activated_equipment.rows[0].is_active == true) {
+                const result = { 
+                    success: true,
+                    data: " Equipment successfully activated"
+                }
+                console.log(activated_equipment.rows, result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            }else{                
+                const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id  ${equipment_id}`)) 
+                console.log(result, ` ----> err in activateEquipment function with equipment_id ${equipment_id} not exists at equipment_controller.js;`)
+                res.status(result.error.code || 404).json(result)
+            } 
+        } catch(err) {
+            console.error({err},  '-----> err in activateEquipment function at equipment_controller.js ')           
+            res.status(err.error.code || 500).json(err)    
+        } 
     }
 
     async deleteEquipment (req, res) {
-        const equipment_id = req.params.equipmentId 
-        const deleted_equipment = await equipmentmodel.delete(equipment_id)
-        if (deleted_equipment.rows.length !== 0) {
-            const result = { success: "Equipment successfully deleted" }
-            res.json(result)
-            console.log( deleted_equipment.rows, result)
-        } else if (deleted_equipment.rows.length == 0) {
-            const result = { Error: "Equipment not found" }
-            res.json(result) 
-        }else {
-            const result = { Error: "Error" }
-            res.json(result)
+        try{    
+            const equipment_id = req.params.equipmentId 
+            const deleted_equipment = await equipmentmodel.delete(equipment_id)
+            if (deleted_equipment.rows.length !== 0) {
+                const result = { 
+                    success: true,
+                    data: " Equipment successfully deleted"
+                }
+                console.log(deleted_equipment.rows, result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else if (deleted_equipment.rows.length == 0) {
+                const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
+                console.log(result, ' ----> err in deleteEquipment function with equipment_id = ${equipment_id} not exists at equipment_controller.js;')
+                res.status(result.error.code || 400).json(result) 
+            }
+        } catch(err) {
+            console.error({err},  '----> err in deleteEquipment function at equipment_controller.js ')
+            res.status(err.error.code || 500).json(err)            
         }
     }
 
-    async getEquipment (req, res) {
-        const equipment_id = req.params.equipmentId 
-        const get_activity = await equipmentmodel.getOne(equipment_id)
-        if (get_activity.rows.length == 0) {
-            const result = { Error: "Equipment not found" }
-            res.json(result) 
-        }else {
-            res.json(get_activity.rows[0])
-            console.log(get_activity.rows)
+    async getOneEquipment (req, res) {
+        try{    
+            const equipment_id = req.params.equipmentId 
+            const get_equipment = await equipmentmodel.getOne(equipment_id)
+            if (get_equipment.rows.length == 0) {
+                const result = {
+                    "success": true,
+                    "data": get_equipment.rows[0]
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)            
+            } else {
+                const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
+                console.log(result, ` -----> err in getEquipment function with equipment_id = ${equipment_id} not exists at equipment_controller.js;`)
+                res.status(result.error.code || 400).json(result) 
+            }
+        }catch(err) {
+            console.error({err},  '---->err in getEquipment function at equipment_controller.js ')
+            res.status(err.error.code || 500).json(err)            
         }
     }
 
-    async getEquipments (req, res) {
-        const { equipment_name } = req.body         
-        const get_equipments = await equipmentmodel.getAll(equipment_name)
-        if (get_equipments.rows.length == 0) {
-            const err = { Error: "Equipments not found" }
-            res.json(err) 
-        }else {
-            res.json(get_equipments.rows)
-            console.log(get_equipments.rows)
+    async getAllEquipments (req, res) {
+        try{    
+            const { equipment_name } = req.body         
+            const get_equipments = await equipmentmodel.getAll(equipment_name)
+            if (get_equipments.rows.length == 0) {
+                const result = {
+                    "success": true,
+                    "data": get_equipments.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)  
+            }else {
+                const result = new Api404Error( 'equipment_name', i18n.__('validation.isExist', `equipment_name ${equipment_name}`)) 
+                console.log(result, ` -----> err in getEquipments function  with equipment_name ${equipment_name} not exists at equipment_controller.js;`)
+                res.status(result.error.code || 400).json(result)
+            }
+        }catch(err) {
+            console.error({err},  '---->err in getActivities function at equipment_controller.js ')
+            res.status(err.error.code || 500).json(err)             
         }
     }
 
     async getSearchEquipment(req, res) {
-        const get_equipments = await equipmentmodel.getSearch(req, res)
-        res.json(get_equipments.rows)
+        try{ 
+            const body = req.body   
+            const get_equipments = await equipmentmodel.getSearch(body)
+            if (get_equipments.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": get_equipments.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)  
+            }else {
+                const result = new Api404Error( 'getSearchEquipment', i18n.__('validation.isExist', 'equipment')) 
+                console.log(result, ` -----> err 404 Not Found in getSearchEquipment function   at equipment_controller.js;`)
+                res.status(result.error.code || 400).json(result)
+            }
+        }catch(err) {
+            console.error({err},  '---->err in getSearchEquipment function at equipment_controller.js ')
+            res.status(err.error.code || 500).json(err)             
+        }
     }
 
 

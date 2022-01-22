@@ -1,15 +1,10 @@
-import { pool } from '../db.js';
 import { activity } from '../models/activity_model.js';
 import { validationResult } from 'express-validator';
 import  i18n   from 'i18n';
 
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
-import Api500Error from '../errors/api500_error.js';
 import httpStatusCodes from'../enums/http_status_codes_enums.js';
-
-
-const db = pool
 
 // console.log( i18n, " ---> i18n in the activity_controller.js")
 
@@ -48,9 +43,8 @@ class ActivityController {
                                     "code" : err.error.code,
                                     "message" : err.error.message,
                                     },
-                                "data": {
-                                    "activity_name" : err.data,
-                                }
+                                "data": err.data,
+                                
                                 }
                             console.log(server_error, " ------------------> Server Error in validationSchema at activity_conrtoller.js")
                             return Promise.reject(server_error)
@@ -58,7 +52,6 @@ class ActivityController {
                             const msg = err
                             return Promise.reject(msg)
                         };
-                      
                     })
                 },
             },
@@ -224,7 +217,7 @@ class ActivityController {
             // console.log( "------> controller is working in the activateActivity")     
             const activated_activity = await activity.activate(activity_id, active)
             console.log(activated_activity, " ----> activated_activity in activateActivity" )
-            if (activated_activity.rows[0] == undefined) {                
+            if (activated_activity.rows.length == 0) {                
                 const result = new Api404Error( 'activity_id', i18n.__('validation.isExist', `activity_id = ${activity_id}`)) 
                 console.log(result, ` ----> err in activateActivity function with activity_id = ${activity_id} not exists at activity_controller.js;`)
                 res.status(result.error.code || 404).json(result) 
@@ -268,8 +261,7 @@ class ActivityController {
         } catch(err) {
             console.error({err},  '----> err in deleteActivity function at activity_controller.js ')
             res.status(err.error.code || 500).json(err)            
-        }
-       
+        }       
     }
 
     async getActivity (req, res) {

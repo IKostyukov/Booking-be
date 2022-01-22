@@ -51,6 +51,34 @@ class EquipmentProviderModel {
         WHERE provider_id = ${provider_id};`)
         return all_equipmentprovider
     }
+
+    async isExist(equipmentprovider_id) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM equipmentsproviders WHERE id = ${equipmentprovider_id}) AS "exists";`
+        try{
+            const is_exist = await db.query(sql_query)
+            console.log(is_exist)
+            return  is_exist
+        } catch (err) {                                       
+            console.log(err, `-----> err in isExist function with equipmentprovider_id = ${equipmentprovider_id}  at  activiy_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                  
+            throw new Api500Error( 'equipmentprovider_id', `${err.message}`)                                                                  
+        }
+    }
+
+    async isUnique(equipment_name) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM equipments WHERE equipment_name = '${equipment_name}') AS "exists";`
+        try{
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique)
+            return  is_unique
+        }catch (err) {                                       
+            console.log(err, `-----> err in isExist function with equipment_name = ${equipment_name}  in activiy_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'equipment_name', `${err.message}`)                                                                
+        }
+    }
     
 
     

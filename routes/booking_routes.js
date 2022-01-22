@@ -1,17 +1,28 @@
 import express from 'express';
 import { booking_controller } from '../controller/booking_controller.js';
+import {bookingFormCheck} from '../check_forms/booking_form_check.js';
+import { checkSchema } from 'express-validator';
 
 const Router = express.Router;
 const routerBookings = new Router();
 
+const check_create_form = bookingFormCheck.forCreateUpdate
+const check_update_form = bookingFormCheck.forCreateUpdate
+const check_get_form = bookingFormCheck.forGetAll
+
+const check_schema = checkSchema(booking_controller.validationSchema);
+const chesk_result = booking_controller.checkResult;
+
+
+
 //  ### Bookings
 
-routerBookings.post('/booking', booking_controller.createBooking);
-routerBookings.patch('/booking/:bookingId', booking_controller.updateBooking);
-routerBookings.patch('/booking/:bookingId/approval', booking_controller.approveBooking);
-routerBookings.patch('/booking/:bookingId/cancellation', booking_controller.cancelBooking);
-routerBookings.delete('/booking/:bookingId', booking_controller.deleteBooking);
-routerBookings.get('/booking/:bookingId', booking_controller.getBooking);
-routerBookings.get('/booking', booking_controller.getBookings);
+routerBookings.post('/booking', check_create_form,  check_schema, chesk_result, booking_controller.createBooking);
+routerBookings.patch('/booking/:bookingId', check_update_form,  check_schema, chesk_result, booking_controller.updateBooking);
+routerBookings.patch('/booking/:bookingId/approval', check_schema, chesk_result, booking_controller.approveBooking);
+routerBookings.patch('/booking/:bookingId/cancellation', check_schema, chesk_result, booking_controller.cancelBooking);
+routerBookings.delete('/booking/:bookingId', check_schema, chesk_result, booking_controller.deleteBooking);
+routerBookings.get('/booking/:bookingId', check_schema, chesk_result, booking_controller.getOneBooking);
+routerBookings.get('/booking', check_get_form, booking_controller.getAllBookings);
 
 export { routerBookings };
