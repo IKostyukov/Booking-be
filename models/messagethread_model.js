@@ -94,10 +94,10 @@ class MessagethreadModel {
         FROM messagethreads WHERE id = ${messagethread_id}) AS "exists";`
         try{
             const is_exist = await db.query(sql_query)
-            console.log(is_exist)
+            console.log(is_exist.rows, '----> is_exist.rows in isExist function with messagethread_id = ${messagethread_id}  at  messagethread_model.js ')
             return  is_exist
         } catch (err) {                                       
-            console.log(err, `-----> err in isExist function with messagethread_id = ${messagethread_id}  at  activiy_model.js`)
+            console.log(err, `-----> err in isExist function with messagethread_id = ${messagethread_id}  at  messagethread_model.js`)
             // console.log(err.message, '-----> err.message')                                                                  
             throw new Api500Error( 'messagethread_id', `${err.message}`)                                                                  
         }
@@ -108,10 +108,11 @@ class MessagethreadModel {
         FROM messagethreads WHERE subject = '${subject}') AS "exists";`
         try{
             const is_unique = await db.query(sql_query)
-            console.log(is_unique)
+            console.log(is_exist.rows, '----> is_exist.rows in isUnique function with subject = ${subject}  at  messagethread_model.js ')
+            
             return  is_unique
         }catch (err) {                                       
-            console.log(err, `-----> err in isUnique function with subject = ${subject}  in activiy_model.js`)
+            console.log(err, `-----> err in isUnique function with subject = ${subject}  in messagethread_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'subject', `${err.message}`)                                                                
         }

@@ -27,10 +27,10 @@ class FeedbackController {
                 options:  (feedbackId, { req, location, path}) => {   
                             
                     return feedbackmodel.isExist(feedbackId).then( is_exist => {
-                        console.log(is_exist, '-------> is_exist feedback from validationSchema')
+                        console.log(is_exist.rows, '-------> is_exist.rows in feedbackId of feedback from validationSchema')
     
-                        if ( is_exist.rows[0].exists !== true) {
-                            console.log('Feedback with feedback_id = ${feedbackId} is not in DB (from feedback_controller.js)')
+                        if ( is_exist.rows[0].exists == false) {
+                            // console.log('Feedback with feedback_id = ${feedbackId} is not in DB (from feedback_controller.js)')
                             return Promise.reject('404 ' + i18n.__('validation.isExist', `feedback_id = ${feedbackId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         }
                     }).catch(err => {
@@ -73,11 +73,10 @@ class FeedbackController {
                 options:  (provider_id, { req, location, path}) => {   
                             
                     return providermodel.isExist(provider_id).then( is_exist => {
-                        console.log(is_exist, '-------> is_exist feedback from validationSchema')
+                        console.log(is_exist.rows, '-------> is_exist.rows in provider_id of feedback from validationSchema')
     
-                        if ( is_exist.rows[0].exists !== true) {
-                            console.log('Feedback with provider_id = ${provider_id} is not in DB (from feedback_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `provider_id = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        if ( is_exist.rows[0].exists == false) {
+                            return Promise.reject('404 Error;' + i18n.__('validation.isExist', `provider_id = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         }
                     }).catch(err => {
                         if (err.error) {
@@ -117,11 +116,38 @@ class FeedbackController {
                 options:  (messagethread_id, { req, location, path}) => {   
                         
                     return messagethreadmodel.isExist(messagethread_id).then( is_exist => {
-                        console.log(is_exist, '-------> is_exist messagethread_id from validationSchema')
+                        console.log(is_exist.rows, '-------> is_exist.rows in messagethread_id of feedback from validationSchema')
     
-                        if ( is_exist.rows[0].exists !== true) {
-                            console.log('Feedback with messagethread_id = ${messagethread_id} is not in DB (from feedback_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        if ( is_exist.rows[0].exists == false ) {
+                            // console.log('Feedback with messagethread_id = ${messagethread_id} is not in DB (from feedback_controller.js)')
+                            return Promise.reject('404 Error; ' + i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        } else {
+                            const  provider_id = req.body.provider_id  
+                        return feedbackmodel.isUnique(provider_id, messagethread_id).then( is_unique => {
+                            console.log(is_unique.rows , '-------> is_unique.rows in feedback from validationSchema')
+        
+                            if ( is_unique.rows[0].exists == true) {
+                                return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & messagethread_id = ${messagethread_id}`));
+                            }
+                        }).catch(err => {
+                                if (err.error) {
+                                    const server_error = {
+                                        "success": false,
+                                        "error": {
+                                            "code" : err.error.code,
+                                            "message" : err.error.message,
+                                            },
+                                        "data": {
+                                            "provider_id" : err.data,
+                                        }
+                                        }
+                                    console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                                    return Promise.reject(server_error)
+                                }else {
+                                    const msg = err
+                                    return Promise.reject(msg)
+                                };                        
+                            })
                         }
                     }).catch(err => {
                         if (err.error) {
@@ -142,43 +168,7 @@ class FeedbackController {
                         };
                     })
                 },
-                bail: true,
             },
-            custom: {               
-                options:  (messagethread_id, { req, location, path}) => {
-                    console.log(messagethread_id, req, "----> req.params.feedbackId")
-                    if (req.method !== 'GET' ) {     
-                         const  provider_id = req.body.provider_id  
-                        return feedbackmodel.isUnique(provider_id, messagethread_id).then( is_unique => {
-                            console.log(is_unique, '-------> is_unique feedback from validationSchema')
-        
-                            if ( is_unique.rows[0].exists == true) {
-                                console.log('Feedback with provider_id = ${provider_id} is not in DB (from feedback_controller.js)')
-                                return Promise.reject(i18n.__('validation.isUnique', `provider_id '${provider_id}'`));
-                            }
-                        }).catch(err => {
-                            if (err.error) {
-                                const server_error = {
-                                    "success": false,
-                                    "error": {
-                                        "code" : err.error.code,
-                                        "message" : err.error.message,
-                                        },
-                                    "data": {
-                                        "provider_id" : err.data,
-                                    }
-                                    }
-                                console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
-                                return Promise.reject(server_error)
-                            }else {
-                                const msg = err
-                                return Promise.reject(msg)
-                            };                        
-                        })
-                    }
-                },
-                bail: true,
-            },  
         },
 
         is_active: {

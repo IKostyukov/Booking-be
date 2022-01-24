@@ -70,6 +70,36 @@ const db = pool
 
 class UsersModel {
 
+    async isExist(user_id) {
+        try{
+            console.log(' ___________TTTTTTTTTTTTTTTTTTT________________')
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM users WHERE id = ${user_id}) AS "exists";`
+        
+            const is_exist = await db.query(sql_query)
+            console.log(is_exist.rows, ' -----> is_exist.rows from UsersModel')
+            return  is_exist
+        } catch (err) {                                       
+            console.log(err, `-----> err in isExist function with user_id = ${user_id}  at  user_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                  
+            throw new Api500Error( 'user_id', `${err.message}`)                                                                  
+        }
+    }
+
+    async isUnique(email) {
+        const sql_query = `SELECT EXISTS (SELECT 1
+        FROM users WHERE email = '${email}') AS "exists";`
+        try{
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique.rows, ' -----> is_unique.rows from user_model.js')
+            return  is_unique
+        }catch (err) {                                       
+            console.log(err, `-----> err in isUnique function with email = ${email}  in user_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'email', `${err.message}`)                                                                
+        }
+    }
+
     async create(email, phone, first_name, last_name, patronymic, dob,  profile_id, service,  roles_id) {        
         const new_user = await db.query(`INSERT INTO users 
         (email, phone, first_name, last_name, patronymic, 

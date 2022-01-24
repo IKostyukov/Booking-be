@@ -8,6 +8,7 @@ import  i18n   from 'i18n';
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
 import httpStatusCodes from'../enums/http_status_codes_enums.js';
+import { messagemodel } from '../models/message_model.js';
 
 
 class RatingController {
@@ -27,11 +28,11 @@ class RatingController {
                 options:  (ratingId, { req, location, path}) => {   
                             
                     return ratingmodel.isExist(ratingId).then( is_exist => {
-                        console.log(is_exist, '-------> is_exist rating from validationSchema')
+                        console.log(is_exist.rows, '-------> is_exist.rows of rating from validationSchema')
     
-                        if ( is_exist.rows[0].exists !== true) {
+                        if ( is_exist.rows[0].exists == false) {
                             console.log('Rating with rating_id = ${ratingId} is not in DB (from rating_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `rating_id = ${ratingId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            return Promise.reject('404 Error; ' + i18n.__('validation.isExist', `rating_id = ${ratingId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         }
                     }).catch(err => {
                         if (err.error) {
@@ -56,8 +57,8 @@ class RatingController {
         },
 
         provider_id: {
-
             in: ['body'],
+            optional: true,
             notEmpty: {
                 if: value => {
                     return value !== undefined;
@@ -73,11 +74,11 @@ class RatingController {
                 options:  (provider_id, { req, location, path}) => {   
                             
                     return providermodel.isExist(provider_id).then( is_exist => {
-                        console.log(is_exist, '-------> is_exist feedback from validationSchema')
+                        console.log(is_exist.rows, '-------> is_exist.rows of provider from validationSchema')
     
-                        if ( is_exist.rows[0].exists !== true) {
-                            console.log('Feedback with provider_id = ${provider_id} is not in DB (from feedback_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `provider_id = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        if ( is_exist.rows[0].exists == false) {
+                            console.log('Rating with provider_id = ${provider_id} is not in DB (from rating_controller.js)')
+                            return Promise.reject('404 Error;  ' + i18n.__('validation.isExist', `provider_id = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         }
                     }).catch(err => {
                         if (err.error) {
@@ -90,7 +91,7 @@ class RatingController {
                                 "data": err.data,
                                 
                                 }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                            console.log(server_error, " ------------------> Server Error in validationSchema at rating_controller.js")
                             return Promise.reject(server_error)
                         }else {
                             const msg = err
@@ -102,6 +103,7 @@ class RatingController {
         },
         user_id: {
             in: ['body'],
+            optional: true,
             notEmpty: {
                 if: value => {
                     return value !== undefined;
@@ -114,14 +116,40 @@ class RatingController {
                 bail: true,             
             },
             custom: {
-                options:  (user_id, { req, location, path}) => {   
-                        
+                options:  (user_id, { req, location, path}) => {      
                     return user.isExist(user_id).then( is_exist => {
-                        console.log(is_exist, '-------> is_exist user_id from validationSchema')
+                        console.log(is_exist.rows, '-------> is_exist.rows of user_id from validationSchema')
     
-                        if ( is_exist.rows[0].exists !== true) {
+                        if ( is_exist.rows[0].exists == false) {
                             console.log('Feedback with user_id = ${user_id} is not in DB (from feedback_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `user_id = ${user_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            return Promise.reject('404 Error;' + i18n.__('validation.isExist', `user_id = ${user_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        }else{
+                            const  provider_id = req.body.provider_id  
+                            return ratingmodel.isUnique(provider_id, user_id).then( is_unique => {
+                            console.log(is_unique.rows, '-------> is_unique.rows of rating from validationSchema')
+        
+                                if ( is_unique.rows[0].exists == true) {
+                                    return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & user_id = ${user_id}`));
+                                }
+                            }).catch(err => {
+                                if (err.error) {
+                                    const server_error = {
+                                        "success": false,
+                                        "error": {
+                                            "code" : err.error.code,
+                                            "message" : err.error.message,
+                                            },
+                                        "data": {
+                                            "provider_id" : err.data,
+                                        }
+                                    }
+                                    console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                                    return Promise.reject(server_error)
+                                }else {
+                                    const msg = err
+                                    return Promise.reject(msg)
+                                };                        
+                            })
                         }
                     }).catch(err => {
                         if (err.error) {
@@ -142,47 +170,12 @@ class RatingController {
                         };
                     })
                 },
-                bail: true,
             },
-            custom: {               
-                options:  (user_id, { req, location, path}) => {
-                    console.log(user_id, req, "----> req.params.feedbackId")
-                    if (req.method !== 'GET' ) {     
-                         const  provider_id = req.body.provider_id  
-                        return feedbackmodel.isUnique(provider_id, user_id).then( is_unique => {
-                            console.log(is_unique, '-------> is_unique feedback from validationSchema')
-        
-                            if ( is_unique.rows[0].exists == true) {
-                                console.log('Feedback with provider_id = ${provider_id} is not in DB (from feedback_controller.js)')
-                                return Promise.reject(i18n.__('validation.isUnique', `provider_id '${provider_id}'`));
-                            }
-                        }).catch(err => {
-                            if (err.error) {
-                                const server_error = {
-                                    "success": false,
-                                    "error": {
-                                        "code" : err.error.code,
-                                        "message" : err.error.message,
-                                        },
-                                    "data": {
-                                        "provider_id" : err.data,
-                                    }
-                                    }
-                                console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
-                                return Promise.reject(server_error)
-                            }else {
-                                const msg = err
-                                return Promise.reject(msg)
-                            };                        
-                        })
-                    }
-                },
-                bail: true,
-            },  
         },
 
         clearness: {
             in: ['body'],
+            optional: true,
             notEmpty: {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'clearness')},
                 bail: true,
@@ -195,6 +188,7 @@ class RatingController {
 
         staff: {
             in: ['body'],
+            optional: true,
             notEmpty: {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'staff')},
                 bail: true,
@@ -207,6 +201,7 @@ class RatingController {
 
         view: {
             in: ['body'],
+            optional: true,
             notEmpty: {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'view')},
                 bail: true,
@@ -216,7 +211,72 @@ class RatingController {
                 bail: true,             
             },
         },
-        
+        message_id: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'view')},
+                bail: true,
+            },
+            isInt: { 
+                errorMessage: () => { return i18n.__('validation.isInt', 'view')},       
+                bail: true,             
+            },
+
+            custom: {
+                options:  (message_id, { req, location, path}) => {      
+                    return messagemodel.isExist(message_id).then( is_exist => {
+                        console.log(is_exist.rows, '-------> is_exist.rows of user_id from validationSchema')
+    
+                        if ( is_exist.rows[0].exists == false) {
+                            console.log('Feedback with message_id = ${message_id} is not in DB (from feedback_controller.js)')
+                            return Promise.reject('404 Error:  ' + i18n.__('validation.isExist', `message_id = ${message_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        }else{
+                            const rating_id = req.params.ratingId   
+                            return ratingmodel.isUniqeuRatingAndMessage(message_id, rating_id).then( is_unique => {
+                                console.log(is_unique.rows, '-------> is_unique.rows of message_id from validationSchema')
+            
+                                if ( is_unique.rows[0].exists == false) {
+                                    return Promise.reject( i18n.__('validation.isUniqueCombination', `message_id = ${message_id} & rating_id =${rating_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                }
+                            }).catch(err => {
+                                if (err.error) {
+                                    const server_error = {
+                                        "success": false,
+                                        "error": {
+                                            "code" : err.error.code,
+                                            "message" : err.error.message,
+                                            },
+                                        "data": err.data,                                     
+                                        }
+                                    console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                                    return Promise.reject(server_error)
+                                }else {
+                                    const msg = err
+                                    return Promise.reject(msg)
+                                };
+                            })
+                        }
+                    }).catch(err => {
+                        if (err.error) {
+                            const server_error = {
+                                "success": false,
+                                "error": {
+                                    "code" : err.error.code,
+                                    "message" : err.error.message,
+                                    },
+                                "data": err.data,                 
+                                }
+                            console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                            return Promise.reject(server_error)
+                        }else {
+                            const msg = err
+                            return Promise.reject(msg)
+                        };    
+                    })
+                },
+            },
+        },
       }
 
     checkResult(req, res, next)  {

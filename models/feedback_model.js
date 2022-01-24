@@ -79,7 +79,7 @@ class FeedbackModel {
         FROM feedbacks WHERE id = ${feedback_id}) AS "exists";`
         try{
             const is_exist = await db.query(sql_query)
-            console.log(is_exist)
+            console.log(is_exist.rows, '----> is_exist.rows in isExist function with feedback_id = ${feedback_id}  at  feedback_model.js ')
             return  is_exist
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with feedback_id = ${feedback_id}  at  feedback_model.js`)
@@ -93,7 +93,7 @@ class FeedbackModel {
         FROM feedbacks WHERE provider_id = '${provider_id}' AND messagethread_id = '${messagethread_id}') AS "exists";`
         try{
             const is_unique = await db.query(sql_query)
-            console.log(is_unique)
+            console.log(is_unique.rows, `----> is_unique.rows in isUnique function with messagethread_id = ${messagethread_id}  in feedback_model.js`)
             return  is_unique
         }catch (err) {                                       
             console.log(err, `-----> err in isUnique function with messagethread_id = ${messagethread_id}  in feedback_model.js`)

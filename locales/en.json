@@ -14,6 +14,7 @@
 		"isLength": "%s invalid string length",
 		"isExist": "%s not exists",
 		"isUnique": "%s is alredy exist",
+		"isUniqueCombination": "%s not unique combination",
 		"isDate": " %s must be date in the format YYYY-MM-DD",
 		"isISO8601": "%s must be time in the format hh:mm:ss",
 		"isNumeric": "%s must contain only numbers"		

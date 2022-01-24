@@ -57,12 +57,28 @@ class RatingModel {
             throw new Api500Error( 'rating_id', `${err.message}`)                                                                  
         }   
     } 
+
+    async isUniqeuRatingAndMessage(rating_id, message_id) {
+        try{
+            const get_ratings = await db.query(`SELECT EXISTS (SELECT 1
+                FROM ratingwithfeedbacks WHERE rating_id = '${rating_id}' AND message_id = '${message_id}') AS "exists"`)       
+            console.log(get_ratings.rows, ' ---> isUniqeuRatingAndMessage')
+            return get_ratings
+        } catch (err) {                                       
+            console.log(err, `-----> err  in connectToFeedback function with rating_id = ${rating_id}  at rating_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'message_id', `${err.message}`)                                                                  
+        }   
+    } 
+    
+
     async isExist(rating_id) {
         const sql_query = `SELECT EXISTS (SELECT 1
         FROM rating WHERE id = ${rating_id}) AS "exists";`
         try{
             const is_exist = await db.query(sql_query)
-            console.log(is_exist)
+            console.log(is_exist. rows ,`----> is_exist. rows in isExist function with rating_id = ${rating_id}  at  rating_model.js`)
+
             return  is_exist
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with rating_id = ${rating_id}  at  rating_model.js`)
@@ -71,17 +87,18 @@ class RatingModel {
         }
     }
 
-    async isUnique(activity_name) {
+    async isUnique(provider_id, user_id) {
         const sql_query = `SELECT EXISTS (SELECT 1
-        FROM activities WHERE activity_name = '${activity_name}') AS "exists";`
+        FROM rating WHERE provider_id = '${provider_id}' AND user_id = '${user_id}') AS "exists";`
         try{
             const is_unique = await db.query(sql_query)
-            console.log(is_unique)
+            console.log(is_unique.rows ,`----> is_unique.rows in isExist function with provider_id = ${provider_id}  at  rating_model.js`)
+            
             return  is_unique
         }catch (err) {                                       
-            console.log(err, `-----> err in isUnique function with activity_name = ${activity_name}  in rating_model.js`)
+            console.log(err, `-----> err in isUnique function with provider_id = ${provider_id}  in rating_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error( 'activity_name', `${err.message}`)                                                                
+            throw new Api500Error( 'provider_id', `${err.message}`)                                                                
         }
     }
 }

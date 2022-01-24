@@ -210,9 +210,9 @@ class ActivityController {
     }
 
     async activateActivity (req, res) {
-        const activity_id = req.params.activityId
-        const {active} = req.body
         try{
+            const activity_id = req.params.activityId
+            const {active} = req.body
             console.log(activity_id, typeof(activity_id))
             // console.log( "------> controller is working in the activateActivity")     
             const activated_activity = await activity.activate(activity_id, active)
@@ -243,8 +243,8 @@ class ActivityController {
     }
 
     async deleteActivity (req, res) {
-        const activity_id = req.params.activityId
         try{
+            const activity_id = req.params.activityId
             const deleted_activity = await activity.delete(activity_id)
             if (deleted_activity.rows.length !== 0) {
                 const result = { 

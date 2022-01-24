@@ -18,7 +18,7 @@ class ProviderModel {
         FROM providers WHERE id = ${provider_id}) AS "exists";`
         try{
             const is_exist = await db.query(sql_query)
-            console.log(is_exist)
+            console.log(is_exist. rows ,'----> is_exist. rows in isExist function with provider_id = ${provider_id}  at  provider_model.js')
             return  is_exist
         } catch (err) {                                       
             console.log(err, `-----> err in isExist function with provider_id = ${provider_id}  at  provider_model.js`)
@@ -32,7 +32,7 @@ class ProviderModel {
         FROM providers WHERE provider_name = '${provider_name}') AS "exists";`
         try{
             const is_unique = await db.query(sql_query)
-            console.log(is_unique)
+            console.log(is_unique. rows ,'----> is_unique. rows in isExist function with provider_id = ${provider_id}  at  provider_model.js')
             return  is_unique
         }catch (err) {                                       
             console.log(err, `-----> err in isUnique function with provider_name = ${provider_name}  in provider_model.js`)
