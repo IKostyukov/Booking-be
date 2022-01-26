@@ -5,6 +5,21 @@ class EquipmentProviderModel {
 
    // ####  Инвентарь от объект отдыха  (equipmentsproviders) ###
 
+   async isExist(equipment_id) {
+    const sql_query = `SELECT EXISTS (SELECT 1
+    FROM equipmentsproviders WHERE id = ${equipment_id}) AS "exists";`
+    try{
+        const is_exist = await db.query(sql_query)
+        console.log(is_exist. rows ,`----> is_exist. rows in isExist function with equipment_id = ${equipment_id}  at  equipmentprovider_model.js`)
+
+        return  is_exist
+    } catch (err) {                                       
+        console.log(err, `-----> err in isExist function with message_id = ${message_id}  at  equipmentprovider_model.js`)
+        // console.log(err.message, '-----> err.message')                                                                  
+        throw new Api500Error( 'rating_id', `${err.message}`)                                                                  
+    }
+}
+
    async createNewEquipmentProvider (provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable) {
         console.log(provider_id, equipment_id) 
         const new_equipmentprovider = await db.query(`INSERT INTO equipmentsproviders(
@@ -79,6 +94,7 @@ class EquipmentProviderModel {
             throw new Api500Error( 'equipment_name', `${err.message}`)                                                                
         }
     }
+    
     
 
     

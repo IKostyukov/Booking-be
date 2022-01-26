@@ -18,14 +18,14 @@ class MessageFormCheck {
                 // проверка на количество параметров
 
         const count_require = 4
-        const count_total = 7
+        const count_total = 8
         const count_properties = countProperties(req.body) 
         console.log(count_properties, "count of properties");    
 
         if (count_properties < count_require || count_properties > count_total) { 
 
             const param = 'message create form'
-            const data = i18n.__('validation.isMatch', ` ${count_require} `, `${count_properties}`)
+            const data = i18n.__('validation.isMatch', ` ${count_require} - ${count_total}  `, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)        
 
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the message_form_check.js`)    
@@ -88,7 +88,7 @@ class MessageFormCheck {
         if (count_properties < count_require || count_properties > count_total) { 
 
             const param = 'message activate form'
-            const data = i18n.__('validation.isMatch', ` ${count_require} `, `${count_properties}`)
+            const data = i18n.__('validation.isMatch', ` ${count_require}`, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the message_form_check.js`)    
             return res.status(bad_request_error.error.code || 400).json(bad_request_error)

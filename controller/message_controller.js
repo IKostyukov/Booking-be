@@ -316,7 +316,7 @@ class MessageController {
                     success: true,
                     data: " Message successfully created"
                 }
-                console.log(result, new_message.rows, ' -----> createMessage.rows in updateMessage function at message_controller.js')
+                console.log(result, new_message.rows, ' -----> createMessage.rows in createMessage function at message_controller.js')
                 res.status(httpStatusCodes.OK || 200).json(result)
             } else {
                 const result = new Api400Error( 'new_message', 'Unhandled Error')

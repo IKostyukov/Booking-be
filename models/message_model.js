@@ -101,7 +101,7 @@ class MessageModel {
             console.log(get_messages.rows)
             return get_messages
         } catch (err) {                                       
-            console.log(err, `-----> err  in getAll function with messagethread_id = ${messagethread_id}  at message_model.js`)
+            console.log(err, `-----> err  in getManyMessages function with messagethread_id = ${messagethread_id}  at message_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'messagethread_id', `${err.message}`)                                                                  
         }     
@@ -115,7 +115,7 @@ class MessageModel {
             // console.log(get_threads.rows)
             return get_threads
         } catch (err) {                                       
-            console.log(err, `-----> err  in getAll function with user_id = ${user_id}  at message_model.js`)
+            console.log(err, `-----> err  in getManyThreads function with user_id = ${user_id}  at message_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'user_id', `${err.message}`)                                                                  
         }     
