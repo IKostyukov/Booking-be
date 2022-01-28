@@ -25,8 +25,7 @@ class RatingController {
                 bail: true,             
             },
             custom: {
-                options:  (ratingId, { req, location, path}) => {   
-                            
+                options:  (ratingId, { req, location, path}) => {                               
                     return ratingmodel.isExist(ratingId).then( is_exist => {
                         console.log(is_exist.rows, '-------> is_exist.rows of rating from validationSchema')
     
@@ -39,7 +38,7 @@ class RatingController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -70,7 +69,7 @@ class RatingController {
                 errorMessage: () => { return i18n.__('validation.isInt', 'provider_id')},       
                 bail: true,             
             },
-            custom: {
+            custom: { 
                 options:  (provider_id, { req, location, path}) => {   
                             
                     return providermodel.isExist(provider_id).then( is_exist => {
@@ -85,7 +84,7 @@ class RatingController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -136,7 +135,7 @@ class RatingController {
                                     const server_error = {
                                         "success": false,
                                         "error": {
-                                            "code" : err.error.code,
+                                            "code" : err.statusCode,
                                             "message" : err.error.message,
                                             },
                                         "data": {
@@ -156,7 +155,7 @@ class RatingController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -244,7 +243,7 @@ class RatingController {
                                     const server_error = {
                                         "success": false,
                                         "error": {
-                                            "code" : err.error.code,
+                                            "code" : err.statusCode,
                                             "message" : err.error.message,
                                             },
                                         "data": err.data,                                     
@@ -262,7 +261,7 @@ class RatingController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,                 
@@ -294,17 +293,17 @@ class RatingController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the RatingController.checkResult`) 
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the RatingController.checkResult`) 
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
                 console.log(server_error,  ` ----> server_error from the RatingController.checkResult`) 
-                res.status(server_error.error.code || 500).json(server_error) 
+                res.status(server_error.statusCode || 500).json(server_error) 
             }
         }else{
             return next()
@@ -325,11 +324,11 @@ class RatingController {
             } else {
                 const result = new Api400Error( 'provider_id', 'Unhandled Error')
                 console.log(result, ' ----> err from addRate function at rating_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in addRate function at rating_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -348,11 +347,11 @@ class RatingController {
             } else {
                 const result = new Api404Error( 'rating_id', i18n.__('validation.isExist', `rating_id = ${rating_id}`)) 
                 console.log(result, ' ----> err from updateRate function at rating_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateRate function at rating_controller.js ')
-            res.status(err.error.code || 500).json(err) 
+            res.status(err.statusCode || 500).json(err) 
         }
     }    
 
@@ -370,11 +369,11 @@ class RatingController {
             } else if (deleted_rating.rows.length == 0) {
                 const result = new Api404Error( 'rating_id', i18n.__('validation.isExist', `rating_id = ${rating_id}`)) 
                 console.log(result, ' ----> err in deleteRate function with rating_id = ${rating_id} not exists at rating_controller.js;')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteRate function at rating_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
     }
 
@@ -395,11 +394,11 @@ class RatingController {
             }else {
                 const result = new Api404Error( 'rating_id', i18n.__('validation.isExist', `rating_id = ${rating_id}`)) 
                 console.log(result, ` -----> err in connectRatingToFeedback function  with rating_id = ${rating_id} not exists at rating_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in connectRatingToFeedback function at rating_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
    

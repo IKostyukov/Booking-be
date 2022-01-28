@@ -17,8 +17,8 @@ const chesk_result = user_controller.checkResult;
 //  ### Users ###
 
 routerUsers.post('/user', check_create_form, check_schema, chesk_result, user_controller.createUser);
-routerUsers.post('/user/:userId', check_update_form, check_schema, chesk_result, user_controller.updateUser);
-routerUsers.post('/user/:userId/activation', check_activate_form, check_schema, chesk_result, user_controller.activateUser);
+routerUsers.patch('/user/:userId', check_update_form, check_schema, chesk_result, user_controller.updateUser);
+routerUsers.patch('/user/:userId/activation', check_activate_form, check_schema, chesk_result, user_controller.activateUser);
 routerUsers.delete('/user/:userId', check_schema, chesk_result, user_controller.deleteUser);
 routerUsers.get('/user/:userId', user_controller.getOneUserWithRoles);
 routerUsers.get('/users', check_schema, chesk_result, user_controller.getManyUsers);

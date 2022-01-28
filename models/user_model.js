@@ -89,8 +89,8 @@ class UsersModel {
 
     async isExistRoles(roles) {
         try {
-            let arr_roles = roles.split(',').map(Number);
-
+            console.log(roles, typeof(roles), ' roles ----->>>')
+            let arr_roles = roles.map(Number);
             const roles_id = await db.query(`SELECT id AS exists FROM roles ORDER BY id;`)   // Проверуку убрать в контороллер в валидациию
             let list_roles_id = []
             roles_id.rows.forEach(element => {
@@ -98,11 +98,11 @@ class UsersModel {
             });
 
             let difference = arr_roles.filter(x => !list_roles_id.includes(x));
-            console.log(roles_id.rows, arr_roles, list_roles_id, difference, ' difference ----->>>')
+            console.log(roles_id.rows, arr_roles, list_roles_id, ' difference ----->>>', difference)
             if (difference.length == 0) {
                 return { exists: true }
             } else {
-                return { sxists: false }
+                return { exists: false }
 
             }
         } catch (err) {
@@ -142,7 +142,7 @@ class UsersModel {
         }
     }
 
-    async isUUniqueProfilIdAndService(profile_id, service) {
+    async isUniqueCombination(profile_id, service) {
         try {
             const sql_query = `SELECT EXISTS (SELECT 1
             FROM users WHERE profile_id = '${profile_id}' AND service = '${service}') AS "exists";`
@@ -183,14 +183,16 @@ class UsersModel {
 
     async update(user_id, email, phone, first_name, last_name, patronymic, dob, roles) {
         try {
-            const roles_arr = Array.from(roles.split(','), Number)
+            // const roles_arr = Array.from(roles.split(','), Number)
+            const roles_arr = Array.from(roles, Number)
+
             const sql = `UPDATE users
             SET email='${email}', phone=${phone}, first_name='${first_name}', last_name='${last_name}', patronymic='${patronymic}', dob='${dob}',  mtime=NOW()
             WHERE id = ${user_id}
             RETURNING *;`
-            console.log(sql)
+            // console.log(sql)
             const updated_user = await db.query(sql)
-            // console.log(updated_user)
+            // console.log(updated_user.rows, ' ---> updated_user.rows at user_model.js' )
             let string_delete = `DELETE FROM users_roles WHERE user_id = ${user_id};`
             let string_update = " "
             let sql_query = " "
@@ -202,7 +204,7 @@ class UsersModel {
             // console.log(sql_query)
             const updated_roles = await db.query(sql_query) // 'insert or update on table "users_roles" violates foreign key constraint "user_id"
             // console.log(updated_roles[1])                    // то есть не можеть DELETE FROM users_roles WHERE user_id = ${user_id};`
-            // надо убрать DELETE ON CASCAD
+           
 
             return { updated_user: updated_user, updated_roles: updated_roles }
         } catch (err) {
@@ -328,7 +330,7 @@ class UsersModel {
         try {
             const get_user = await db.query(`SELECT id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
             FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id WHERE users.id = ${user_id};`)
-            // console.log(get_user)
+            console.log(user_id, get_user, ' ----> getOneWithRoles at user_model.js')
             let roles = []
             for (let i = 0; i < get_user.rowCount; i += 1) {
                 roles.push(get_user.rows[i].role_id)

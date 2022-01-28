@@ -18,13 +18,11 @@ const db = pool
 
 //  UUID generaate
 
-// const createUuid = (req) => {
-//     let profile_id = uid(15)
-//     return profile_id
-// };
+const createUuid = (req) => {
+    let profile_id = uid(15)
+    return profile_id
+};
 
-// let profile_id = createUuid();
-let profile_id = 'uUbrCK9JwlgqidL'
 
 class UserController {
 
@@ -42,31 +40,32 @@ class UserController {
             },
             custom: {
                 options: (userId, { req, location, path }) => {
-
-                    return user.isExistUserId(userId).then(is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows userId from validationSchema')
-
-                        if (is_exist.rows[0].exists !== true) {
-                            console.log('Message with user_id = ${userId} is not in DB (from user_controller.js)')
-                            return Promise.reject('404 Error:' + i18n.__('validation.isExist', `user_id = ${userId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code": err.error.code,
-                                    "message": err.error.message,
-                                },
-                                "data": err.data,
+                    if(req.methods !== 'GET'){
+                        return user.isExistUserId(userId).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows userId from validationSchema')
+    
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('User with user_id = ${userId} is not in DB (from user_controller.js)')
+                                return Promise.reject('404 Error:' + i18n.__('validation.isExist', `user_id = ${userId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
-                            return Promise.reject(server_error)
-                        } else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                    })
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },
         },
@@ -83,56 +82,57 @@ class UserController {
             },
             custom: {
                 options: (equipmentId, { req, location, path }) => {
+                    if(req.methods !== 'GET'){
+                        return equipmentprovidermodel.isExist(equipmentId).then(is_exist => {
+                            console.log(is_exist, '-------> is_exist equipmentId from validationSchema')
 
-                    return equipmentprovidermodel.isExist(equipmentId).then(is_exist => {
-                        console.log(is_exist, '-------> is_exist equipmentId from validationSchema')
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Equipment with equipmentId = ${equipmentId} is not in DB (from user_controller.js)')
+                                return Promise.reject('404 Error: ' + i18n.__('validation.isExist', `equipmentId = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            } else {
+                                const user_id = req.params.userId
+                                return favoriteequipment_model.isUniqueCombination(user_id, equipmentId).then(is_unique => {
+                                    console.log(is_unique.rows, '-------> is_exist.rows of parent_user_id from validationSchema')
 
-                        if (is_exist.rows[0].exists !== true) {
-                            console.log('Equipment with equipmentId = ${equipmentId} is not in DB (from user_controller.js)')
-                            return Promise.reject('404 Error: ' + i18n.__('validation.isExist', `equipmentId = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        } else {
-                            const user_id = req.params.userId
-                            return favoriteequipment_model.isUniqueCombination(user_id, equipmentId).then(is_unique => {
-                                console.log(is_unique.rows, '-------> is_exist.rows of parent_user_id from validationSchema')
-
-                                if (is_unique.rows[0].exists == true) {
-                                    return Promise.reject(i18n.__('validation.isUniqueCombination', `user_id = ${user_id} & equipmentId = ${equipmentId}`));
-                                }
-                            }).catch(err => {
-                                if (err.error) {
-                                    const server_error = {
-                                        "success": false,
-                                        "error": {
-                                            "code": err.error.code,
-                                            "message": err.error.message,
-                                        },
-                                        "data": err.data,
+                                    if (is_unique.rows[0].exists == true) {
+                                        return Promise.reject(i18n.__('validation.isUniqueCombination', `user_id = ${user_id} & equipmentId = ${equipmentId}`));
                                     }
-                                    console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
-                                    return Promise.reject(server_error)
-                                } else {
-                                    const msg = err
-                                    return Promise.reject(msg)
-                                };
-                            })
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code": err.error.code,
-                                    "message": err.error.message,
-                                },
-                                "data": err.data,
+                                }).catch(err => {
+                                    if (err.error) {
+                                        const server_error = {
+                                            "success": false,
+                                            "error": {
+                                                "code": err.statusCode,
+                                                "message": err.error.message,
+                                            },
+                                            "data": err.data,
+                                        }
+                                        console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
+                                        return Promise.reject(server_error)
+                                    } else {
+                                        const msg = err
+                                        return Promise.reject(msg)
+                                    };
+                                })
                             }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
-                            return Promise.reject(server_error)
-                        } else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                    })
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },
         },
@@ -151,31 +151,33 @@ class UserController {
                 errorMessage: () => { return i18n.__('validation.isEmail') },
                 bail: true,
             },
-            custom: {
-                options: (email, { req, location, path }) => {
-                    return user.isUniqueEmail(email).then(is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows of email from validationSchema')
-
-                        if (is_exist.rows[0].exists == true) {
-                            return Promise.reject(i18n.__('validation.isUnique', `email = ${email}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code": err.error.code,
-                                    "message": err.error.message,
-                                },
-                                "data": err.data,
+            custom: {              
+                options: (email, { req, location, path }) => {                  
+                    if(req.method !== 'GET'){
+                        return user.isUniqueEmail(email).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows of email from validationSchema')
+    
+                            if (is_exist.rows[0].exists == true) {
+                                return Promise.reject(i18n.__('validation.isUnique', `email = ${email}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
-                            return Promise.reject(server_error)
-                        } else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                    })
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },
             trim: true,
@@ -304,7 +306,7 @@ class UserController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code": err.error.code,
+                                    "code": err.statusCode,
                                     "message": err.error.message,
                                 },
                                 "data": err.data,
@@ -366,26 +368,22 @@ class UserController {
         roles: {
             in: ['body'],
             optional: true,
-            // isNumeric:{ // не работает с запятыми
-            //     // no_symbols: true,
-            //     errorMessage: () => { return i18n.__('validation.isNumeric', 'roles')},
-            //     bail: true,
-            // },
             custom: {
                 options: (roles, { req, location, path }) => {
+                    console.log(req.body.roles, typeof(req.body.roles),' -------> req.roles  from validationSchema')
                     return user.isExistRoles(roles).then(is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows userId from validationSchema')
+                        console.log(is_exist.exists, '-------> is_exist.exists at roles from validationSchema')
 
                         if (is_exist.exists == false) {
-                            console.log('Message with roles = ${roles} is not in DB (from user_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `roles = ${roles}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            console.log('User ${req.params.userId} with roles = ${roles} is not in DB (from user_controller.js)')
+                            return Promise.reject('404 Error: ' + i18n.__('validation.isExist', `User ${req.params.userId} with roles = ${roles}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         }
                     }).catch(err => {
                         if (err.error) {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code": err.error.code,
+                                    "code": err.statusCode,
                                     "message": err.error.message,
                                 },
                                 "data": err.data,
@@ -429,7 +427,7 @@ class UserController {
             //     options: (service, { req, location, path }) => {
             //         if(profile_id !== undefined){
             //             // const profile_id = req.body.profile_id
-            //             return user.isUUniqueProfilIdAndService(profile_id, service).then(is_unique => {
+            //             return user.isUniqueCombination(profile_id, service).then(is_unique => {
             //             console.log(is_unique.rows, '-------> is_unique.rows of profile_id from validationSchema')
 
             //             if (is_unique.rows[0].exists == true) {
@@ -440,7 +438,7 @@ class UserController {
             //                 const server_error = {
             //                     "success": false,
             //                     "error": {
-            //                         "code": err.error.code,
+            //                         "code": err.statusCode,
             //                         "message": err.error.message,
             //                     },
             //                     "data": err.data,
@@ -475,17 +473,17 @@ class UserController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error, ` ----> not_found_error from the userController.checkResult`)
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 } else {
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)
                     console.log(bad_request_error, ` ----> bad_request_error from the userController.checkResult`)
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error)
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error)
                 }
             } else {
                 const server_error = data
                 console.log(server_error, ` ----> server_error from the userController.checkResult`)
-                res.status(server_error.error.code || 500).json(server_error)
+                res.status(server_error.statusCode || 500).json(server_error)
             }
         } else {
             return next()
@@ -496,32 +494,54 @@ class UserController {
 
     async createUser(req, res) {
         try {
-            const { email, phone, first_name, last_name, patronymic, dob, service, roles } = req.body
-            const roles_id = Array.from(roles.split(','), Number)
-            const is_unique = await user.isUniqueProfilId(profile_id)
-            if (is_unique.rows[0].exists == true) {
-                const result = new Api400Error('profile_id', i18n.__('validation.isUnique', `profile_id = ${profile_id}`))
+            let profile_id = '';                
+
+            if(req.body.service == 'locale'){
+                // Сщздаем profile_id для стратегии аутентификации " locale"  и проверяем на уникальность
+                let is_uuid_exists = true
+                do {
+                    // let profile_id = 'uUbrCK9JwlgqidL'
+                    profile_id = createUuid();                
+                    const is_unique = await user.isUniqueProfilId(profile_id);
+                    is_uuid_exists = is_unique.rows[0].exists
+                } while (is_uuid_exists == false);
+                profile_id = 'l_' + profile_id
+
+            }else if (req.body.service == 'facebook'){
+                 // profile_id = 'f_' + 'Добаваить Facebook profile_id'
+                const is_unique = await user.isUniqueProfilId(profile_id);
+
+            }else if (req.body.service == 'google'){
+                 // profile_id = 'g_'+ 'Добаваить Google profile_id'
+                 const is_unique = await user.isUniqueProfilId(profile_id);
+
+            }else{
+                const result = new Api400Error('service', i18n.__('validation.isExist', `service = ${req.body.service}`))
                 console.log(result, ' ----> err from createUser function at user_controller.js')
-                res.status(result.error.code || 400).json(result)
-            } else {
-                const new_person = await user.create(email, phone, first_name, last_name, patronymic, dob, profile_id, service, roles_id)
-                if (new_person.new_user.rows[0].id && new_person.new_role[0].rows[0].role_id) {
-                    const result = {
-                        success: true,
-                        data: " User successfully created"
-                    }
-                    console.log(result, new_person.new_user.rows, ' -----> createMessage.rows in createUser function at user_controller.js')
-                    res.status(httpStatusCodes.OK || 200).json(result)
-                } else {
-                    const result = new Api400Error('new_person', 'Unhandled Error')
-                    console.log(result, ' ----> err from createUser function at user_controller.js')
-                    res.status(result.error.code || 400).json(result)
-                }
+                res.status(result.statusCode || 400).json(result)
             }
+            
+            const { email, phone, first_name, last_name, patronymic, dob, service, roles } = req.body
+            // const roles_id = Array.from(roles.split(','), Number)
+            const roles_id = Array.from(roles, Number)
+            const new_person = await user.create(email, phone, first_name, last_name, patronymic, dob, profile_id, service, roles_id)
+            if (new_person.new_user.rows[0].id && new_person.new_role[0].rows[0].role_id) {
+                const result = {
+                    success: true,
+                    data: " User successfully created"
+                }
+                console.log(result, new_person.new_user.rows, ' -----> createMessage.rows in createUser function at user_controller.js')
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('new_person', 'Unhandled Error')
+                console.log(result, ' ----> err from createUser function at user_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+            
         } catch (err) {
             if (err.error) {
                 console.error({ err }, '-----> err in createUser function at user_controller.js ')
-                res.status(err.error.code || 500).json(err)
+                res.status(err.statusCode || 500).json(err)
             } else {
                 console.error({ err }, '-----> code_error in the  createUser function at user_controller.js ')
                 res.json({ 'Code Error': err.message })
@@ -544,11 +564,11 @@ class UserController {
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err from updateUser function at user_controller.js')
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '-----> err in updateUser function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -560,7 +580,7 @@ class UserController {
             if (activated_person.rows.length == 0) {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ` ----> err in activateUser function with user_id = ${user_id} not exists at user_controller.js;`)
-                res.status(result.error.code || 404).json(result)
+                res.status(result.statusCode || 404).json(result)
             } else if (activated_person.rows[0].is_reminder == false) {
                 const result = {
                     success: true,
@@ -578,7 +598,7 @@ class UserController {
             }
         } catch (err) {
             console.error({ err }, '-----> err in activateUser function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -596,11 +616,11 @@ class UserController {
             } else if (deleted_message.rows.length == 0) {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err in deleteUser function with user_id = ${user_id} not exists at user_controller.js;')
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '----> err in deleteUser function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -608,21 +628,21 @@ class UserController {
         try {
             const user_id = req.params.userId
             const get_user = await user.getOneWithRoles(user_id)
-            if (get_user.rows.length !== 0) {
+            if (get_user) {
                 const result = {
                     "success": true,
-                    "data": get_user.rows
+                    "data": get_user
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 200).json(result)
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ` -----> err in getOneUserWithRoles function  with user_id = ${user_id} not exists at user_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '---->err in getOneUserWithRoles function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -640,11 +660,11 @@ class UserController {
             } else {
                 const result = new Api404Error('getManyUsers', i18n.__('validation.isExist', `getManyUsers`))
                 console.log(result, ` -----> err in getManyUsers function  at user_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '---->err in getManyUsers function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -663,11 +683,11 @@ class UserController {
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err from addFavoriteEquipment function at user_controller.js')
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '-----> err in addFavoriteEquipment function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -686,11 +706,11 @@ class UserController {
             } else if (deleted_favoriteequipment.rows.length == 0) {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err in deleteFavoriteEquipment function with user_id = ${user_id} not exists at user_controller.js;')
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '----> err in deleteFavoriteEquipment function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -708,11 +728,11 @@ class UserController {
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ` -----> err in getFavoriteEquipment function  with user_id = ${user_id} not exists at user_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
             console.error({ err }, '---->err in getFavoriteEquipment function at user_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 }

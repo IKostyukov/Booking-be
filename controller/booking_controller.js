@@ -37,7 +37,7 @@ class BookingControlller{
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -77,7 +77,7 @@ class BookingControlller{
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": {
@@ -172,17 +172,17 @@ class BookingControlller{
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the BookingController.checkResult`) 
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the BookingController.checkResult`) 
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
                 console.log(server_error,  ` ----> server_error from the BookingController.checkResult`) 
-                res.status(server_error.error.code || 500).json(server_error) 
+                res.status(server_error.statusCode || 500).json(server_error) 
             }
         }else{
             return next()
@@ -204,11 +204,11 @@ class BookingControlller{
             } else {
                 const result = new Api400Error( 'equipmentprovider_id', 'Unhandled Error')
                 console.log(result, ' ----> err from createBooking function at booking_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createBooking function at booking_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -231,11 +231,11 @@ class BookingControlller{
             } else {
                 const result = new Api404Error( 'booking_id', i18n.__('validation.isExist', `booking_id = ${booking_id}`)) 
                 console.log(result, ' ----> err from updateBooking function at booking_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateBooking function at booking_controller.js ')
-            res.status(err.error.code || 500).json(err) 
+            res.status(err.statusCode || 500).json(err) 
         }
     }
 
@@ -255,11 +255,11 @@ class BookingControlller{
             }else{                
                 const result = new Api404Error( 'booking_id', i18n.__('validation.isExist', `booking_id  ${booking_id}`)) 
                 console.log(result, ` ----> err in approveBooking function with booking_id ${booking_id} not exists at booking_controller.js;`)
-                res.status(result.error.code || 404).json(result)
+                res.status(result.statusCode || 404).json(result)
             } 
         } catch(err) {
             console.error({err},  '-----> err in approveBooking function at booking_controller.js ')           
-            res.status(err.error.code || 500).json(err)    
+            res.status(err.statusCode || 500).json(err)    
         } 
     }
 
@@ -279,11 +279,11 @@ class BookingControlller{
             }else{                
                 const result = new Api404Error( 'booking_id', i18n.__('validation.isExist', `booking_id  ${booking_id}`)) 
                 console.log(result, ` ----> err in cancelBooking function with booking_id ${booking_id} not exists at booking_controller.js;`)
-                res.status(result.error.code || 404).json(result)
+                res.status(result.statusCode || 404).json(result)
             } 
         } catch(err) {
             console.error({err},  '-----> err in cancelBooking function at booking_controller.js ')           
-            res.status(err.error.code || 500).json(err)    
+            res.status(err.statusCode || 500).json(err)    
         } 
     }
      //  ### Удалить бронирование ###
@@ -303,11 +303,11 @@ class BookingControlller{
             } else if (deleted_booking.rows.length == 0) {
                 const result = new Api404Error( 'booking_id', i18n.__('validation.isExist', `booking_id = ${booking_id}`)) 
                 console.log(result, ' ----> err in deleteBooking function with booking_id = ${booking_id} not exists at booking_controller.js;')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteBooking function at booking_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
     }    
 
@@ -327,11 +327,11 @@ class BookingControlller{
             } else {
                 const result = new Api404Error( 'booking_id', i18n.__('validation.isExist', `booking_id = ${booking_id}`)) 
                 console.log(result, ` -----> err in getBooking function with booking_id = ${booking_id} not exists at booking_controller.js;`)
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '---->err in getBooking function at booking_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
      }    
 

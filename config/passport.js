@@ -18,96 +18,107 @@ const JWTkey = 'TOP_SECRET'
 
 console.log(LocalStrategy, "Tect of import LocalStrategy from passport.js-7") // Работает
 
-const local_strategy = new LocalStrategy({
-    usernameField: 'last_name',    // define the parameter in req.body that passport can use as username and password
-    passwordField: 'password'
-    },
-    function(username, password, done) {
-    console.log(username, "test verification function called from passport.js-15") // Петров
 
-    user.findOne({ last_name: username }, function (err, user) {
-    console.log(err, user, "test (err, user)  authenticate from passport.js-18")
+      const local_strategy = new LocalStrategy({
+      usernameField: 'last_name',    // define the parameter in req.body that passport can use as username and password
+      passwordField: 'password'
+      },
+      function(username, password, done) {
+      console.log(username, "test verification function called from passport.js-15") // Петров
+      try{
 
-    if (err) {  
-        console.log(err, "test error user authenticate from passport.js-21")
-        return done(err); 
-        }        
-    if (!user) {
-        console.log(err, "test error {message: 'Incorrect username} from passport.js-25")
-        return done(null, false, { message: 'Incorrect username.' });
+        user.findOne({ last_name: username }, function (err, user) {
+        console.log(err, user, "test (err, user)  authenticate from passport.js-18")
+
+        if (err) {  
+            console.log(err, "test error user authenticate from passport.js-21")
+            return done(err); 
+            }        
+        if (!user) {
+            console.log(err, "test error {message: 'Incorrect username} from passport.js-25")
+            return done(null, false, { message: 'Incorrect username.' });
+        }
+        if (user.password != password) {
+            console.log(err, "test error {message: 'Incorrect password} from passport.js-29")
+            return done(null, false, { message: 'Incorrect password.' });
+        }
+
+        console.log("test (Sucsess logged in) passport.js - 31")
+        return done(null, user)    
+        });
+    }catch(err){
+        const error = new Api500Error('server.js', `${err.message}`)
+        console.log(error)
     }
-    if (user.password != password) {
-        console.log(err, "test error {message: 'Incorrect password} from passport.js-29")
-        return done(null, false, { message: 'Incorrect password.' });
-    }
-
-    console.log("test (Sucsess logged in) passport.js - 31")
-    return done(null, user)    
-    });
-    });
-
-// ### JWT Strategy (Авторизация по токену)
-
-const options = {
-    jwtFromRequest: JwtExstract.fromAuthHeaderAsBearerToken(),
-    secretOrKey: JWTkey
-}
-const jwt_strategy = new JwtStrategy(options, async (payload, done) => {
-    console.log(payload, "payload ---- passport.js- 52")
-    // const user = await User.findOne(payload)
-    try {
-        return done(null, payload.user);
-    } catch (error) {
-        done(error);
-        }   
 });
 
-//  ### GOOGLE 
 
-    const google_strategy = new GoogleStrategy(
-      {
-        clientID: '637412737162-9lcg0qc8dv7s4e1l6p9ncjk4r0se84qc.apps.googleusercontent.com', //YOUR GOOGLE_CLIENT_ID
-        clientSecret: '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', //YOUR GOOGLE_CLIENT_SECRET
-        callbackURL: 
-           'http://127.0.0.1:8080/auth/google/callback', 
-            // 'https://www.getpostman.com/auth/google/callback',       
-        passReqToCallback   : true,
-        scope: ['profile', 'email']     
-      },async (req, accessToken, refreshToken, profile, done) => {
+  // ### JWT Strategy (Авторизация по токену)
+
+  const options = {
+      jwtFromRequest: JwtExstract.fromAuthHeaderAsBearerToken(),
+      secretOrKey: JWTkey
+  }
+  const jwt_strategy = new JwtStrategy(options, async (payload, done) => {
+      console.log(payload, "payload ---- passport.js- 52")
+      // const user = await User.findOne(payload)
+      try {
+          return done(null, payload.user);
+      } catch (error) {
+          done(error);
+          }   
+  });
+
+  //  ### GOOGLE 
+
+      const google_strategy = new GoogleStrategy(
+        {
+          clientID: '637412737162-9lcg0qc8dv7s4e1l6p9ncjk4r0se84qc.apps.googleusercontent.com', //YOUR GOOGLE_CLIENT_ID
+          clientSecret: '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', //YOUR GOOGLE_CLIENT_SECRET
+          callbackURL: 
+            'http://127.0.0.1:8080/auth/google/callback', 
+              // 'https://www.getpostman.com/auth/google/callback',       
+          passReqToCallback   : true,
+          scope: ['profile', 'email']     
+        },async (req, accessToken, refreshToken, profile, done) => {
+            try {
+              console.log(req.session,'accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
+              const found_user = await user.findByProfileId({ profile_id: profile.id })
+              console.log(found_user.rows)
+              return done(null, found_user.rows)
+            } catch (err) {
+              console.log(err, 'catch (err) google from passport.js-84')
+              // return done(err)
+              return done(null, false)
+            }
+        });
+
+        // FACEBOOK
+
+  const facebook_strategy = new FacebookStrategy({
+      clientID: 618371092706205,
+      clientSecret: '8d8244ea32da45a7340fa0b825c60c28',
+      callbackURL: "http://localhost:8080/auth/facebook/callback"
+    }, async (accessToken, refreshToken, profile, done) => {
           try {
-            console.log(req.session,'accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
+            console.log('accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
             const found_user = await user.findByProfileId({ profile_id: profile.id })
-            console.log(found_user.rows)
+            console.log(found_user.rows, "found_user.rows in facebook_strategy passport.js - 97")
             return done(null, found_user.rows)
           } catch (err) {
-            console.log(err, 'catch (err) google from passport.js-84')
-            // return done(err)
-            return done(null, false)
+              return done(null, false)
+          //   return done(err)
           }
-      });
+        });
 
-      // FACEBOOK
 
-const facebook_strategy = new FacebookStrategy({
-    clientID: 618371092706205,
-    clientSecret: '8d8244ea32da45a7340fa0b825c60c28',
-    callbackURL: "http://localhost:8080/auth/facebook/callback"
-  }, async (accessToken, refreshToken, profile, done) => {
-        try {
-          console.log('accessToken --- ',accessToken, 'refreshToken---', refreshToken, 'profile ---', profile, 'done ---', done)
-          const found_user = await user.findByProfileId({ profile_id: profile.id })
-          console.log(found_user.rows, "found_user.rows in facebook_strategy passport.js - 97")
-          return done(null, found_user.rows)
-        } catch (err) {
-            return done(null, false)
-        //   return done(err)
-        }
-      });
 
-export { local_strategy }
-export { jwt_strategy }
-export { google_strategy }
-export { facebook_strategy }
+    export { local_strategy }
+    export { jwt_strategy }
+    export { google_strategy }
+    export { facebook_strategy }
+
+
 
 
 

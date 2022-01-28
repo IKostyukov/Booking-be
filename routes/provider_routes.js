@@ -44,7 +44,7 @@ const routerProviders = new Router();
                     //     Provider's equipment 
  routerProviders.post('/provider/:providerId/equipment', provider_controller.createEquipmentProvider); // called addEquipment in the Postman AND must add to route '/:equipmentId
  routerProviders.patch('/provider/:providerId/equipment/:equipmentId/activation', provider_controller.activateEquipmentProvider);
- routerProviders.patch('/provider/:providerId/equipment/:equipmentId', provider_controller.updateEquipmentProvider);
+ routerProviders.patch('/provider/:providerId/equipment/:equipmentId', provider_controller.updateEquipmentProvider); //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
  routerProviders.delete('/provider/:providerId/equipment/:equipmentId', provider_controller.deleteEquipmentProvider);
  routerProviders.get('/provider/:providerId/equipment/:equipmentId', provider_controller.getOneEquipmentProvider);
  routerProviders.get('/provider/:providerId/equipment', provider_controller.getAllEquipmentProvider);

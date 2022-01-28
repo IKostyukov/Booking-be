@@ -41,7 +41,7 @@ class ProviderController {
             provider_name,
             providertype_id,
             recreationfacilitytype_id, 
-            user_id, 
+            updateEquipmentProvider, 
             timetable,
             geolocation,
             location,
@@ -56,7 +56,7 @@ class ProviderController {
         console.log(provider_name,
             providertype_id,
             recreationfacilitytype_id, 
-            user_id, 
+            updateEquipmentProvider, 
             timetable,
             geolocation,
             location,
@@ -74,7 +74,7 @@ class ProviderController {
         // console.log(new_timetable, "new_timetable")
 
         //  Создание провайдера оказания услуг         
-        const new_provider = await providermodel.createNewProvider(provider_name, user_id, timetable_id, providertype_id,
+        const new_provider = await providermodel.createNewProvider(provider_name, updateEquipmentProvider, timetable_id, providertype_id,
             location, address, post_index, geolocation)
         const provider_id = new_provider.rows[0].id
 
@@ -151,7 +151,7 @@ class ProviderController {
             provider_name,
             providertype_id,  
             recreationfacilitytype_id,
-            user_id,
+            updateEquipmentProvider,
             location,
             address,
             post_index
@@ -161,7 +161,7 @@ class ProviderController {
         //  Надо добавитьт  recreationfacilitytype_id  в таблицу recreationfacilitytype?
         
         console.log(post_index)
-        const apdated_provider = await providermodel.updateOneProvider(provider_name, providertype_id, user_id, location, address, post_index, provider_id)
+        const apdated_provider = await providermodel.updateOneProvider(provider_name, providertype_id, updateEquipmentProvider, location, address, post_index, provider_id)
         if (apdated_provider.rows[0].id) {
             //  AND .... Другие условия
             const result = { success: true }
@@ -214,14 +214,14 @@ class ProviderController {
             } = req.body
         const providertype_id = +req.body.providertype_id
         const recreationfacilitytype_id = +req.body.recreationfacilitytype_id
-        const user_id = +req.body.user_id
+        const updateEquipmentProvider = +req.body.updateEquipmentProvider
         const rating = +req.body.rating
         const distance_from_center = +req.body.distance_from_center
         console.log(provider_name, location, address, typeof(providertype_id))
         const provider = await providermodel.getListProviders(
             provider_name,
             providertype_id,
-            user_id,
+            updateEquipmentProvider,
             location,
             address,
             post_index,
@@ -392,114 +392,172 @@ class ProviderController {
     // ####  Инвентарь от объект отдыха  (equipmentprovider) ###
 
     async createEquipmentProvider (req, res) {
-        console.log('Test')
-        const {
-            equipment_id,
-            quantity, 
-            availabilitydate, 
-            cancellationdate, 
-            discountnonrefundable
-        } = req.body
-        const provider_id = req.params.providerId
-        const new_equipments = await equipmentprovidermodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)               
-        if (new_equipments.rows[0].id ) {
-            const result = { success: "Equipments of Provider successfully created" }
-            res.json(result)
-            console.log(new_equipments.rows[0], result)
-            // res.json( new_person.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+                const {
+                    equipment_id,
+                    quantity, 
+                    availabilitydate, 
+                    cancellationdate, 
+                    discountnonrefundable
+                } = req.body
+                const provider_id = req.params.providerId
+                const new_equipments = await equipmentprovidermodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)               
+                if (new_equipments.rows[0].id ) {
+                    const result = {
+                        success: true,
+                        data: " Equipment successfully added to Provider"
+                    }
+                    console.log(result, new_equipments.rows, ' -----> new_equipments.rows in createEquipmentProvider function at provider_controller.js')
+                    res.status(httpStatusCodes.OK || 200).json(result)
+                } else {
+                    const result = new Api400Error('equipment to provider', 'Unhandled Error')
+                    console.log(result, ' ----> err from createEquipmentProvider function at provider_controller.js')
+                    res.status(result.statusCode || 400).json(result)
+                }
+        }catch (err) {
+            if (err.error) {
+                console.error({ err }, '-----> err in createEquipmentProvider function at provider_controller.js ')
+                res.status(err.statusCode || 500).json(err)
+            } else {
+                console.error({ err }, '-----> code_error in the  createEquipmentProvider function at provider_controller.js ')
+                res.json({ 'Code Error': err.message })
+            }
         }
     }
 
     async updateEquipmentProvider (req, res) {
-        console.log('Test')
-        const {
-            equipment_id,
-            quantity, 
-            availabilitydate, 
-            cancellationdate, 
-            discountnonrefundable
-        } = req.body
-        const provider_id = req.params.id
-        const new_equipments = await equipmentprovidermodel.updateOneEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)                              
-        // console.log(new_equipments)
-        if (new_equipments.rows) {
-            const result = { success: "Equipments of Provider successfully updated" }
-            res.json(result)
-            console.log(result)
-            // res.json( new_person.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const {
+                provider_id,
+                equipment_id,
+                quantity, 
+                availabilitydate, 
+                cancellationdate, 
+                discountnonrefundable
+            } = req.body
+            const equipmentprovider_id = req.params.equipmentId  //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
+            const new_equipments = await equipmentprovidermodel.updateOneEquipmentProvider(equipmentprovider_id, provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)                              
+            // console.log(new_equipments)
+            if (new_equipments.rows) {
+                const result = {
+                    success: true,
+                    data: " Equipment of Provider successfully updated"
+                }
+                res.status(httpStatusCodes.OK || 200).json(result)
+                console.log(result, new_equipments.rows, ' -----> new_equipments.rows in updateEquipmentProvider function at provider_controller.js')
+            } else {
+                const result = new Api404Error('equipmentId', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
+                console.log(result, ' ----> err from updateEquipmentProvider function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '-----> err in updateEquipmentProvider function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async activateEquipmentProvider (req, res) {
-        // console.log(req.params.id)
-        const {active} = req.body
-        const equipmentprovider_id = req.params.id
-        const activated_equipmentprovider = await equipmentprovidermodel.activateOneEquipmentProvider(equipmentprovider_id, active)
-        // console.log(activated_serviceprovider)
-        if (activated_equipmentprovider.rows &&  active == "true") {
-            const result = { success: "Equipment of provider successfully activated" }
-            res.json(result)
-            // console.log(activated_equipmentprovider.rows[0], result)
-        } else if (activated_equipmentprovider.rows && active == "false") {
-            const result = { success: "Equipment of provider successfully deactivated" }
-            res.json(result)
-            console.log(activated_equipmentprovider.rows, result)
-        } else {
-            const result = { Error: "Error" }
-            res.json(result)
-        }  
+        try {
+            // console.log(req.params.equipmentId)
+            const {active} = req.body
+            const equipmentprovider_id = req.params.equipmentId
+            const activated_equipmentprovider = await equipmentprovidermodel.activateOneEquipmentProvider(equipmentprovider_id, active)
+            if (activated_equipmentprovider.rows.length == 0) {
+                const result = new Api404Error('equipmentId', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
+                console.log(result, ` ----> err in activateEquipmentProvider function with equipmentprovider_id = ${updateEquipmentProvider} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 404).json(result)
+            } else if (activated_equipmentprovider.rows[0].active == false) {
+                const result = {
+                    success: true,
+                    data: " Equipment of Provider successfully deactivated"
+                }
+                console.log(result, activated_equipmentprovider.rows, '-----> activated_equipmentprovider.rows in activateEquipmentProvider function at provider_controller.js ')
+                res.status(httpStatusCodes.OK || 200).json(success)
+            } else if (activated_equipmentprovider.rows[0].active == true) {
+                const result = {
+                    success: true,
+                    data: " Equipment of Provider successfully activated"
+                }
+                console.log(activated_equipmentprovider.rows, '-----> activated_equipmentprovider.rows in activateEquipmentProvider function at provider_controller.js ')
+                res.status(httpStatusCodes.OK || 200).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '-----> err in activateEquipmentProvider function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
+        } 
     }
 
     async deleteEquipmentProvider(req, res) { 
-        console.log(req.params.id)
-        const equipmentprovider_id = req.params.id
-        console.log(equipmentprovider_id, "Test delete equipmentprovider")
-        const deleted_equipmentprovider = await equipmentprovidermodel.deleteOneEquipmentProvider(equipmentprovider_id)
-        if (deleted_equipmentprovider.rows) {
-            const result = { success: "true" }
-            res.json(result)
-            console.log(deleted_equipmentprovider.rows, result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log(req.params.equipmentId)
+            const equipmentprovider_id = req.params.equipmentId
+            console.log(equipmentprovider_id, "Test delete equipmentprovider")
+            const deleted_equipmentprovider = await equipmentprovidermodel.deleteOneEquipmentProvider(equipmentprovider_id)
+            if (deleted_equipmentprovider.rows) {
+                const result = {
+                    success: true,
+                    data: " Equipment of Provider successfully deleted"
+                }
+                console.log(deleted_equipmentprovider.rows, result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else if (deleted_message.rows.length == 0) {
+                const result = new Api404Error('equipmentId', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
+                console.log(result, ' ----> err in deleteEquipmentProvider function with equipmentprovider_id = ${equipmentId} not exists at provider_controller.js;')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '----> err in deleteEquipmentProvider function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
      }   
      
     async getOneEquipmentProvider(req, res) { 
-        console.log(req.params.id)
-        const equipmentprovider_id = req.params.equipmentId
-        console.log(equipmentprovider_id, "Test equipmentprovider")
-        const one_equipmentprovider = await equipmentprovidermodel.getOneEquipmentOfProvider(equipmentprovider_id)
-        if (one_equipmentprovider.rows.length !== 0) {
-            const result = one_equipmentprovider.rows[0]
-            res.json(result)
-            console.log(one_equipmentprovider.rows, result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log(req.params.equipmentId)
+            const equipmentprovider_id = req.params.equipmentId
+            console.log(equipmentprovider_id, "Test equipmentprovider")
+            const one_equipmentprovider = await equipmentprovidermodel.getOneEquipmentOfProvider(equipmentprovider_id)
+            if (one_equipmentprovider.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": one_equipmentprovider.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api404Error('equipmentId', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
+                console.log(result, ` -----> err in getOneEquipmentProvider function  with equipmentprovider_id = ${equipmentId} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getOneEquipmentProvider function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
      }  
 
      async getAllEquipmentProvider(req, res) { 
-        console.log(req.params.id)
-        const {provider_id} = req.body
-        console.log(provider_id, "Test get_all_equipmentprovider")
-        const all_equipmentprovider = await equipmentprovidermodel.getAllEquipmentOfProvider(provider_id)
-        if (all_equipmentprovider.rows.lenth !== 0) {
-            const result = all_equipmentprovider.rows
-            res.json(result)
-            console.log(all_equipmentprovider.rows, result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            // console.log(req.params.providerId, 'Test get_all_equipmentprovider')
+            const provider_id = req.params.providerId
+            const all_equipmentprovider = await equipmentprovidermodel.getAllEquipmentOfProvider(provider_id)
+            if (all_equipmentprovider.rows.lenth !== 0) {
+                const result = {
+                    "success": true,
+                    "data": all_equipmentprovider.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api404Error('getAllEquipmentProvider', i18n.__('validation.isExist', `providerId =${provider_id}`))
+                console.log(result, ` -----> err in getAllEquipmentProvider function  at provider_controller.js;`)
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getAllEquipmentProvider function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
-     }  
+    }  
 
     //  ###  Тарификация (fares)  ###
 

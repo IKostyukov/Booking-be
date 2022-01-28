@@ -38,7 +38,7 @@ class MessageController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,                                
@@ -81,7 +81,7 @@ class MessageController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,                                
@@ -123,7 +123,7 @@ class MessageController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,                                
@@ -185,7 +185,7 @@ class MessageController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,                 
@@ -257,7 +257,7 @@ class MessageController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,                 
@@ -289,17 +289,17 @@ class MessageController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the messageController.checkResult`) 
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the messageController.checkResult`) 
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
                 console.log(server_error,  ` ----> server_error from the messageController.checkResult`) 
-                res.status(server_error.error.code || 500).json(server_error) 
+                res.status(server_error.statusCode || 500).json(server_error) 
             }
         }else{
             return next()
@@ -321,11 +321,11 @@ class MessageController {
             } else {
                 const result = new Api400Error( 'new_message', 'Unhandled Error')
                 console.log(result, ' ----> err from createMessage function at message_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createMessage function at message_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -344,11 +344,11 @@ class MessageController {
             } else {
                 const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ' ----> err from updateMessage function at message_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateMessage function at message_controller.js ')
-            res.status(err.error.code || 500).json(err) 
+            res.status(err.statusCode || 500).json(err) 
         }
     }
 
@@ -360,7 +360,7 @@ class MessageController {
             if (activated_message.rows.length == 0) {                
                 const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ` ----> err in activateMessage function with message_id = ${message_id} not exists at message_controller.js;`)
-                res.status(result.error.code || 404).json(result) 
+                res.status(result.statusCode || 404).json(result) 
             }else if(activated_message.rows[0].is_reminder == false){
                 const result = { 
                     success: true,
@@ -378,7 +378,7 @@ class MessageController {
             }
         } catch(err) {
             console.error({err},  '-----> err in activateMessage function at message_controller.js ')           
-            res.status(err.error.code || 500).json(err)    
+            res.status(err.statusCode || 500).json(err)    
         }
     }
 
@@ -396,11 +396,11 @@ class MessageController {
             } else if (deleted_message.rows.length == 0) {
                 const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ' ----> err in deletemessage function with message_id = ${message_id} not exists at message_controller.js;')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteMessage function at message_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }     
     }
 
@@ -419,11 +419,11 @@ class MessageController {
             }else {
                 const result = new Api404Error( 'messagethread_id', i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`)) 
                 console.log(result, ` -----> err in getMessages function  with messagethread_id = ${messagethread_id} not exists at message_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getMessages function at message_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
    
@@ -442,11 +442,11 @@ class MessageController {
             }else {
                 const result = new Api404Error( 'user_id', i18n.__('validation.isExist', `user_id = ${user_id}`)) 
                 console.log(result, ` -----> err in getThreads function  with user_id = ${user_id} not exists at message_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getThreads function at message_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
 }

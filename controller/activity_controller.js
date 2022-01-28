@@ -40,7 +40,7 @@ class ActivityController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -67,11 +67,10 @@ class ActivityController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'activity_name')},
                 bail: true,
             },
-            custom: {                
-                
+            custom: {
                 options:  (value, { req, location, path}) => {
                     console.log(value, req, "----> req.params.activityId")
-                    if (req.method !== 'GET' ) {     
+                    // if (req.method == 'POST' ) {     
                             
                         return activity.isUnique(value).then( is_unique => {
                             console.log(is_unique, '-------> is_unique activity from validationSchema')
@@ -85,7 +84,7 @@ class ActivityController {
                                 const server_error = {
                                     "success": false,
                                     "error": {
-                                        "code" : err.error.code,
+                                        "code" : err.statusCode,
                                         "message" : err.error.message,
                                         },
                                     "data": {
@@ -99,7 +98,7 @@ class ActivityController {
                                 return Promise.reject(msg)
                             };                        
                         })
-                    }
+                    // }
                 },
                 bail: true,
             },    
@@ -147,17 +146,17 @@ class ActivityController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the ActivityController.checkResult`) 
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the ActivityController.checkResult`) 
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
                 console.log(server_error,  ` ----> server_error from the ActivityController.checkResult`) 
-                res.status(server_error.error.code || 500).json(server_error) 
+                res.status(server_error.statusCode || 500).json(server_error) 
             }
         }else{
             return next()
@@ -178,11 +177,11 @@ class ActivityController {
             } else {
                 const result = new Api400Error( 'activity_name', 'Unhandled Error')
                 console.log(result, ' ----> err from createActivity function at activity_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createActivity function at activity_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -201,11 +200,11 @@ class ActivityController {
             } else {
                 const result = new Api404Error( 'activity_id', i18n.__('validation.isExist', `activity_id = ${activity_id}`)) 
                 console.log(result, ' ----> err from updateActivity function at activity_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateActivity function at activity_controller.js ')
-            res.status(err.error.code || 500).json(err) 
+            res.status(err.statusCode || 500).json(err) 
         }
     }
 
@@ -220,7 +219,7 @@ class ActivityController {
             if (activated_activity.rows.length == 0) {                
                 const result = new Api404Error( 'activity_id', i18n.__('validation.isExist', `activity_id = ${activity_id}`)) 
                 console.log(result, ` ----> err in activateActivity function with activity_id = ${activity_id} not exists at activity_controller.js;`)
-                res.status(result.error.code || 404).json(result) 
+                res.status(result.statusCode || 404).json(result) 
             }else if(activated_activity.rows[0].active == false){
                 const result = { 
                     success: true,
@@ -238,7 +237,7 @@ class ActivityController {
             }
         } catch(err) {
             console.error({err},  '-----> err in activateActivity function at activity_controller.js ')           
-            res.status(err.error.code || 500).json(err)    
+            res.status(err.statusCode || 500).json(err)    
         }
     }
 
@@ -256,11 +255,11 @@ class ActivityController {
             } else if (deleted_activity.rows.length == 0) {
                 const result = new Api404Error( 'activity_id', i18n.__('validation.isExist', `activity_id = ${activity_id}`)) 
                 console.log(result, ' ----> err in deleteActivity function with activity_id = ${activity_id} not exists at activity_controller.js;')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteActivity function at activity_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }       
     }
 
@@ -278,11 +277,11 @@ class ActivityController {
             } else {
                 const result = new Api404Error( 'activity_id', i18n.__('validation.isExist', `activity_id = ${activity_id}`)) 
                 console.log(result, ` -----> err in getActivity function with activity_id = ${activity_id} not exists at activity_controller.js;`)
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '---->err in getActivity function at activity_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
     }
 
@@ -300,11 +299,11 @@ class ActivityController {
             }else {
                 const result = new Api404Error( 'activity_name', i18n.__('validation.isExist', `activity_name = ${activity_name}`)) 
                 console.log(result, ` -----> err in getActivity function  with activity_name = ${activity_name} not exists at activity_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getActivities function at activity_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
 
@@ -322,11 +321,11 @@ class ActivityController {
             }else {
                 const result = new Api404Error( 'getPopularActivities', i18n.__('validation.isExist', 'getPopularActivities')) 
                 console.log(result, ` -----> err in getPopularActivities function  at activity_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '----->err in getPopularActivities function at activity_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 

@@ -37,7 +37,7 @@ class EquipmentController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -64,8 +64,7 @@ class EquipmentController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_name')},
                 bail: true,
             },
-            custom: {                
-                
+            custom: {                 
                 options:  (value, { req, location, path}) => {
                     console.log(value, req, "----> req.params.equipmentId")
                     if (req.method !== 'GET' ) {     
@@ -82,7 +81,7 @@ class EquipmentController {
                                 const server_error = {
                                     "success": false,
                                     "error": {
-                                        "code" : err.error.code,
+                                        "code" : err.statusCode,
                                         "message" : err.error.message,
                                         },
                                     "data": {
@@ -310,17 +309,17 @@ class EquipmentController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the EquipmentController.checkResult`) 
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the EquipmentController.checkResult`) 
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
                 console.log(server_error,  ` ----> server_error from the EquipmentController.checkResult`) 
-                res.status(server_error.error.code || 500).json(server_error) 
+                res.status(server_error.statusCode || 500).json(server_error) 
             }
         }else{
             return next()
@@ -341,11 +340,11 @@ class EquipmentController {
             } else {
                 const result = new Api400Error( 'equipment_name', 'Unhandled Error')
                 console.log(result, ' ----> err from createEquipment function at equipment_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createEquipment function at equipment_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -365,11 +364,11 @@ class EquipmentController {
             } else {
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
                 console.log(result, ' ----> err from updateEquipment function at equipment_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateEquipment function at equipment_controller.js ')
-            res.status(err.error.code || 500).json(err) 
+            res.status(err.statusCode || 500).json(err) 
         }
     }
 
@@ -396,11 +395,11 @@ class EquipmentController {
             }else{                
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id  ${equipment_id}`)) 
                 console.log(result, ` ----> err in activateEquipment function with equipment_id ${equipment_id} not exists at equipment_controller.js;`)
-                res.status(result.error.code || 404).json(result)
+                res.status(result.statusCode || 404).json(result)
             } 
         } catch(err) {
             console.error({err},  '-----> err in activateEquipment function at equipment_controller.js ')           
-            res.status(err.error.code || 500).json(err)    
+            res.status(err.statusCode || 500).json(err)    
         } 
     }
 
@@ -418,11 +417,11 @@ class EquipmentController {
             } else if (deleted_equipment.rows.length == 0) {
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
                 console.log(result, ' ----> err in deleteEquipment function with equipment_id = ${equipment_id} not exists at equipment_controller.js;')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteEquipment function at equipment_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
     }
 
@@ -440,11 +439,11 @@ class EquipmentController {
             } else {
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
                 console.log(result, ` -----> err in getEquipment function with equipment_id = ${equipment_id} not exists at equipment_controller.js;`)
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '---->err in getEquipment function at equipment_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
     }
 
@@ -462,11 +461,11 @@ class EquipmentController {
             }else {
                 const result = new Api404Error( 'equipment_name', i18n.__('validation.isExist', `equipment_name ${equipment_name}`)) 
                 console.log(result, ` -----> err in getEquipments function  with equipment_name ${equipment_name} not exists at equipment_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getActivities function at equipment_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
 
@@ -484,11 +483,11 @@ class EquipmentController {
             }else {
                 const result = new Api404Error( 'getSearchEquipment', i18n.__('validation.isExist', 'equipment')) 
                 console.log(result, ` -----> err 404 Not Found in getSearchEquipment function   at equipment_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getSearchEquipment function at equipment_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
 

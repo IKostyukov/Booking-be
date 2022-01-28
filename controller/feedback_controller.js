@@ -38,7 +38,7 @@ class FeedbackController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -83,7 +83,7 @@ class FeedbackController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -134,7 +134,7 @@ class FeedbackController {
                                     const server_error = {
                                         "success": false,
                                         "error": {
-                                            "code" : err.error.code,
+                                            "code" : err.statusCode,
                                             "message" : err.error.message,
                                             },
                                         "data": {
@@ -154,7 +154,7 @@ class FeedbackController {
                             const server_error = {
                                 "success": false,
                                 "error": {
-                                    "code" : err.error.code,
+                                    "code" : err.statusCode,
                                     "message" : err.error.message,
                                     },
                                 "data": err.data,
@@ -202,17 +202,17 @@ class FeedbackController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the FeedbackController.checkResult`) 
-                    res.status(not_found_error.error.code || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 404).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the FeedbackController.checkResult`) 
-                    res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
                 console.log(server_error,  ` ----> server_error from the FeedbackController.checkResult`) 
-                res.status(server_error.error.code || 500).json(server_error) 
+                res.status(server_error.statusCode || 500).json(server_error) 
             }
         }else{
             return next()
@@ -233,11 +233,11 @@ class FeedbackController {
             } else {
                 const result = new Api400Error( 'provider_id', 'Unhandled Error')
                 console.log(result, ' ----> err from createFeedback function at feedback_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createFeedback function at feedback_controller.js ')
-            res.status(err.error.code || 500).json(err)
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -256,11 +256,11 @@ class FeedbackController {
             } else {
                 const result = new Api404Error( 'feedback_id', i18n.__('validation.isExist', `feedback_id = ${feedback_id}`)) 
                 console.log(result, ' ----> err from updateFeedback function at feedback_controller.js')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateFeedback function at feedback_controller.js ')
-            res.status(err.error.code || 500).json(err) 
+            res.status(err.statusCode || 500).json(err) 
         }
     }
 
@@ -272,7 +272,7 @@ class FeedbackController {
             if (activated_feedback.rows.length == 0) {                
                 const result = new Api404Error( 'feedback_id', i18n.__('validation.isExist', `feedback_id = ${feedback_id}`)) 
                 console.log(result, ` ----> err in activateFeedback function with feedback_id = ${feedback_id} not exists at feedback_controller.js;`)
-                res.status(result.error.code || 404).json(result) 
+                res.status(result.statusCode || 404).json(result) 
             }else if(activated_feedback.rows[0].active == false){
                 const result = { 
                     success: true,
@@ -290,7 +290,7 @@ class FeedbackController {
             }
         } catch(err) {
             console.error({err},  '-----> err in activateFeedback function at feedback_controller.js ')           
-            res.status(err.error.code || 500).json(err)    
+            res.status(err.statusCode || 500).json(err)    
         }
     }
 
@@ -308,11 +308,11 @@ class FeedbackController {
             } else if (deleted_feedback.rows.length == 0) {
                 const result = new Api404Error( 'feedback_id', i18n.__('validation.isExist', `feedback_id = ${feedback_id}`)) 
                 console.log(result, ' ----> err in deleteFeedback function with feedback_id = ${feedback_id} not exists at feedback_controller.js;')
-                res.status(result.error.code || 400).json(result) 
+                res.status(result.statusCode || 400).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteFeedback function at feedback_controller.js ')
-            res.status(err.error.code || 500).json(err)            
+            res.status(err.statusCode || 500).json(err)            
         }
     }
 
@@ -331,11 +331,11 @@ class FeedbackController {
             }else {
                 const result = new Api404Error( 'provider_id', i18n.__('validation.isExist', `provider_id = ${provider_id}`)) 
                 console.log(result, ` -----> err in getFeedbacks function  with provider_id = ${provider_id} not exists at feedback_controller.js;`)
-                res.status(result.error.code || 400).json(result)
+                res.status(result.statusCode || 400).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getFeedbacks function at feedback_controller.js ')
-            res.status(err.error.code || 500).json(err)             
+            res.status(err.statusCode || 500).json(err)             
         }
     }
    

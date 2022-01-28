@@ -3,7 +3,8 @@ class BaseError extends Error {
     super(description)
    
     Object.setPrototypeOf(this, new.target.prototype)  // Смотри сноску
-    this.success = false
+    this.success = false,
+    this.statusCode = statusCode,
     this.error = {
         'code': statusCode,
         'message': name,
