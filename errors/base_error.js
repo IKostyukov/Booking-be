@@ -4,8 +4,8 @@ class BaseError extends Error {
    
     Object.setPrototypeOf(this, new.target.prototype)  // Смотри сноску
     this.success = false,
-    this.statusCode = statusCode,
-    this.error = {
+    this.statusCode = statusCode,  // это добавлено, чтобы в случае err.statusCode = undefind || 500 (на случай когда вознивает баг в коде)
+    this.error = {                  // потому что вмде  err.error.cod || 500  не уходит res, так как не может прочитать значение code  у свойства error = undefinde и 500 не выбирается
         'code': statusCode,
         'message': name,
     },

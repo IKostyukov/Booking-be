@@ -1,5 +1,8 @@
 import express from 'express';
 import { provider_controller } from '../controller/provider_controller.js';
+import {equipmentproviderFormCheck} from '../check_forms/equipmentprovider_form_check.js';
+
+import { checkSchema } from 'express-validator';
 
 const Router = express.Router;
 const routerProviders = new Router();
@@ -34,20 +37,37 @@ const routerProviders = new Router();
  routerProviders.delete('/provider/:providerId/timetable', provider_controller.deleteTimetable);
  routerProviders.get('/provider/:providerId/timetable', provider_controller.getTimetable);
  
-                     //   Provider's extratimetable
- routerProviders.post('/provider/:providerId/extratimetable', provider_controller.createExtratimetable);
- routerProviders.patch('/provider/:providerId/extratimetable/:extratimetableId', provider_controller.updateExtratimetable);
- routerProviders.delete('/provider/:providerId/extratimetable/:extratimetableId', provider_controller.deleteExtratimetable);
- routerProviders.get('/provider/:providerId/extratimetable/:extratimetableId', provider_controller.getOneExtratimetable);
- routerProviders.get('/provider/:providerId/extratimetable', provider_controller.getAllExtratimetable);
+            //   Provider's extratimetable
+
+// const check_create_form = equipmentproviderFormCheck.forCreateUpdateGetAll
+// const check_update_form = equipmentproviderFormCheck.forCreateUpdateGetAll
+// const check_activate_form = equipmentproviderFormCheck.forActivate
+// const check_get_form = equipmentproviderFormCheck.forCreateUpdateGetAll
+
+// const check_schema = checkSchema(provider_controller.equipmentproviderValidationSchema);
+// const chesk_result = provider_controller.checkResult;  
+
+//  routerProviders.post('/provider/:providerId/extratimetable', check_schema, chesk_result, provider_controller.createExtratimetable);
+//  routerProviders.patch('/provider/:providerId/extratimetable/:extratimetableId', check_schema, chesk_result,  provider_controller.updateExtratimetable);
+//  routerProviders.delete('/provider/:providerId/extratimetable/:extratimetableId', check_schema, chesk_result,  provider_controller.deleteExtratimetable);
+//  routerProviders.get('/provider/:providerId/extratimetable/:extratimetableId', check_schema, chesk_result,  provider_controller.getOneExtratimetable);
+//  routerProviders.get('/provider/:providerId/extratimetable', check_schema, chesk_result,  provider_controller.getAllExtratimetable);
  
                     //     Provider's equipment 
- routerProviders.post('/provider/:providerId/equipment', provider_controller.createEquipmentProvider); // called addEquipment in the Postman AND must add to route '/:equipmentId
- routerProviders.patch('/provider/:providerId/equipment/:equipmentId/activation', provider_controller.activateEquipmentProvider);
- routerProviders.patch('/provider/:providerId/equipment/:equipmentId', provider_controller.updateEquipmentProvider); //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
- routerProviders.delete('/provider/:providerId/equipment/:equipmentId', provider_controller.deleteEquipmentProvider);
- routerProviders.get('/provider/:providerId/equipment/:equipmentId', provider_controller.getOneEquipmentProvider);
- routerProviders.get('/provider/:providerId/equipment', provider_controller.getAllEquipmentProvider);
+
+const check_create_form = equipmentproviderFormCheck.forCreateUpdate
+const check_update_form = equipmentproviderFormCheck.forCreateUpdate
+const check_activate_form = equipmentproviderFormCheck.forActivate
+
+const check_schema = checkSchema(provider_controller.equipmentproviderValidationSchema);
+const chesk_result = provider_controller.checkResult;  
+
+ routerProviders.post('/provider/:providerId/equipment',check_create_form,  check_schema, chesk_result,  provider_controller.createEquipmentProvider); // called addEquipment in the Postman AND must add to route '/:equipmentId
+ routerProviders.patch('/provider/:providerId/equipment/:equipmentId/activation', check_activate_form, check_schema, chesk_result,  provider_controller.activateEquipmentProvider);
+ routerProviders.patch('/provider/:providerId/equipment/:equipmentId', check_update_form,  check_schema, chesk_result,  provider_controller.updateEquipmentProvider); //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
+ routerProviders.delete('/provider/:providerId/equipment/:equipmentId', check_schema, chesk_result,  provider_controller.deleteEquipmentProvider);
+ routerProviders.get('/provider/:providerId/equipment/:equipmentId', check_schema, chesk_result,  provider_controller.getOneEquipmentProvider);
+ routerProviders.get('/provider/:providerId/equipment', check_schema, chesk_result,  provider_controller.getAllEquipmentProvider);
  
  
                      //   Provider's fares 

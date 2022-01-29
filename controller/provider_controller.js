@@ -8,6 +8,16 @@ import { equipmentprovidermodel } from '../models/equipmentprovider_model.js';
 import { extratimetablemodel } from '../models/extratimetable_model.js';
 import { faremodel } from '../models/fare_model.js';
 import { promotionmodel } from '../models/promotion_model.js';
+import { equipmentmodel } from '../models/equipment_model.js';
+
+
+
+import { validationResult } from 'express-validator';
+import  i18n   from 'i18n';
+
+import Api400Error from '../errors/api400_error.js';
+import Api404Error from '../errors/api404_error.js';
+import httpStatusCodes from'../enums/http_status_codes_enums.js';
 
 
 const db = pool
@@ -391,6 +401,244 @@ class ProviderController {
 
     // ####  Инвентарь от объект отдыха  (equipmentprovider) ###
 
+    equipmentproviderValidationSchema = {
+
+        providerId: {  // для создания
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId')},       
+                bail: true,             
+            },
+            custom: {
+                options:  (providerId, { req, location, path}) => {   
+                    if(req.method === 'GET'){
+                        return true
+                    }else{
+                        const provider_id = providerId        
+                        return providermodel.isExist(provider_id).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
+        
+                            if ( is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from equipment_controller.js)')
+                                return Promise.reject('404 ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        equipmentId: {  // для активации и обновления
+            in: ['params'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'equipmentId')},       
+                bail: true,             
+            },
+            custom: {
+                options:  (equipmentId, { req, location, path}) => {   
+                    if(req.method === 'GET'){
+                        return true
+                    }else{ 
+                        const equipmentprovider_id = equipmentId       
+                        return equipmentprovidermodel.isExist(equipmentprovider_id).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
+        
+                            if ( is_exist.rows[0].exists !== true) {
+                                console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from equipment_controller.js)')
+                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            } 
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        equipment_id: { // для создания
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                if: equipment_id => {
+                    return equipment_id !== undefined;
+                },
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'equipment_id')},       
+                bail: true,             
+            },
+            custom: {
+                options:  (equipment_id, { req, location, path}) => {   
+                    if(req.method === 'GET'){
+                        return true
+                    }else{       
+                        return equipmentmodel.isExist(equipment_id).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
+        
+                            if ( is_exist.rows[0].exists !== true) {
+                                console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from equipment_controller.js)')
+                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }else {
+                                const  provider_id = req.params.providerId 
+                                return equipmentprovidermodel.isUniqueCombination(provider_id, equipment_id).then( is_unique => {
+                                console.log(is_unique.rows , '-------> is_unique.rows in feedback from validationSchema')
+                                if ( is_unique.rows[0].exists == true) {
+                                    return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & equipment_id = ${equipment_id}`));
+                                }
+                            }).catch(err => {
+                                    if (err.error) {
+                                        const server_error = {
+                                            "success": false,
+                                            "error": {
+                                                "code" : err.statusCode,
+                                                "message" : err.error.message,
+                                                },
+                                            "data": {
+                                                "provider_id" : err.data,
+                                            }
+                                            }
+                                        console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                                        return Promise.reject(server_error)
+                                    }else {
+                                        const msg = err
+                                        return Promise.reject(msg)
+                                    };                        
+                                })
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        quantity: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isInt: {
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'quantity')},
+                bail: true,
+            },
+        },
+
+        availabilitydate: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'availabilitydate')},
+                bail: true,
+            },
+        },
+
+        cancellationdate: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'cancellationdate')},
+                bail: true,
+            },
+        },
+
+        discountnonrefundable: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id')},
+                bail: true,
+            },
+            isInt: {
+                options: {min: 0},
+                errorMessage: () => { return i18n.__('validation.isInt', 'discountnonrefundable')},
+                bail: true,
+            },
+        },
+        
+        active: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'active')},
+                bail: true,
+            },                
+            isBoolean: { 
+                errorMessage: () => { return i18n.__('validation.isBoolean', 'active')},
+                bail: true,
+            },
+        },
+    }   
+
     async createEquipmentProvider (req, res) {
         try {
             console.log('Test')
@@ -429,14 +677,14 @@ class ProviderController {
     async updateEquipmentProvider (req, res) {
         try {
             const {
-                provider_id,
-                equipment_id,
+                equipment_id, // нужен
                 quantity, 
                 availabilitydate, 
                 cancellationdate, 
                 discountnonrefundable
             } = req.body
             const equipmentprovider_id = req.params.equipmentId  //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
+            const provider_id = req.params.providerId
             const new_equipments = await equipmentprovidermodel.updateOneEquipmentProvider(equipmentprovider_id, provider_id, equipment_id, quantity, availabilitydate, cancellationdate, discountnonrefundable)                              
             // console.log(new_equipments)
             if (new_equipments.rows) {
@@ -473,7 +721,7 @@ class ProviderController {
                     data: " Equipment of Provider successfully deactivated"
                 }
                 console.log(result, activated_equipmentprovider.rows, '-----> activated_equipmentprovider.rows in activateEquipmentProvider function at provider_controller.js ')
-                res.status(httpStatusCodes.OK || 200).json(success)
+                res.status(httpStatusCodes.OK || 200).json(result)
             } else if (activated_equipmentprovider.rows[0].active == true) {
                 const result = {
                     success: true,
@@ -527,8 +775,8 @@ class ProviderController {
                 res.status(httpStatusCodes.OK || 200).json(result)
             } else {
                 const result = new Api404Error('equipmentId', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
-                console.log(result, ` -----> err in getOneEquipmentProvider function  with equipmentprovider_id = ${equipmentId} not exists at provider_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                console.log(result, ` -----> err in getOneEquipmentProvider function  with equipmentprovider_id = ${equipmentprovider_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 400).json(result)   //  в отвере не надо отправлять "data"  на get запрос, если, сущность не найдена
             }
         } catch (err) {
             console.error({ err }, '---->err in getOneEquipmentProvider function at provider_controller.js ')
@@ -926,7 +1174,37 @@ async getAllPromotions (req, res) {
         }
     }
 
+    checkResult(req, res, next)  {
+        console.log(" ----> checkResult" ) 
+        // console.log(i18n.getLocale(),'------> locale')
 
+        const validation_result = validationResult(req)
+        const hasError = !validation_result.isEmpty();
+        console.log(hasError, " ----> hasError", validation_result.array(), " ----> validation_result", ) 
+        if (hasError) {
+            const data = validation_result.errors[0].msg
+
+            if(typeof(data) !== 'object') {
+                if (data.startsWith('404')){
+                    const param = validation_result.errors[0].param
+                    const not_found_error = new Api404Error(param, data)
+                    console.log(not_found_error,  ` ----> not_found_error from the EquipmentController.checkResult`) 
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
+                }else{
+                    const param = validation_result.errors[0].param
+                    const bad_request_error = new Api400Error(param, data)        
+                    console.log(bad_request_error,  ` ----> bad_request_error from the EquipmentController.checkResult`) 
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
+                }              
+            }else{
+                const server_error = data
+                console.log(server_error,  ` ----> server_error from the EquipmentController.checkResult`) 
+                res.status(server_error.statusCode || 500).json(server_error) 
+            }
+        }else{
+            return next()
+        }              
+    }
 
 }
 

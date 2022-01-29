@@ -40,7 +40,9 @@ class UserController {
             },
             custom: {
                 options: (userId, { req, location, path }) => {
-                    if(req.methods !== 'GET'){
+                    if(req.methods === 'GET'){
+                        return true
+                    }else{
                         return user.isExistUserId(userId).then(is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows userId from validationSchema')
     
@@ -82,7 +84,7 @@ class UserController {
             },
             custom: {
                 options: (equipmentId, { req, location, path }) => {
-                    if(req.methods !== 'GET'){
+                    if(req.methods === 'GET'){
                         return equipmentprovidermodel.isExist(equipmentId).then(is_exist => {
                             console.log(is_exist, '-------> is_exist equipmentId from validationSchema')
 
@@ -153,7 +155,9 @@ class UserController {
             },
             custom: {              
                 options: (email, { req, location, path }) => {                  
-                    if(req.method !== 'GET'){
+                    if(req.method === 'GET'){
+                        return true
+                    }else{
                         return user.isUniqueEmail(email).then(is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows of email from validationSchema')
     
@@ -267,7 +271,7 @@ class UserController {
             escape: true,
         },
 
-        // нало ли валидировать здесь profile_id , ведь он не будет приходить при создании (валидировать только в create user )
+       // Проверка на всякий случай, хотя  приходить profile_id никогда не будет
 
         profile_id: {
             in: ['body'],
@@ -423,36 +427,38 @@ class UserController {
                 options: [['locale', 'facebook', 'google']],
                 bail: true,
             },
-            // custom: {  // Надо ли эту проверку??? и когда ???
-            //     options: (service, { req, location, path }) => {
-            //         if(profile_id !== undefined){
-            //             // const profile_id = req.body.profile_id
-            //             return user.isUniqueCombination(profile_id, service).then(is_unique => {
-            //             console.log(is_unique.rows, '-------> is_unique.rows of profile_id from validationSchema')
-
-            //             if (is_unique.rows[0].exists == true) {
-            //                 return Promise.reject( i18n.__('validation.isUniqueCombination', `profile_id = ${profile_id} & service = ${service}`));  
-            //             }
-            //         }).catch(err => {
-            //             if (err.error) {
-            //                 const server_error = {
-            //                     "success": false,
-            //                     "error": {
-            //                         "code": err.statusCode,
-            //                         "message": err.error.message,
-            //                     },
-            //                     "data": err.data,
-            //                 }
-            //                 console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
-            //                 return Promise.reject(server_error)
-            //             } else {
-            //                 const msg = err
-            //                 return Promise.reject(msg)
-            //             };
-            //         })
-            //         }
-            //     },
-            // },
+            custom: {  // Проверка на всякий случай, хотя в приходить profile_id никогда не будет
+                options: (service, { req, location, path }) => {
+                    if(profile_id === undefined){
+                        return true                       
+                    }else{
+                         // const profile_id = req.body.profile_id
+                         return user.isUniqueCombination(profile_id, service).then(is_unique => {
+                            console.log(is_unique.rows, '-------> is_unique.rows of profile_id from validationSchema')
+    
+                            if (is_unique.rows[0].exists == true) {
+                                return Promise.reject( i18n.__('validation.isUniqueCombination', `profile_id = ${profile_id} & service = ${service}`));  
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
             trim: true,
             escape: true,
         },
@@ -473,12 +479,12 @@ class UserController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error, ` ----> not_found_error from the userController.checkResult`)
-                    res.status(not_found_error.statusCode || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
                 } else {
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)
                     console.log(bad_request_error, ` ----> bad_request_error from the userController.checkResult`)
-                    res.status(bad_request_error.statusCode || 400).json(bad_request_error)
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error)
                 }
             } else {
                 const server_error = data
@@ -518,7 +524,7 @@ class UserController {
             }else{
                 const result = new Api400Error('service', i18n.__('validation.isExist', `service = ${req.body.service}`))
                 console.log(result, ' ----> err from createUser function at user_controller.js')
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
             
             const { email, phone, first_name, last_name, patronymic, dob, service, roles } = req.body
@@ -531,11 +537,11 @@ class UserController {
                     data: " User successfully created"
                 }
                 console.log(result, new_person.new_user.rows, ' -----> createMessage.rows in createUser function at user_controller.js')
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error('new_person', 'Unhandled Error')
                 console.log(result, ' ----> err from createUser function at user_controller.js')
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
             
         } catch (err) {
@@ -559,12 +565,12 @@ class UserController {
                     success: true,
                     data: " User successfully updated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(result, updated_person.updated_user.rows, ' -----> updated_person.updated_user.rows in updateMessage function at user_controller.js')
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err from updateUser function at user_controller.js')
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '-----> err in updateUser function at user_controller.js ')
@@ -580,21 +586,21 @@ class UserController {
             if (activated_person.rows.length == 0) {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ` ----> err in activateUser function with user_id = ${user_id} not exists at user_controller.js;`)
-                res.status(result.statusCode || 404).json(result)
+                res.status(result.statusCode || 500).json(result)
             } else if (activated_person.rows[0].is_reminder == false) {
                 const result = {
                     success: true,
                     data: " User successfully deactivated"
                 }
                 console.log(result, activated_person.rows, '-----> activated_person.rows in activateUser function at user_controller.js ')
-                res.status(httpStatusCodes.OK || 200).json(success)
+                res.status(httpStatusCodes.OK || 500).json(success)
             } else if (activated_person.rows[0].is_reminder == true) {
                 const result = {
                     success: true,
                     data: " User successfully activated"
                 }
                 console.log(activated_person.rows, '-----> activated_person.rows in activateUser function at user_controller.js ')
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '-----> err in activateUser function at user_controller.js ')
@@ -612,11 +618,11 @@ class UserController {
                     data: " User successfully deleted"
                 }
                 console.log(deleted_person.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_message.rows.length == 0) {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err in deleteUser function with user_id = ${user_id} not exists at user_controller.js;')
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '----> err in deleteUser function at user_controller.js ')
@@ -634,11 +640,11 @@ class UserController {
                     "data": get_user
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ` -----> err in getOneUserWithRoles function  with user_id = ${user_id} not exists at user_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '---->err in getOneUserWithRoles function at user_controller.js ')
@@ -656,11 +662,11 @@ class UserController {
                     "data": get_users.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api404Error('getManyUsers', i18n.__('validation.isExist', `getManyUsers`))
                 console.log(result, ` -----> err in getManyUsers function  at user_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '---->err in getManyUsers function at user_controller.js ')
@@ -678,12 +684,12 @@ class UserController {
                     success: true,
                     data: " Equipment successfully added"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(result, new_favoriteequipment.rows, ' -----> updateMessage.rows in updateMessage function at user_controller.js')
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err from addFavoriteEquipment function at user_controller.js')
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '-----> err in addFavoriteEquipment function at user_controller.js ')
@@ -702,11 +708,11 @@ class UserController {
                     data: " Equipment successfully deleted"
                 }
                 console.log(deleted_favoriteequipment.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_favoriteequipment.rows.length == 0) {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ' ----> err in deleteFavoriteEquipment function with user_id = ${user_id} not exists at user_controller.js;')
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '----> err in deleteFavoriteEquipment function at user_controller.js ')
@@ -724,11 +730,11 @@ class UserController {
                     "data": list_favoriteequipment.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
                 console.log(result, ` -----> err in getFavoriteEquipment function  with user_id = ${user_id} not exists at user_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
             console.error({ err }, '---->err in getFavoriteEquipment function at user_controller.js ')

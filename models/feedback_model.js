@@ -88,7 +88,7 @@ class FeedbackModel {
         }
     }
 
-    async isUnique(provider_id, messagethread_id) {
+    async isUniqueCombination(provider_id, messagethread_id) {
         const sql_query = `SELECT EXISTS (SELECT 1
         FROM feedbacks WHERE provider_id = '${provider_id}' AND messagethread_id = '${messagethread_id}') AS "exists";`
         try{

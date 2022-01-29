@@ -71,31 +71,34 @@ class FeedbackController {
             },
             custom: {
                 options:  (provider_id, { req, location, path}) => {   
-                            
-                    return providermodel.isExist(provider_id).then( is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows in provider_id of feedback from validationSchema')
-    
-                        if ( is_exist.rows[0].exists == false) {
-                            return Promise.reject('404 Error;' + i18n.__('validation.isExist', `provider_id = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code" : err.statusCode,
-                                    "message" : err.error.message,
-                                    },
-                                "data": err.data,
-                                
-                                }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
-                            return Promise.reject(server_error)
-                        }else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                    })
+                    if(req.method === 'GET'){
+                        return true
+                    }else{        
+                        return providermodel.isExist(provider_id).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows in provider_id of feedback from validationSchema')
+        
+                            if ( is_exist.rows[0].exists == false) {
+                                return Promise.reject('404 Error;' + i18n.__('validation.isExist', `provider_id = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,
+                                    
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at feedback_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },           
         },
@@ -123,9 +126,8 @@ class FeedbackController {
                             return Promise.reject('404 Error; ' + i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         } else {
                             const  provider_id = req.body.provider_id  
-                        return feedbackmodel.isUnique(provider_id, messagethread_id).then( is_unique => {
+                        return feedbackmodel.isUniqueCombination(provider_id, messagethread_id).then( is_unique => {
                             console.log(is_unique.rows , '-------> is_unique.rows in feedback from validationSchema')
-        
                             if ( is_unique.rows[0].exists == true) {
                                 return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & messagethread_id = ${messagethread_id}`));
                             }
@@ -202,12 +204,12 @@ class FeedbackController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the FeedbackController.checkResult`) 
-                    res.status(not_found_error.statusCode || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the FeedbackController.checkResult`) 
-                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
@@ -229,11 +231,11 @@ class FeedbackController {
                     data: " Feedback successfully created"
                 }
                 console.log(new_feedback.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error( 'provider_id', 'Unhandled Error')
                 console.log(result, ' ----> err from createFeedback function at feedback_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createFeedback function at feedback_controller.js ')
@@ -251,12 +253,12 @@ class FeedbackController {
                     success: true,
                     data: " Feedback successfully updated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(updated_feedback.rows, result )
             } else {
                 const result = new Api404Error( 'feedback_id', i18n.__('validation.isExist', `feedback_id = ${feedback_id}`)) 
                 console.log(result, ' ----> err from updateFeedback function at feedback_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateFeedback function at feedback_controller.js ')
@@ -272,21 +274,21 @@ class FeedbackController {
             if (activated_feedback.rows.length == 0) {                
                 const result = new Api404Error( 'feedback_id', i18n.__('validation.isExist', `feedback_id = ${feedback_id}`)) 
                 console.log(result, ` ----> err in activateFeedback function with feedback_id = ${feedback_id} not exists at feedback_controller.js;`)
-                res.status(result.statusCode || 404).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }else if(activated_feedback.rows[0].active == false){
                 const result = { 
                     success: true,
                     data: " Feedback successfully deactivated"
                 }
                 console.log(activated_feedback.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(success)
+                res.status(httpStatusCodes.OK || 500).json(success)
             }else if(activated_feedback.rows[0].active == true) {
                 const result = { 
                     success: true,
                     data: " Feedback successfully activated"
                 }
                 console.log(activated_feedback.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             }
         } catch(err) {
             console.error({err},  '-----> err in activateFeedback function at feedback_controller.js ')           
@@ -304,11 +306,11 @@ class FeedbackController {
                     data: " Feedback successfully deleted"
                 }
                 console.log(deleted_feedback.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_feedback.rows.length == 0) {
                 const result = new Api404Error( 'feedback_id', i18n.__('validation.isExist', `feedback_id = ${feedback_id}`)) 
                 console.log(result, ' ----> err in deleteFeedback function with feedback_id = ${feedback_id} not exists at feedback_controller.js;')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteFeedback function at feedback_controller.js ')
@@ -327,11 +329,11 @@ class FeedbackController {
                     "data": get_feedbacks.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'provider_id', i18n.__('validation.isExist', `provider_id = ${provider_id}`)) 
                 console.log(result, ` -----> err in getFeedbacks function  with provider_id = ${provider_id} not exists at feedback_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getFeedbacks function at feedback_controller.js ')

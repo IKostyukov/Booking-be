@@ -23,7 +23,9 @@ class ServiceControlller{
             },
             custom: {
                 options:  (serviceId, { req, location, path}) => {
-                    if(req.methods !== 'GET'){                            
+                    if(req.methods === 'GET'){
+                        return true                            
+                    }else{
                         return servicemodel.isExist(serviceId).then( is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows service from validationSchema')
         
@@ -75,35 +77,32 @@ class ServiceControlller{
                 bail: true,
             },
             custom: {                
-                options:  (value, { req, location, path}) => {
-                    console.log(value,  "----> service_name")
-                    if (req.method !== 'GET' ) {     
-                            
-                        return servicemodel.isUnique(value).then( is_unique => {
-                            console.log(is_unique.rows, '-------> is_unique.rows service from validationSchema')
-        
-                            if ( is_unique.rows[0].exists == true) {
-                                console.log('Service with service_name = ${value} is not in DB (from service_contrpller.js)')
-                                return Promise.reject(i18n.__('validation.isUnique', `service_name '${value}'`));
-                            }
-                        }).catch(err => {
-                            if (err.error) {
-                                const server_error = {
-                                    "success": false,
-                                    "error": {
-                                        "code" : err.statusCode,
-                                        "message" : err.error.message,
-                                        },
-                                    "data": err.data,
-                                    }
-                                console.log(server_error, " ------------------> Server Error in validationSchema at service_conrtoller.js")
-                                return Promise.reject(server_error)
-                            }else {
-                                const msg = err
-                                return Promise.reject(msg)
-                            };                        
-                        })
-                    }
+                options:  (service_name, { req, location, path}) => {
+                    console.log(service_name,  "----> service_name")
+                    return servicemodel.isUnique(service_name).then( is_unique => {
+                        console.log(is_unique.rows, '-------> is_unique.rows service from validationSchema')
+    
+                        if ( is_unique.rows[0].exists == true) {
+                            console.log('Service with service_name = ${service_name} is not in DB (from service_contrpller.js)')
+                            return Promise.reject(i18n.__('validation.isUnique', `service_name '${service_name}'`));
+                        }
+                    }).catch(err => {
+                        if (err.error) {
+                            const server_error = {
+                                "success": false,
+                                "error": {
+                                    "code" : err.statusCode,
+                                    "message" : err.error.message,
+                                    },
+                                "data": err.data,
+                                }
+                            console.log(server_error, " ------------------> Server Error in validationSchema at service_conrtoller.js")
+                            return Promise.reject(server_error)
+                        }else {
+                            const msg = err
+                            return Promise.reject(msg)
+                        };                        
+                    })
                 },
                 bail: true,
             },
@@ -140,12 +139,12 @@ class ServiceControlller{
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the ServiceController.checkResult`) 
-                    res.status(not_found_error.statusCode || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the ServiceController.checkResult`) 
-                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
@@ -168,11 +167,11 @@ class ServiceControlller{
                     data: " Service successfully created"
                 }
                 console.log(new_service.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error( 'service_name', 'Unhandled Error')
                 console.log(result, ' ----> err from createService function at service_contrpller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createService function at service_contrpller.js ')
@@ -191,12 +190,12 @@ class ServiceControlller{
                     success: true,
                     data: " Service successfully updated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(updated_service.rows, result )
             } else {
                 const result = new Api404Error( 'service_id', i18n.__('validation.isExist', `service_id = ${service_id}`)) 
                 console.log(result, ' ----> err from updateService function at service_contrpller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateService function at service_contrpller.js ')
@@ -216,20 +215,20 @@ class ServiceControlller{
             if (activated_service.rows.length == 0) {
                 const result = new Api404Error( 'service_id', i18n.__('validation.isExist', `service_id  ${service_id}`)) 
                 console.log(result, ` ----> err in activateService function with service_id ${service_id} not exists at service_contrpller.js;`)
-                res.status(result.statusCode || 404).json(result)                
+                res.status(result.statusCode || 500).json(result)                
             }else if(activated_service.rows[0].active == true) {
                 const result = { 
                     success: true,
                     data: " Service successfully activated"
                 }
                 console.log(activated_service.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             }else{                
                 const result = { 
                     success: true,
                     data: " Service successfully deactivated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } 
         } catch(err) {
             console.error({err},  '-----> err in activateService function at service_contrpller.js ')           
@@ -251,11 +250,11 @@ class ServiceControlller{
                     data: " Service successfully deleted"
                 }
                 console.log(deleted_service.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_service.rows.length == 0) {
                 const result = new Api404Error( 'service_id', i18n.__('validation.isExist', `service_id = ${service_id}`)) 
                 console.log(result, ' ----> err in deleteService function with service_id = ${service_id} not exists at service_contrpller.js;')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteService function at service_contrpller.js ')
@@ -275,11 +274,11 @@ class ServiceControlller{
                     "data": one_service.rows[0]
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)            
+                res.status(httpStatusCodes.OK || 500).json(result)            
             } else {
                 const result = new Api404Error( 'service_id', i18n.__('validation.isExist', `service_id = ${service_id}`)) 
                 console.log(result, ` -----> err in getOneService function with service_id = ${service_id} not exists at service_contrpller.js;`)
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '---->err in getOneService function at service_contrpller.js ')
@@ -300,11 +299,11 @@ class ServiceControlller{
                     "data": get_activities.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'service_name', i18n.__('validation.isExist', `service_name = ${service_name}`)) 
                 console.log(result, ` -----> err in getAllServices function  with service_name = ${service_name} not exists at service_contrpller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getAllServices function at service_contrpller.js ')

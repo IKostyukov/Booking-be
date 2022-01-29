@@ -69,30 +69,34 @@ class MessageController {
                 bail: true,             
             },
             custom: {
-                options:  (user_id, { req, location, path}) => {      
-                    return user.isExist(user_id).then( is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows of user_id from validationSchema')
-    
-                        if ( is_exist.rows[0].exists == false) {
-                            return Promise.reject('404 Error;' + i18n.__('validation.isExist', `user_id = ${user_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code" : err.statusCode,
-                                    "message" : err.error.message,
-                                    },
-                                "data": err.data,                                
-                                }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at message_conrtoller.js")
-                            return Promise.reject(server_error)
-                        }else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                    })
+                options:  (user_id, { req, location, path}) => { 
+                    if(req.methods === 'GET'){
+                        return true
+                    }else{
+                        return user.isExist(user_id).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows of user_id from validationSchema')
+        
+                            if ( is_exist.rows[0].exists == false) {
+                                return Promise.reject('404 Error;' + i18n.__('validation.isExist', `user_id = ${user_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,                                
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at message_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },
         },
@@ -111,30 +115,34 @@ class MessageController {
                 bail: true,             
             },
             custom: {
-                options:  (messagethread_id, { req, location, path}) => {                           
-                    return messagethreadmodel.isExist(messagethread_id).then( is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows in messagethread_id of message from validationSchema')
-    
-                        if ( is_exist.rows[0].exists == false ) {
-                            return Promise.reject('404 Error; ' + i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code" : err.statusCode,
-                                    "message" : err.error.message,
-                                    },
-                                "data": err.data,                                
-                                }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at message_conrtoller.js")
-                            return Promise.reject(server_error)
-                        }else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                    })
+                options:  (messagethread_id, { req, location, path}) => { 
+                    if(req.methods === 'GET'){
+                        return true
+                    }else{                          
+                        return messagethreadmodel.isExist(messagethread_id).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows in messagethread_id of message from validationSchema')
+        
+                            if ( is_exist.rows[0].exists == false ) {
+                                return Promise.reject('404 Error; ' + i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,                                
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at message_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },
         },
@@ -289,12 +297,12 @@ class MessageController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the messageController.checkResult`) 
-                    res.status(not_found_error.statusCode || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the messageController.checkResult`) 
-                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
@@ -317,11 +325,11 @@ class MessageController {
                     data: " Message successfully created"
                 }
                 console.log(result, new_message.rows, ' -----> createMessage.rows in createMessage function at message_controller.js')
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error( 'new_message', 'Unhandled Error')
                 console.log(result, ' ----> err from createMessage function at message_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createMessage function at message_controller.js ')
@@ -339,12 +347,12 @@ class MessageController {
                     success: true,
                     data: " Message successfully updated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(result, updated_message.rows, ' -----> updateMessage.rows in updateMessage function at message_controller.js' )
             } else {
                 const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ' ----> err from updateMessage function at message_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateMessage function at message_controller.js ')
@@ -360,21 +368,21 @@ class MessageController {
             if (activated_message.rows.length == 0) {                
                 const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ` ----> err in activateMessage function with message_id = ${message_id} not exists at message_controller.js;`)
-                res.status(result.statusCode || 404).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }else if(activated_message.rows[0].is_reminder == false){
                 const result = { 
                     success: true,
                     data: " Message successfully deactivated"
                 }
                 console.log(result, activated_message.rows, '-----> activated_message.rows in activateMessage function at message_controller.js ')
-                res.status(httpStatusCodes.OK || 200).json(success)
+                res.status(httpStatusCodes.OK || 500).json(success)
             }else if(activated_message.rows[0].is_reminder == true) {
                 const result = { 
                     success: true,
                     data: " Message successfully activated"
                 }
                 console.log(activated_message.rows, '-----> activated_message.rows in activateMessage function at message_controller.js ')
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             }
         } catch(err) {
             console.error({err},  '-----> err in activateMessage function at message_controller.js ')           
@@ -392,11 +400,11 @@ class MessageController {
                     data: " Message successfully deleted"
                 }
                 console.log(deleted_message.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_message.rows.length == 0) {
                 const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ' ----> err in deletemessage function with message_id = ${message_id} not exists at message_controller.js;')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteMessage function at message_controller.js ')
@@ -415,11 +423,11 @@ class MessageController {
                     "data": get_messages.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'messagethread_id', i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`)) 
                 console.log(result, ` -----> err in getMessages function  with messagethread_id = ${messagethread_id} not exists at message_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getMessages function at message_controller.js ')
@@ -438,11 +446,11 @@ class MessageController {
                     "data": get_messagethreads.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'user_id', i18n.__('validation.isExist', `user_id = ${user_id}`)) 
                 console.log(result, ` -----> err in getThreads function  with user_id = ${user_id} not exists at message_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getThreads function at message_controller.js ')

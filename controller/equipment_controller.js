@@ -24,32 +24,34 @@ class EquipmentController {
             },
             custom: {
                 options:  (equipmentId, { req, location, path}) => {   
-                            
-                    return equipmentmodel.isExist(equipmentId).then( is_exist => {
-                        console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
-    
-                        if ( is_exist.rows[0].exists !== true) {
-                            console.log('Equipment with equipment_id = ${equipmentId} is not in DB (from equipment_controller.js)')
-                            return Promise.reject('404 ' + i18n.__('validation.isExist', `equipment_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-                        }
-                    }).catch(err => {
-                        if (err.error) {
-                            const server_error = {
-                                "success": false,
-                                "error": {
-                                    "code" : err.statusCode,
-                                    "message" : err.error.message,
-                                    },
-                                "data": err.data,
-                                }
-                            console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
-                            return Promise.reject(server_error)
-                        }else {
-                            const msg = err
-                            return Promise.reject(msg)
-                        };
-                      
-                    })
+                    if(req.method === 'GET'){
+                        return true
+                    }else{        
+                        return equipmentmodel.isExist(equipmentId).then( is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
+        
+                            if ( is_exist.rows[0].exists !== true) {
+                                console.log('Equipment with equipment_id = ${equipmentId} is not in DB (from equipment_controller.js)')
+                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipment_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code" : err.statusCode,
+                                        "message" : err.error.message,
+                                        },
+                                    "data": err.data,
+                                    }
+                                console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
+                                return Promise.reject(server_error)
+                            }else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
                 },
             },
         },
@@ -57,6 +59,7 @@ class EquipmentController {
         equipment_name: {
 
             in: ['body'],
+            optional: true,
             notEmpty: {
                 if: value => {
                     return value !== undefined;
@@ -67,8 +70,9 @@ class EquipmentController {
             custom: {                 
                 options:  (value, { req, location, path}) => {
                     console.log(value, req, "----> req.params.equipmentId")
-                    if (req.method !== 'GET' ) {     
-                            
+                    if (req.method === 'GET' ) {
+                        return true
+                    }else{
                         return equipmentmodel.isUnique(value).then( is_unique => {
                             console.log(is_unique.rows, '-------> is_unique.rows equipment from validationSchema')
         
@@ -95,7 +99,7 @@ class EquipmentController {
                                 return Promise.reject(msg)
                             };                        
                         })
-                    }
+                    }     
                 },
                 bail: true,
             },    
@@ -147,7 +151,7 @@ class EquipmentController {
         },
 
         // Валидация для поисковаго запроса
-// Перенести в отдельный контроллер или же в провайдер, так будет легце делать check_form
+// Перенести в отдельный контроллер или же в провайдер, так будет легче делать check_form
     //     "{
     //         location: String,
     //         acitvity_name: String,
@@ -245,8 +249,8 @@ class EquipmentController {
         },
 
         price_end: {
-
-            // in: ['params'],
+            in: ['body'],
+            optional: true,
             isInt: {  // набо будет заменить на isString когда введет UUID вместо id
                 options: {
                     min: 0,
@@ -309,12 +313,12 @@ class EquipmentController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the EquipmentController.checkResult`) 
-                    res.status(not_found_error.statusCode || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the EquipmentController.checkResult`) 
-                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
@@ -336,11 +340,11 @@ class EquipmentController {
                     data: " Equipment successfully created"
                 }
                 console.log(new_equipment.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error( 'equipment_name', 'Unhandled Error')
                 console.log(result, ' ----> err from createEquipment function at equipment_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in createEquipment function at equipment_controller.js ')
@@ -359,12 +363,12 @@ class EquipmentController {
                     success: true,
                     data: " Equipment successfully updated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(updated_equipment.rows, result )
             } else {
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
                 console.log(result, ' ----> err from updateEquipment function at equipment_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateEquipment function at equipment_controller.js ')
@@ -384,18 +388,18 @@ class EquipmentController {
                     data: " Equipment successfully deactivated"
                 }
                 console.log(activated_equipment.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             }else if(activated_equipment.rows[0].is_active == true) {
                 const result = { 
                     success: true,
                     data: " Equipment successfully activated"
                 }
                 console.log(activated_equipment.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             }else{                
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id  ${equipment_id}`)) 
                 console.log(result, ` ----> err in activateEquipment function with equipment_id ${equipment_id} not exists at equipment_controller.js;`)
-                res.status(result.statusCode || 404).json(result)
+                res.status(result.statusCode || 500).json(result)
             } 
         } catch(err) {
             console.error({err},  '-----> err in activateEquipment function at equipment_controller.js ')           
@@ -413,11 +417,11 @@ class EquipmentController {
                     data: " Equipment successfully deleted"
                 }
                 console.log(deleted_equipment.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_equipment.rows.length == 0) {
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
                 console.log(result, ' ----> err in deleteEquipment function with equipment_id = ${equipment_id} not exists at equipment_controller.js;')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteEquipment function at equipment_controller.js ')
@@ -435,11 +439,11 @@ class EquipmentController {
                     "data": get_equipment.rows[0]
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)            
+                res.status(httpStatusCodes.OK || 500).json(result)            
             } else {
                 const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id = ${equipment_id}`)) 
                 console.log(result, ` -----> err in getEquipment function with equipment_id = ${equipment_id} not exists at equipment_controller.js;`)
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '---->err in getEquipment function at equipment_controller.js ')
@@ -451,17 +455,17 @@ class EquipmentController {
         try{    
             const { equipment_name } = req.body         
             const get_equipments = await equipmentmodel.getAll(equipment_name)
-            if (get_equipments.rows.length == 0) {
+            if (get_equipments.rows.length !== 0) {
                 const result = {
                     "success": true,
                     "data": get_equipments.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'equipment_name', i18n.__('validation.isExist', `equipment_name ${equipment_name}`)) 
                 console.log(result, ` -----> err in getEquipments function  with equipment_name ${equipment_name} not exists at equipment_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getActivities function at equipment_controller.js ')
@@ -479,11 +483,11 @@ class EquipmentController {
                     "data": get_equipments.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'getSearchEquipment', i18n.__('validation.isExist', 'equipment')) 
                 console.log(result, ` -----> err 404 Not Found in getSearchEquipment function   at equipment_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in getSearchEquipment function at equipment_controller.js ')

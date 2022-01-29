@@ -105,9 +105,9 @@ class EquipmentProviderModel {
         }
     }
 
-    async isUnique(equipment_name) {
+    async isUniqueCombination(provider_id, equipment_id) {
         const sql_query = `SELECT EXISTS (SELECT 1
-        FROM equipments WHERE equipment_name = '${equipment_name}') AS "exists";`
+        FROM equipmentsproviders WHERE provider_id = ${provider_id} AND equipment_id = '${equipment_id}') AS "exists";`
         try{
             const is_unique = await db.query(sql_query)
             console.log(is_unique)

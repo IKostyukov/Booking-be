@@ -58,7 +58,7 @@ class RatingModel {
         }   
     } 
 
-    async isUniqeuRatingAndMessage(rating_id, message_id) {
+    async isUniqueCombination(rating_id, message_id) {
         try{
             const get_ratings = await db.query(`SELECT EXISTS (SELECT 1
                 FROM ratingwithfeedbacks WHERE rating_id = '${rating_id}' AND message_id = '${message_id}') AS "exists"`)       

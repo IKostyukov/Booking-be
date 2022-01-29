@@ -232,7 +232,7 @@ class RatingController {
                             return Promise.reject('404 Error:  ' + i18n.__('validation.isExist', `message_id = ${message_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                         }else{
                             const rating_id = req.params.ratingId   
-                            return ratingmodel.isUniqeuRatingAndMessage(message_id, rating_id).then( is_unique => {
+                            return ratingmodel.isUniqueCombination(message_id, rating_id).then( is_unique => {
                                 console.log(is_unique.rows, '-------> is_unique.rows of message_id from validationSchema')
             
                                 if ( is_unique.rows[0].exists == false) {
@@ -293,12 +293,12 @@ class RatingController {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
                     console.log(not_found_error,  ` ----> not_found_error from the RatingController.checkResult`) 
-                    res.status(not_found_error.statusCode || 404).json(not_found_error)
+                    res.status(not_found_error.statusCode || 500).json(not_found_error)
                 }else{
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)        
                     console.log(bad_request_error,  ` ----> bad_request_error from the RatingController.checkResult`) 
-                    res.status(bad_request_error.statusCode || 400).json(bad_request_error) 
+                    res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
                 }              
             }else{
                 const server_error = data
@@ -320,11 +320,11 @@ class RatingController {
                     data: " Rating successfully created"
                 }
                 console.log(new_rating.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error( 'provider_id', 'Unhandled Error')
                 console.log(result, ' ----> err from addRate function at rating_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in addRate function at rating_controller.js ')
@@ -342,12 +342,12 @@ class RatingController {
                     success: true,
                     data: " Rating successfully updated"
                 }
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
                 console.log(updated_rating.rows, result )
             } else {
                 const result = new Api404Error( 'rating_id', i18n.__('validation.isExist', `rating_id = ${rating_id}`)) 
                 console.log(result, ' ----> err from updateRate function at rating_controller.js')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
             console.error({err},  '-----> err in updateRate function at rating_controller.js ')
@@ -365,11 +365,11 @@ class RatingController {
                     data: " Rating successfully deleted"
                 }
                 console.log(deleted_rating.rows, result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_rating.rows.length == 0) {
                 const result = new Api404Error( 'rating_id', i18n.__('validation.isExist', `rating_id = ${rating_id}`)) 
                 console.log(result, ' ----> err in deleteRate function with rating_id = ${rating_id} not exists at rating_controller.js;')
-                res.status(result.statusCode || 400).json(result) 
+                res.status(result.statusCode || 500).json(result) 
             }
         } catch(err) {
             console.error({err},  '----> err in deleteRate function at rating_controller.js ')
@@ -390,11 +390,11 @@ class RatingController {
                     "data": connected_rating.rows
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)  
+                res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
                 const result = new Api404Error( 'rating_id', i18n.__('validation.isExist', `rating_id = ${rating_id}`)) 
                 console.log(result, ` -----> err in connectRatingToFeedback function  with rating_id = ${rating_id} not exists at rating_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
             console.error({err},  '---->err in connectRatingToFeedback function at rating_controller.js ')

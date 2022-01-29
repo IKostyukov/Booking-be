@@ -76,8 +76,10 @@ class EquipmentModel {
     async getAll(equipment_name) {           
         try {
             const sql_query = `SELECT id AS equipment_id, equipment_name 
-            FROM equipments WHERE equipment_name LIKE '%'||'${equipment_name}'||'%';`
+            FROM equipments WHERE  equipment_name LIKE  '%'||'${equipment_name}'||'%';`
             const all_equipments = await db.query(sql_query)
+            console.log(sql_query, all_equipments.rows, `-----> all_equipments.rows  in getAll function with equipment_name = ${equipment_name}  at equipment_model.js`)
+
             return all_equipments
         } catch (err) {                                       
             console.log(err, `-----> err  in getAll function with equipment_name = ${equipment_name}  at equipment_model.js`)
@@ -116,23 +118,7 @@ class EquipmentModel {
                 services,
                 equipment_id,
                 short
-            } = body
-            let array_equipment_id = ['0'] // Проблема: будет работать только от 1 до 9
-            if (equipment_id !== undefined){
-                for(let i=0; i<equipment_id.length; i++){
-                    array_equipment_id.push(equipment_id[i])
-                }
-            }
-
-            let array_services = ['0'] // Проблема: будет работать только от 1 до 9
-            if (services !== undefined){
-                for(let i=0; i<services.length; i++){
-                    array_services.push(services[i])
-                }
-            }
-
-            console.log(array_equipment_id, '----> array_equipment_id')
-            console.log(array_services, '----> array_services')            
+            } = body      
             
             console.log(equipment_id, typeof(equipment_id), " ---> equipment_id")
             console.log(typeof(services), services, '---> servises in getSearch at equipment_model ')
@@ -158,7 +144,7 @@ class EquipmentModel {
                 ON eqpr.id = frs.equipmentprovider_id
             WHERE 
             distance_from_center < ${max_distance_from_center}
-            AND location != '${location}' AND eqt.id in (${array_equipment_id})
+            AND location != '${location}' AND eqt.id in (${equipment_id})
             AND frs.fare = (SELECT MIN(frs.fare) FROM fares frs 
                 WHERE frs.equipmentprovider_id = eqpr.id  AND frs.fare >= ${price_start}  AND frs.fare <= ${price_end})
             AND eqpr.id  not in
@@ -173,7 +159,7 @@ class EquipmentModel {
                     AND  bk.equipmentprovider_id = eqpr.id) 
                 )`;
 
-            const sql_services_query = ` AND s_p.service_id  in (${array_services}) `;
+            const sql_services_query = ` AND s_p.service_id  in (${services}) `;
             const sql_ending_query = ` GROUP BY prv.id, eqt.id, eqt.equipment_name, eqpr.id, eqpr.quantity;`;
             let sql_query = ``        
             if ( services == undefined) {
