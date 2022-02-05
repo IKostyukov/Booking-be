@@ -21,7 +21,9 @@
 		"isIn": "%s invalid option",
 		"isEmail": "incorrect email adderess",
 		"isStrongPassword": " password is not strong",
-		"isMobilePhone": " invalid characters in phone number"		
-
+		"isMobilePhone": " invalid characters in phone number",
+		"isJSON": "validation.isJSON",
+		"isLocale": "validation.isLocale",
+		"isLatLong": "validation.isLatLong"
 	}
 }

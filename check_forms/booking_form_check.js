@@ -28,7 +28,7 @@ class BookingFormCheck {
             const bad_request_error = new Api400Error(param, data)        
 
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -39,7 +39,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'equipmentprovider_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('activity_start')) {  
@@ -49,7 +49,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'activity_start' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('activity_end')) {  
@@ -59,7 +59,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'activity_end' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('time_unit')) {  
@@ -69,7 +69,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'time_unit' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('fare')) {  
@@ -79,7 +79,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'fare' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('fare_sum')) {  
@@ -90,7 +90,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'fare_sum' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
     forGetAll (req, res, next) {
@@ -107,7 +107,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isMatch', ` ${count_require} `, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -119,7 +119,7 @@ class BookingFormCheck {
             const data = i18n.__('validation.isProvided', 'equipmentprovider_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the booking_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 }

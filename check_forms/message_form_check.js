@@ -29,7 +29,7 @@ class MessageFormCheck {
             const bad_request_error = new Api400Error(param, data)        
 
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -40,7 +40,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'user_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('messagethread_id')) {  
@@ -50,7 +50,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'messagethread_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('content')) {  
@@ -60,7 +60,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'content' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('reminder_frequency_id')) {  
@@ -71,7 +71,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'reminder_frequency_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 
@@ -91,7 +91,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isMatch', ` ${count_require}`, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -103,7 +103,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'is_reminder' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 
@@ -122,7 +122,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isMatch', ` ${count_require} `, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in getMessages function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -134,7 +134,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'messagethread_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in getMessages function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 
@@ -153,7 +153,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isMatch', ` ${count_require} `, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in getThreads function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -165,7 +165,7 @@ class MessageFormCheck {
             const data = i18n.__('validation.isProvided', 'user_id' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in getThreads function at the message_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 }

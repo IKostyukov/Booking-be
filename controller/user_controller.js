@@ -226,6 +226,7 @@ class UserController {
             trim: true,
             escape: true,
         },
+
         last_name: {
             in: ['body'],
             optional: true,
@@ -248,6 +249,7 @@ class UserController {
             trim: true,
             escape: true,
         },
+        
         patronymic: {
             in: ['body'],
             optional: true,
@@ -429,7 +431,7 @@ class UserController {
             },
             custom: {  // Проверка на всякий случай, хотя в приходить profile_id никогда не будет
                 options: (service, { req, location, path }) => {
-                    if(profile_id === undefined){
+                    if(req.body.profile_id === undefined){
                         return true                       
                     }else{
                          // const profile_id = req.body.profile_id
@@ -504,13 +506,14 @@ class UserController {
 
             if(req.body.service == 'locale'){
                 // Сщздаем profile_id для стратегии аутентификации " locale"  и проверяем на уникальность
-                let is_uuid_exists = true
+                let is_uuid_exists
                 do {
                     // let profile_id = 'uUbrCK9JwlgqidL'
                     profile_id = createUuid();                
                     const is_unique = await user.isUniqueProfilId(profile_id);
-                    is_uuid_exists = is_unique.rows[0].exists
-                } while (is_uuid_exists == false);
+                    let is_uuid_exists = is_unique.rows[0].exists
+                    console.log(is_uuid_exists, '---> is_uuid_exists in createUser function at user_controller.js')
+                } while (is_uuid_exists == true);
                 profile_id = 'l_' + profile_id
 
             }else if (req.body.service == 'facebook'){
@@ -536,7 +539,7 @@ class UserController {
                     success: true,
                     data: " User successfully created"
                 }
-                console.log(result, new_person.new_user.rows, ' -----> createMessage.rows in createUser function at user_controller.js')
+                console.log(result, new_person.new_user.rows, ' -----> new_person.rows in createUser function at user_controller.js')
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api400Error('new_person', 'Unhandled Error')

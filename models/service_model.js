@@ -94,23 +94,10 @@ class ServiceModel {
         } 
     }
 
-    //  ### Добавление удобствa  провайдеру ###
-    async addOneServiceToProvider (provider_id, service_id) {
-        console.log('provider_id -', provider_id, 'service_id -', service_id)
-        //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
-        const added_service = await db.query(`INSERT INTO services_providers(
-            provider_id, service_id)
-            VALUES ($1, $2)
-            RETURNING *;`,
-        [provider_id, service_id])
-
-        return added_service
-    }
-
     async isExist(service_id) {
-        const sql_query = `SELECT EXISTS (SELECT 1
-        FROM services WHERE id = ${service_id}) AS "exists";`
         try{
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM services WHERE id = ${service_id}) AS "exists";`
             const is_exist = await db.query(sql_query)
             console.log(is_exist)
             return  is_exist
@@ -120,6 +107,36 @@ class ServiceModel {
             throw new Api500Error( 'service_id', `${err.message}`)                                                                  
         }
     }
+    
+            // ИНФОРЬФЦИЯ ИЗ КОНТРОЛЛЕРА ПРОВАЙДЕРА ---> Это второй вариант, 
+            // Eсли выбрать второй, то первый надо поднять выше для проверки IsInt в массиве services). 
+            // Плюсы - проверяем одним запросом методом  isExistList. 
+            // Минусы - цикл в модели и цикл для проверки пезультатов в контроллере
+
+    // async isExistList(services) {
+    //     try {
+    //         let sql_query = ''
+    //         console.log('services -', services)
+    //         for (let i = 0; i < services.length; i += 1) {
+    //             sql_query += `SELECT EXISTS (SELECT 1
+    //                 FROM services WHERE id = ${services[i]}) AS "exists";`
+    //         }
+    //         const found_services = await db.query(sql_query)
+    //         console.log(found_services, `-----> found_services  in isExistList function with services = ${services}  at service_model.js`)
+
+    //         if (found_services.length > 1) {
+    //             // console.log(added_service[0].rows, ' ----> added_service[0].rows at serviceprovider_model.js')
+    //             return found_services
+    //         } else {
+    //             // console.log(added_service.rows, ' ----> added_service.rows at serviceprovider_model.js')
+    //             return [found_services]
+    //         }
+    //     } catch (err) {
+    //         console.log(err, `-----> err  in isExistList function with services = ${services}  at service_model.js`)
+    //         // console.log(err.message, '-----> err.message')                                                                   
+    //         throw new Api500Error('is exist list of services', `${err.message}`)
+    //     }
+    // }
 
     async isUnique(service_name) {
         const sql_query = `SELECT EXISTS (SELECT 1
@@ -134,33 +151,8 @@ class ServiceModel {
             throw new Api500Error( 'service_name', `${err.message}`)                                                                
         }
     }
-
-    //  ### Добавление удобствa  провайдеру ###
-    async addOneServiceToProvider (provider_id, service_id) {
-        console.log('provider_id -', provider_id, 'service_id -', service_id)
-        //  Нужно проверку на получение результатов от БД.  Вариант  - нет такого инвентаря
-        const added_service = await db.query(`INSERT INTO services_providers(
-            provider_id, service_id)
-            VALUES ($1, $2)
-            RETURNING *;`,
-        [provider_id, service_id])
-
-        return added_service
-    }
-
-
-    //  ###  Удаление удобствa у провайдера ###
-
-    async deleteOneServicesOfProvider (provider_id) {
-        const deleted_service = await db.query(`DELETE FROM services_providers
-        WHERE provider_id = ${provider_id} RETURNING *;`);
-        return deleted_service
-    }
-
-    //  ### Редактирование удобстa у провайдера ###
-
-        // delete + create
 }
+
 
     const servicemodel = new ServiceModel()
     export { servicemodel } 

@@ -134,6 +134,11 @@ class BookingControlller{
                 options: {min:3, max:4 },
                 bail: true,
             },
+            isIn: {
+                errorMessage: () => { return i18n.__('validation.isIn', 'service') },
+                options: [['hour', 'day']],
+                bail: true,
+            },
             trim: true,
             escape: true,
         },

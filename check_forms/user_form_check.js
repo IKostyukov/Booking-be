@@ -29,7 +29,7 @@ class UserFormCheck {
             const bad_request_error = new Api400Error(param, data)        
 
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -40,7 +40,7 @@ class UserFormCheck {
             const data = i18n.__('validation.isProvided', 'email' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('phone')) {  
@@ -50,7 +50,7 @@ class UserFormCheck {
             const data = i18n.__('validation.isProvided', 'phone' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('first_name')) {  
@@ -60,7 +60,7 @@ class UserFormCheck {
             const data = i18n.__('validation.isProvided', 'first_name' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         if (req.body.hasOwnProperty('last_name')) {  
@@ -71,7 +71,7 @@ class UserFormCheck {
             const data = i18n.__('validation.isProvided', 'last_name' )
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
 
         // if (req.body.hasOwnProperty('password')) {  
@@ -81,7 +81,7 @@ class UserFormCheck {
         //     const data = i18n.__('validation.isProvided', 'password' )
         //     const bad_request_error = new Api400Error(param, data)
         //     console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-        //     return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+        //     return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         // }
 
         // if (req.body.hasOwnProperty('service')) {  
@@ -91,7 +91,7 @@ class UserFormCheck {
         //     const data = i18n.__('validation.isProvided', 'service' )
         //     const bad_request_error = new Api400Error(param, data)
         //     console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-        //     return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+        //     return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         // }
         // profile_id Не приходит в форме при создании
 
@@ -102,7 +102,7 @@ class UserFormCheck {
         //     const data = i18n.__('validation.isProvided', 'profile_id' )
         //     const bad_request_error = new Api400Error(param, data)
         //     console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdate function at the user_form_check.js`)    
-        //     return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+        //     return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         // }
     }
 
@@ -122,7 +122,7 @@ class UserFormCheck {
             const data = i18n.__('validation.isMatch', ` ${count_require}`, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
 
                 // проверка на налиние параметров
@@ -135,7 +135,7 @@ class UserFormCheck {
             const data = i18n.__('validation.isProvided', 'active')
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forUpdate function at the user_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 }

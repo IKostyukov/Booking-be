@@ -28,7 +28,7 @@ class ServiceFormCheck {
             const bad_request_error = new Api400Error(param, data)        
 
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdateGetAll function at the service_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                 // проверка на налиние параметров
 
@@ -41,7 +41,7 @@ class ServiceFormCheck {
             const bad_request_error = new Api400Error(param, data)
 
             console.log(bad_request_error, ` ------> bad_request_error in forCreateUpdateGetAll function at the service_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 
@@ -58,7 +58,7 @@ class ServiceFormCheck {
             const data = i18n.__('validation.isMatch', `${count_require}`, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)  
             console.log(bad_request_error, ` ---> bad_request_error in forActivate function at the service_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error)
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
                  // проверка на налиние параметров
 
@@ -70,7 +70,7 @@ class ServiceFormCheck {
             const bad_request_error = new Api400Error(param, data)
 
             console.log(bad_request_error, ` ------> bad_request_error in forActivate function at the service_form_check.js`)    
-            return res.status(bad_request_error.error.code || 400).json(bad_request_error) 
+            return res.status(bad_request_error.statusCode || 500).json(bad_request_error) 
         }
     }
 }

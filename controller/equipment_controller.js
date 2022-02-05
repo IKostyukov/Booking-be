@@ -4,7 +4,6 @@ import  i18n   from 'i18n';
 
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
-import Api500Error from '../errors/api500_error.js';
 import httpStatusCodes from'../enums/http_status_codes_enums.js';
 
 class EquipmentController {
@@ -67,6 +66,15 @@ class EquipmentController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_name')},
                 bail: true,
             },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'equipment_name')},
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'equipment_name')},
+                options: {min:2, max:100 },
+                bail: true,
+            },
             custom: {                 
                 options:  (value, { req, location, path}) => {
                     console.log(value, req, "----> req.params.equipmentId")
@@ -103,15 +111,6 @@ class EquipmentController {
                 },
                 bail: true,
             },    
-            isString: {
-                errorMessage: () => { return i18n.__('validation.isString', 'equipment_name')},
-                bail: true,
-            },
-            isLength: {
-                errorMessage: () => { return i18n.__('validation.isLength', 'equipment_name')},
-                options: {min:2, max:100 },
-                bail: true,
-            },
             trim: true,
             escape: true,
         },
@@ -273,7 +272,7 @@ class EquipmentController {
         services: {
             in: ['body'],
             optional: true,
-            isNumeric:{ // не работает с запятыми
+            isNumeric:{ // не работает , переделать как в валидации Провайдера
                 // no_symbols: true,
                 errorMessage: () => { return i18n.__('validation.isNumeric', 'services')},
                 bail: true,
@@ -282,7 +281,7 @@ class EquipmentController {
         equipment_id: {
             in: ['body'],
             optional: true,
-            isNumeric:{ // не работает с запятыми
+            isNumeric:{ // не работает с запятыми , переделать как в валидации Провайдера
                 // no_symbols: true,
                 errorMessage: () => { return i18n.__('validation.isNumeric', 'equipment_id')},
                 bail: true,
@@ -358,7 +357,7 @@ class EquipmentController {
             const {equipment_name, capacity  } = req.body
             console.log(equipment_name, equipment_id, capacity)
             const updated_equipment = await equipmentmodel.update(equipment_name, equipment_id, capacity) 
-            if (updated_equipment.rows[0]) {
+            if (updated_equipment.rows.length !== 0) {
                 const result = { 
                     success: true,
                     data: " Equipment successfully updated"
@@ -383,12 +382,9 @@ class EquipmentController {
             const activated_equipment = await equipmentmodel.activate(equipment_id, active)
             console.log(activated_equipment)
             if (activated_equipment.rowCount == 0) {
-                const result = { 
-                    success: true,
-                    data: " Equipment successfully deactivated"
-                }
-                console.log(activated_equipment.rows, result)
-                res.status(httpStatusCodes.OK || 500).json(result)
+                const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id  ${equipment_id}`)) 
+                console.log(result, ` ----> err in activateEquipment function with equipment_id ${equipment_id} not exists at equipment_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
             }else if(activated_equipment.rows[0].is_active == true) {
                 const result = { 
                     success: true,
@@ -396,10 +392,13 @@ class EquipmentController {
                 }
                 console.log(activated_equipment.rows, result)
                 res.status(httpStatusCodes.OK || 500).json(result)
-            }else{                
-                const result = new Api404Error( 'equipment_id', i18n.__('validation.isExist', `equipment_id  ${equipment_id}`)) 
-                console.log(result, ` ----> err in activateEquipment function with equipment_id ${equipment_id} not exists at equipment_controller.js;`)
-                res.status(result.statusCode || 500).json(result)
+            }else{                       
+                const result = { 
+                    success: true,
+                    data: " Equipment successfully deactivated"
+                }
+                console.log(activated_equipment.rows, result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } 
         } catch(err) {
             console.error({err},  '-----> err in activateEquipment function at equipment_controller.js ')           

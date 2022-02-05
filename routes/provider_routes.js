@@ -1,20 +1,26 @@
 import express from 'express';
 import { provider_controller } from '../controller/provider_controller.js';
-import {equipmentproviderFormCheck} from '../check_forms/equipmentprovider_form_check.js';
+import { equipmentproviderFormCheck } from '../check_forms/equipmentprovider_form_check.js';
+import { fareFormCheck } from '../check_forms/fare_form_check.js';
+
 
 import { checkSchema } from 'express-validator';
 
 const Router = express.Router;
 const routerProviders = new Router();
+const chesk_result = provider_controller.checkResult;  
+
 
  //  ### Providers ###
 
- routerProviders.post('/provider', provider_controller.createProvider);
- routerProviders.patch('/provider/:providerId/activation', provider_controller.activateProvider);
- routerProviders.patch('/provider/:providerId', provider_controller.updateProvider);
- routerProviders.delete('/provider/:providerId', provider_controller.deleteProvider);
- routerProviders.get('/provider/:providerId',  provider_controller.getProvider);
- routerProviders.get('/provider', provider_controller.getProviders);
+ const check_schema_provider = checkSchema(provider_controller.providerValidationSchema);
+
+ routerProviders.post('/provider', check_schema_provider, chesk_result, provider_controller.createProvider);
+ routerProviders.patch('/provider/:providerId/activation', check_schema_provider, chesk_result, provider_controller.activateProvider);
+ routerProviders.patch('/provider/:providerId',  check_schema_provider, chesk_result,provider_controller.updateProvider);
+ routerProviders.delete('/provider/:providerId', check_schema_provider, chesk_result, provider_controller.deleteProvider);
+ routerProviders.get('/provider/:providerId', check_schema_provider, chesk_result,  provider_controller.getProvider);
+ routerProviders.get('/provider', check_schema_provider, chesk_result, provider_controller.getProviders);
  
                      //    Provider's top 10
  routerProviders.get('/providers/best', provider_controller.getBestProviders);
@@ -60,9 +66,8 @@ const check_update_form = equipmentproviderFormCheck.forCreateUpdate
 const check_activate_form = equipmentproviderFormCheck.forActivate
 
 const check_schema = checkSchema(provider_controller.equipmentproviderValidationSchema);
-const chesk_result = provider_controller.checkResult;  
 
- routerProviders.post('/provider/:providerId/equipment',check_create_form,  check_schema, chesk_result,  provider_controller.createEquipmentProvider); // called addEquipment in the Postman AND must add to route '/:equipmentId
+ routerProviders.post('/provider/:providerId/equipment', check_create_form,  check_schema, chesk_result,  provider_controller.createEquipmentProvider); // called addEquipment in the Postman AND must add to route '/:equipmentId
  routerProviders.patch('/provider/:providerId/equipment/:equipmentId/activation', check_activate_form, check_schema, chesk_result,  provider_controller.activateEquipmentProvider);
  routerProviders.patch('/provider/:providerId/equipment/:equipmentId', check_update_form,  check_schema, chesk_result,  provider_controller.updateEquipmentProvider); //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
  routerProviders.delete('/provider/:providerId/equipment/:equipmentId', check_schema, chesk_result,  provider_controller.deleteEquipmentProvider);
@@ -71,11 +76,18 @@ const chesk_result = provider_controller.checkResult;
  
  
                      //   Provider's fares 
- routerProviders.post('/provider/:providerId/equipment/:equipmentId/fare', provider_controller.createFare);
- routerProviders.patch('/provider/:providerId/equipment/:equipmentId/fare/:fareId', provider_controller.updateFare);
- routerProviders.delete('/provider/:providerId/equipment/:equipmentId/fare/:fareId', provider_controller.deleteFare);
- routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare/:fareId', provider_controller.getFare);
- routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare', provider_controller.getFares);
+                     
+const check_create_form_fare = fareFormCheck.forCreateUpdate
+const check_update_form_fare = fareFormCheck.forCreateUpdate
+
+const check_schema_fare = checkSchema(provider_controller.fareValidationSchema);
+  
+
+ routerProviders.post('/provider/:providerId/equipment/:equipmentId/fare', check_create_form_fare, check_schema_fare,  chesk_result,  provider_controller.createFare);
+ routerProviders.patch('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_update_form_fare,  check_schema_fare,  chesk_result, provider_controller.updateFare);
+ routerProviders.delete('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_schema_fare,  chesk_result, provider_controller.deleteFare);
+ routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_schema_fare,  chesk_result, provider_controller.getFare);
+ routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare', check_schema_fare,  chesk_result, provider_controller.getFares);
  
  
                      //    Provider's promotions

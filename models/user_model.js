@@ -173,7 +173,14 @@ class UsersModel {
                 VALUES (${user_id}, ${roles_id[i]}) RETURNING *;`
             }
             const new_role = await db.query(sql_query)
-            return { new_user: new_user, new_role: new_role }
+            
+            if (roles_id.length > 1) {
+                console.log(new_role[0].rows, ' ----> new_role[0].rows at serviceprovider_model.js')
+                return { new_user: new_user, new_role: new_role }
+            }else{
+                console.log(new_role.rows, ' ----> new_role.rows at serviceprovider_model.js')
+                return { new_user: new_user, new_role: [new_role] }
+            }
         } catch (err) {
             console.log(err, `-----> err in create function with email = ${email}  at user_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
