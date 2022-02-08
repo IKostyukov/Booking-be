@@ -272,21 +272,57 @@ class EquipmentController {
         services: {
             in: ['body'],
             optional: true,
-            isNumeric:{ // не работает , переделать как в валидации Провайдера
-                // no_symbols: true,
-                errorMessage: () => { return i18n.__('validation.isNumeric', 'services')},
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
+                bail: true
+            }, 
+        },
+
+        'services.*': {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
+                bail: true,
+            },
+            isInt: {
+                errorMessage: () => { return i18n.__('validation.isInt', 'services') },
+                options: { min: 0, max: 100 },
                 bail: true,
             },
         },
+
         equipment_id: {
             in: ['body'],
             optional: true,
-            isNumeric:{ // не работает с запятыми , переделать как в валидации Провайдера
-                // no_symbols: true,
-                errorMessage: () => { return i18n.__('validation.isNumeric', 'equipment_id')},
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_id') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
+                bail: true
+            }, 
+        },
+
+        'equipment_id.*': {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_id') },
+                bail: true,
+            },
+            isInt: {
+                errorMessage: () => { return i18n.__('validation.isInt', 'equipment_id') },
+                options: { min: 0 },
                 bail: true,
             },
         },
+
         short: {
             in: ['body'],
             optional: true,

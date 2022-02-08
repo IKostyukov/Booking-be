@@ -74,7 +74,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 494 Error:   как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -144,53 +144,6 @@ class ProviderController {
             trim: true,
             escape: true,
         },
-
-        // // equipmentId: {  // для активации и обновления
-        // //     in: ['params'],
-        // //     optional: true,
-        // //     notEmpty: {
-        // //         errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
-        // //         bail: true,
-        // //     },
-        // //     isInt: {  // набо будет заменить на isString когда введет UUID вместо id
-        // //         options: { min: 0 },
-        // //         errorMessage: () => { return i18n.__('validation.isInt', 'equipmentId') },
-        // //         bail: true,
-        // //     },
-        // //     custom: {
-        // //         options: (equipmentId, { req, location, path }) => {
-        // //             if (req.method === 'GET') {
-        // //                 return true
-        // //             } else {
-        // //                 const equipmentprovider_id = equipmentId
-        // //                 return equipmentprovidermodel.isExist(equipmentprovider_id).then(is_exist => {
-        // //                     console.log(is_exist.rows, '-------> is_exist.rows equipment from providerValidationSchema')
-
-        // //                     if (is_exist.rows[0].exists !== true) {
-        // //                         console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from provider_conrtoller.js)')
-        // //                         return Promise.reject('404 ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-        // //                     }
-        // //                 }).catch(err => {
-        // //                     if (err.error) {
-        // //                         const server_error = {
-        // //                             "success": false,
-        // //                             "error": {
-        // //                                 "code": err.statusCode,
-        // //                                 "message": err.error.message,
-        // //                             },
-        // //                             "data": err.data,
-        // //                         }
-        // //                         console.log(server_error, " ------------------> Server Error in providerValidationSchema at provider_conrtoller.js")
-        // //                         return Promise.reject(server_error)
-        // //                     } else {
-        // //                         const msg = err
-        // //                         return Promise.reject(msg)
-        // //                     };
-        // //                 })
-        // //             }
-        // //         },
-        // //     },
-        // // },
 
         user_id: { // для создания
             in: ['body'],
@@ -396,8 +349,8 @@ class ProviderController {
                 errorMessage: () => { return i18n.__('validation.isIn', 'geolocation type') },
                 options: [['Point', '']],
                 bail: true,
-            },                
-        }, 
+            },
+        },
 
         post_index: {
             in: ['body'],
@@ -499,13 +452,13 @@ class ProviderController {
             custom: {
                 options: (value, { req }) => {
                     // console.log(languages_enums, ' ----> languages_enums')
-                    let existed_locales =[]
+                    let existed_locales = []
                     languages_enums.forEach((obj_locale, index, array) => {
                         console.log(value, obj_locale.locale, ' ----> value, locale ')
                         existed_locales.push(obj_locale.locale)
                     })
                     if (existed_locales.includes(value)) {
-                        console.log(existed_locales,  '  existed_locales ----------------->>>>> OK')
+                        console.log(existed_locales, '  existed_locales ----------------->>>>> OK')
                         return true
                     }
                 },
@@ -559,10 +512,6 @@ class ProviderController {
             isArray: {
                 errorMessage: () => { return i18n.__('validation.isArray', 'services') },
                 bail: true
-            }, 
-            isNumeric: {
-                errorMessage: () => { return i18n.__('validation.isNumeric', 'services') },
-                bail: true,
             },
 
             // Это второй вариант, первый ниже 
@@ -570,7 +519,7 @@ class ProviderController {
             // Плюсы - проверяем одним запросом методом  isExistList. 
             // Минусы - цикл в модели и цикл для проверки пезультатов в контроллере
 
-             // custom: { 
+            // custom: { 
             //     options: (services, { req, location, path }) => {
             //         if (req.method === 'GET') {
             //             return true
@@ -580,7 +529,7 @@ class ProviderController {
             //                 for (let i = 0; i < result_list.length; i += 1) {
             //                     if (result_list[i].rows[0].exists === false) {
             //                         console.log(`Services = ${services[i]} is not in DB (from provider_conrtoller.js)`)
-            //                         return Promise.reject('404 ' + i18n.__('validation.isExist', `services = ${services[i]}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+            //                         return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `services = ${services[i]}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
             //                     }
             //                 }
             //             }).catch(err => {
@@ -626,7 +575,7 @@ class ProviderController {
                             console.log(is_exist.rows, '-------> is_exist.rows services from providerValidationSchema')
                             if (is_exist.rows[0].exists == false) {
                                 console.log(`Services = ${service_id} is not in DB (from provider_conrtoller.js)`)
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `services = ${service_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `services = ${service_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -693,30 +642,30 @@ class ProviderController {
                 bail: true,
             },
             custom: {
-                options:  (equipment_id, { req, location, path}) => {   
-                    if(req.method === 'GET'){
+                options: (equipment_id, { req, location, path }) => {
+                    if (req.method === 'GET') {
                         return true
-                    }else{        
-                        return equipmentmodel.isExist(equipment_id).then( is_exist => {
+                    } else {
+                        return equipmentmodel.isExist(equipment_id).then(is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows equipment from validationSchema')
-        
-                            if ( is_exist.rows[0].exists == false) {
+
+                            if (is_exist.rows[0].exists == false) {
                                 console.log('Equipment with equipment_id = ${equipment_id} is not in DB (from equipment_controller.js)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipment_id = ${equipment_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipment_id = ${equipment_id}`));  // злесь 494 Error:   как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
                                 const server_error = {
                                     "success": false,
                                     "error": {
-                                        "code" : err.statusCode,
-                                        "message" : err.error.message,
-                                        },
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
                                     "data": err.data,
-                                    }
+                                }
                                 console.log(server_error, " ------------------> Server Error in validationSchema at equipment_conrtoller.js")
                                 return Promise.reject(server_error)
-                            }else {
+                            } else {
                                 const msg = err
                                 return Promise.reject(msg)
                             };
@@ -874,7 +823,7 @@ class ProviderController {
                 bail: true,
             },
         },
-    
+
         active: {
             in: ['body'],
             optional: true,
@@ -884,6 +833,32 @@ class ProviderController {
             },
             isBoolean: {
                 errorMessage: () => { return i18n.__('validation.isBoolean', 'active') },
+                bail: true,
+            },
+        },
+        rating: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'rating') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 0, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'rating') },
+                bail: true,
+            },
+        },
+        distance_from_center: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'distance_from_center') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 0, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'distance_from_center') },
                 bail: true,
             },
         },
@@ -929,7 +904,7 @@ class ProviderController {
 
             //     //  Создание провайдера оказания услуг   
 
-            const new_provider = await providermodel.createNewProvider(provider_name, user_id, timetable_id, providertype_id,
+            const new_provider = await providermodel.create(provider_name, user_id, timetable_id, providertype_id,
                 recreationfacilitytype_id, location, address, post_index, geolocation)
             const provider_id = new_provider.rows[0].id
 
@@ -1033,7 +1008,7 @@ class ProviderController {
                 post_index
             } = req.body
             const provider_id = req.params.providerId
-            const apdated_provider = await providermodel.updateOneProvider(provider_id, provider_name, providertype_id, recreationfacilitytype_id, user_id, location, address, post_index)
+            const apdated_provider = await providermodel.update(provider_id, provider_name, providertype_id, recreationfacilitytype_id, user_id, location, address, post_index)
             if (apdated_provider.rows.length !== 0) {
                 const result = {
                     success: true,
@@ -1057,12 +1032,12 @@ class ProviderController {
             const { active } = req.body
             const provider_id = req.params.providerId
             console.log(provider_id)
-            const activated_provider = await providermodel.activateOneProvider(provider_id, active)
+            const activated_provider = await providermodel.activate(provider_id, active)
             if (activated_provider.rowCount == 0) {
                 const result = new Api404Error('provider_id', i18n.__('validation.isExist', `provider_id  ${provider_id}`))
                 console.log(result, ` ----> err in activateProvider function with provider_id ${provider_id} not exists at provider_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
-            } else if (activated_provider.rows[0].is_active == true) {
+            } else if (activated_provider.rows[0].active == true) {
                 const result = {
                     success: true,
                     data: " Provider successfully activated"
@@ -1087,7 +1062,7 @@ class ProviderController {
         try {
             const provider_id = req.params.providerId
             console.log(provider_id)
-            const deleted_provider = await providermodel.deleteOneProvider(provider_id)
+            const deleted_provider = await providermodel.delete(provider_id)
             if (deleted_provider.rows.length !== 0) {
                 const result = {
                     success: true,
@@ -1107,11 +1082,11 @@ class ProviderController {
     }
 
 
-    async getProvider(req, res) {
+    async getOneProvider(req, res) {
         try {
             const provider_id = req.params.providerId
             console.log(provider_id)
-            const provider = await providermodel.getOneProvider(provider_id)
+            const provider = await providermodel.getOne(provider_id)
             if (provider.rows.length !== 0) {
                 const result = {
                     "success": true,
@@ -1131,7 +1106,7 @@ class ProviderController {
     }
 
 
-    async getProviders(req, res) {
+    async getAllProviders(req, res) {
         try {
             const {
                 provider_name,
@@ -1146,7 +1121,7 @@ class ProviderController {
 
             const recreationfacilitytype_id = +req.body.recreationfacilitytype_id //??
             console.log(provider_name, location, address, typeof (providertype_id))
-            const provider = await providermodel.getListProviders(
+            const provider = await providermodel.getAll(
                 provider_name,
                 providertype_id,
                 user_id,
@@ -1195,149 +1170,486 @@ class ProviderController {
         }
     }
 
-    //     ### Timetable ###
+    //     ### Timetable ###   
+
+    timetableValidationSchema = {
+
+        providerId: {  // для создания
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId') },
+                bail: true,
+            },
+            custom: {
+                options: (providerId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const provider_id = providerId
+                        return providermodel.isExist(provider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows provider from equipmentproviderValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:  ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in equipmentproviderValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        timetableId: {  // для создания
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'timetableId') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'timetableId') },
+                bail: true,
+            },
+            custom: {
+                options: (timetableId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const timetable_id = timetableId
+                        return timetablemodel.isExist(timetable_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows timetable from timetableValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('timetable with timetable_id = ${timetable_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error: ' + i18n.__('validation.isExist', `timetable_id = ${timetable_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in timetableValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        timetable: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'timetable') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'timetable') },
+                bail: true,
+            },
+            custom: {
+                options: (timetable, { req }) => {
+                    for (let day = 0; day < timetable.length; day++) {
+                        console.log(timetable[day].start_time, day, ' ---> day')
+                        const { start_time, end_time } = timetable[day]
+                        if (!start_time || !end_time) {
+                            console.log(' ----------------->>>>> NOT OK')
+                            return Promise.reject(i18n.__('validation.isProvided', 'timetable/  start_time & end_time'))
+                        }
+                        if (day === timetable.length - 1) {
+                            console.log(' ----------------->>>>> OK')
+                            return true
+                        }
+                    }
+                },
+            },
+        },
+
+        'timetable.*.start_time': {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'timetable start_time') },
+                bail: true,
+            },
+        },
+
+        'timetable.*.end_time': {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'timetable end_time') },
+                bail: true,
+            },
+        },
+    }
 
     async createTimetable(req, res) {
-        const { start_time, end_time } = req.body
-        const new_timetable = await timetablemodel.createNewTimetable(start_time, end_time)
-        if (new_timetable.rows[0].id) {
-            const result = { success: "Timetable successfully created" }
-            res.json(result)
-            console.log(new_timetable.rows[0], result)
-            // res.json( new_timetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const { timetable } = req.body
+            const new_timetable = await timetablemodel.create(timetable)
+            if (new_timetable.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: "Timetable successfully created"
+                }
+                console.log(result, new_timetable.rows, ' -----> new_timetable.rows in createTimetable function at provider_controller.js')
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('create timetable', 'Unhandled Error')
+                console.log(result, ' ----> err from createTimetable function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in createTimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
 
     async updateTimetable(req, res) {
-        const { start_time, end_time } = req.body
-        const timetable_id = req.params.timetableId
-        const updatted_timetable = await timetablemodel.updateOneTimetable(timetable_id, start_time, end_time)
-        if (updatted_timetable.rows[0]) {
-            const result = { success: true }
-            res.json(result)
-            console.log(updatted_timetable.rows[0], result)
-            // res.json(updatted_timetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const { timetable } = req.body
+            const timetable_id = req.params.timetableId
+            const updatted_timetable = await timetablemodel.update(timetable_id, timetable)
+            if (updatted_timetable.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: " Timetable successfully updated"
+                }
+                res.status(httpStatusCodes.OK || 500).json(result)
+                console.log(updatted_timetable.rows, result)
+            } else {
+                const result = new Api404Error('provider_id', i18n.__('validation.isExist', `timetable_id = ${timetable_id}`))
+                console.log(result, ' ----> err from updateTimetable function at provider_controller.js')
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in updateTimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async deleteTimetable(req, res) {
-        const timetable_id = req.params.timetableId
-        const deleted_timetable = await timetablemodel.deleteOneTimetable(timetable_id)
-        if (deleted_timetable.rows[0] !== undefined) {
-            const result = { success: true }
-            res.json(result)
-            console.log(deleted_timetable.rows[0], result)
-            // res.json(deleted_timetable.rows[0].id)
-        } else {
-            //  не работает для уже удаленной записию См коммент выше
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const timetable_id = req.params.timetableId
+            const deleted_timetable = await timetablemodel.delete(timetable_id)
+            if (deleted_timetable.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: " Timetable successfully deleted"
+                }
+                console.log(deleted_timetable.rows, result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('timetable_id', i18n.__('validation.isExist', `timetable_id = ${timetable_id}`))
+                console.log(result, ' ----> err in deleteProvider function with timetable_id = ${timetable_id} not exists at provider_controller.js;')
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in deleteTimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async getTimetable(req, res) {
-        const timetable_id = req.params.timetableId
-        const one_timetable = await timetablemodel.getOneTimetable(timetable_id)
-        if (one_timetable.rows[0] !== undefined) {
-            const result = one_timetable.rows[0]
-            res.json(result)
-            console.log(deleted_timetable.rows[0], result)
-            // res.json(deleted_timetable.rows[0].id)
-        } else {
-            //  не работает для уже удаленной записию См коммент выше
-            const result = { Error: "Error" }
-            res.json(result)
+        try {
+            const timetable_id = req.params.timetableId
+            const one_timetable = await timetablemodel.get(timetable_id)
+            if (one_timetable.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": one_timetable.rows[0]
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('timetable_id', i18n.__('validation.isExist', `timetable_id = ${timetable_id}`))
+                console.log(result, ` -----> err in getTimetable function with timetable_id = ${timetable_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getTimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
-
-
 
 
     //     ### Extratimetable ###
 
+    extratimetableValidationSchema = {
+
+        providerId: {  // для создания
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId') },
+                bail: true,
+            },
+            custom: {
+                options: (providerId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const provider_id = providerId
+                        return providermodel.isExist(provider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows provider from extratimetableValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error: ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in extratimetableValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        extradateId: {  // для создания
+            in: ['params'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'extradateId') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'extradateId') },
+                bail: true,
+            },
+            custom: {
+                options: (extradateId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const extratimetable_id = extradateId
+                        return extratimetablemodel.isExist(extratimetable_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows Extratimetable from extratimetableValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Extratimetable with extratimetable_id = ${extratimetable_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error: ' + i18n.__('validation.isExist', `extratimetable_id = ${extratimetable_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in extratimetableValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        date: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'availabilitydate') },
+                bail: true,
+            },
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'availabilitydate') },
+                bail: true,
+            },
+        },
+
+        start_time: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'Extratimetable start_time') },
+                bail: true,
+            },
+        },
+
+        end_time: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'Extratimetable end_time') },
+                bail: true,
+            },
+        },
+    }
+
     async createExtratimetable(req, res) {
-        console.log('Test')
-        const { provider_id, date, start_time, end_time } = req.body
-        const new_extratimetable = await extratimetablemodel.createNewExtratimetable(provider_id, date, start_time, end_time)
-        if (new_extratimetable.rows[0].id) {
-            const result = { success: "Extratimetable successfully created" }
-            res.json(result)
-            console.log(new_extratimetable.rows[0], result)
-            // res.json( new_extratimetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+            const { date, start_time, end_time } = req.body
+            const provider_id = req.params.providerId
+            const new_extratimetable = await extratimetablemodel.create(provider_id, date, start_time, end_time)
+            if (new_extratimetable.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: "Extratimetable successfully created"
+                }
+                console.log(new_extratimetable.rows, result, ' -----> new_extratimetable.rows in createExtratimetable function at provider_controller.js')
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('create extratimetable', 'Unhandled Error')
+                console.log(result, ' ----> err from createExtratimetable function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in createTimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async updateExtratimetable(req, res) {
-        console.log('Test')
-        const { provider_id, date, start_time, end_time } = req.body
-        const extratimetable_id = req.params.extradateId
-        const updatad_extratimetable = await extratimetablemodel.updateNewExtratimetable(extratimetable_id, provider_id, date, start_time, end_time)
-        if (updatad_extratimetable.rows[0] !== undefined) {
-            const result = { success: true }
-            res.json(result)
-            console.log(updatad_extratimetable.rows[0], result)
-            // res.json( updatad_extratimetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+            const { date, start_time, end_time } = req.body
+            const provider_id = req.params.providerId
+            const extratimetable_id = req.params.extradateId
+            const updatad_extratimetable = await extratimetablemodel.update(extratimetable_id, provider_id, date, start_time, end_time)
+            if (updatad_extratimetable.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: " Extratimetable successfully updated"
+                }
+                res.status(httpStatusCodes.OK || 500).json(result)
+                console.log(updatad_extratimetable.rows, result)
+            } else {
+                const result = new Api404Error('extratimetable_id', i18n.__('validation.isExist', `extratimetable_id = ${extratimetable_id}`))
+                console.log(result, ' ----> err from updateExtratimetable function at provider_controller.js')
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in updateExtratimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async deleteExtratimetable(req, res) {
-        console.log('Test')
-        const extratimetable_id = req.params.extradateId
-        const deleted_extratimetable = await extratimetablemodel.deleteOneExtratimetable(extratimetable_id)
-        if (deleted_extratimetable.rows[0] !== undefined) {
-            const result = { success: true }
-            res.json(result)
-            console.log(deleted_extratimetable.rows[0], result)
-            // res.json( deleted_extratimetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+            const extratimetable_id = req.params.extradateId
+            const deleted_extratimetable = await extratimetablemodel.delete(extratimetable_id)
+            if (deleted_extratimetable.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: " Extratimetable successfully deleted"
+                }
+                console.log(deleted_extratimetable.rows, result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('extratimetable_id', i18n.__('validation.isExist', `extratimetable_id = ${extratimetable_id}`))
+                console.log(result, ' ----> err in deleteExtratimetable function with extratimetable_id = ${extratimetable_id} not exists at provider_controller.js;')
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in deleteExtratimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async getOneExtratimetable(req, res) {
-        console.log('Test')
-        const extratimetable_id = req.params.extradateId
+        try {
+            console.log('Test')
+            const extratimetable_id = req.params.extradateId
 
-        const one_extratimetable = await extratimetablemodel.getOneExtratimetableOfProvider(extratimetable_id)
-        if (one_extratimetable.rows[0] !== undefined) {
-            const result = one_extratimetable.rows[0]
-            res.json(result)
-            console.log(one_extratimetable.rows[0], result)
-            // res.json( one_extratimetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+            const one_extratimetable = await extratimetablemodel.getOne(extratimetable_id)
+            if (one_extratimetable.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": one_extratimetable.rows[0]
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('extratimetable_id', i18n.__('validation.isExist', `extratimetable_id = ${extratimetable_id}`))
+                console.log(result, ` -----> err in getOneExtratimetable function with extratimetable_id = ${extratimetable_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getOneExtratimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
-
-
     async getAllExtratimetable(req, res) {
-        console.log('Test')
-        const { provider_id } = req.body
-        const all_extratimetable = await extratimetablemodel.getAllExtratimetableOfProvider(provider_id)
-        if (all_extratimetable.rows[0] !== undefined) {
-            const result = all_extratimetable.rows
-            res.json(result)
-            console.log(all_extratimetable.rows, result)
-            // res.json(all_extratimetable.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const  provider_id  = req.params.providerId
+            console.log(provider_id, ' provider_id Test')
+            const all_extratimetable = await extratimetablemodel.getAll(provider_id)
+            if (all_extratimetable.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": all_extratimetable.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('get all extratimetable', i18n.__('validation.isExist', ` extratimetable `))
+                console.log(result, ` -----> err in getAllExtratimetable function with timetable_id = ${timetable_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getAllExtratimetable function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
@@ -1367,7 +1679,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -1414,7 +1726,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -1463,7 +1775,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             } else {
                                 const provider_id = req.params.providerId
                                 return equipmentprovidermodel.isUniqueCombination(provider_id, equipment_id).then(is_unique => {
@@ -1512,8 +1824,6 @@ class ProviderController {
                 },
             },
         },
-
-        
 
         quantity: {
             in: ['body'],
@@ -1761,7 +2071,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Equipment with equipmentprovider_id = ${equipmentprovider_id} is not in DB (from fareValidationSchema)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -1807,7 +2117,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists == false) {
                                 console.log('Fare with fare_id = ${fare_id} is not in DB (from fareValidationSchema)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `fareId = ${fare_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `fareId = ${fare_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -2434,17 +2744,17 @@ class ProviderController {
                 if (data.startsWith('404')) {
                     const param = validation_result.errors[0].param
                     const not_found_error = new Api404Error(param, data)
-                    console.log(not_found_error, ` ----> not_found_error from the EquipmentController.checkResult`)
+                    console.log(not_found_error, ` ----> not_found_error from the ProviderController.checkResult`)
                     res.status(not_found_error.statusCode || 500).json(not_found_error)
                 } else {
                     const param = validation_result.errors[0].param
                     const bad_request_error = new Api400Error(param, data)
-                    console.log(bad_request_error, ` ----> bad_request_error from the EquipmentController.checkResult`)
+                    console.log(bad_request_error, ` ----> bad_request_error from the ProviderController.checkResult`)
                     res.status(bad_request_error.statusCode || 500).json(bad_request_error)
                 }
             } else {
                 const server_error = data
-                console.log(server_error, ` ----> server_error from the EquipmentController.checkResult`)
+                console.log(server_error, ` ----> server_error from the ProviderController.checkResult`)
                 res.status(server_error.statusCode || 500).json(server_error)
             }
         } else {

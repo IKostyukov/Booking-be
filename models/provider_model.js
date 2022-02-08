@@ -16,9 +16,9 @@ const db = pool
 class ProviderModel {
 
     async isExist(provider_id) {
-        const sql_query = `SELECT EXISTS (SELECT 1
-        FROM providers WHERE id = ${provider_id}) AS "exists";`
         try {
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM providers WHERE id = ${provider_id}) AS "exists";`
             const is_exist = await db.query(sql_query)
             console.log(is_exist.rows, '----> is_exist. rows in isExist function with provider_id = ${provider_id}  at  provider_model.js')
             return is_exist
@@ -47,7 +47,7 @@ class ProviderModel {
 
     //  ### Сщздать провафйдера услуг ###
 
-    async createNewProvider(provider_name, user_id, timetable_id, providertype_id, recreationfacilitytype_id, location, address, post_index, geolocation) {
+    async create(provider_name, user_id, timetable_id, providertype_id, recreationfacilitytype_id, location, address, post_index, geolocation) {
         try {
             const new_provider = await db.query(`INSERT INTO providers(
                 provider_name, user_id, timetable_id, providertype_id,
@@ -60,14 +60,14 @@ class ProviderModel {
                 return new_provider
             }
         } catch (err) {
-            console.log(err, `-----> err in createNewProvider function with provider_name = ${provider_name}  at provider_model.js`)
+            console.log(err, `-----> err in create function with provider_name = ${provider_name}  at provider_model.js`)
             throw new Api500Error('create provider', `${err.message}`)
         }
     }
 
     //  ### Обновить общую информацию о провайдере
 
-    async updateOneProvider(provider_id, provider_name, providertype_id, recreationfacilitytype_id, user_id, location, address, post_index) {
+    async update(provider_id, provider_name, providertype_id, recreationfacilitytype_id, user_id, location, address, post_index) {
         try {
             const sql = `UPDATE providers
             SET provider_name = '${provider_name}', user_id = ${user_id}, providertype_id = ${providertype_id},
@@ -77,7 +77,7 @@ class ProviderModel {
             const updated_provider = await db.query(sql)
             return updated_provider
         } catch (err) {
-            console.log(err, `-----> err in updateOneProvider function with provider_id = ${provider_id}  at provider_model.js`)
+            console.log(err, `-----> err in update function with provider_id = ${provider_id}  at provider_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('update provider', `${err.message}`)
         }
@@ -85,16 +85,17 @@ class ProviderModel {
 
     //  ### Активировать провайдера
 
-    async activateOneProvider(provider_id, active) {
+    async activate(provider_id, active) {
         try {
             const sql = `UPDATE providers
             SET active = ${active}
             WHERE id = ${provider_id} RETURNING *;`
             // console.log(sql)
             const updated_provider = await db.query(sql)
+            console.log(updated_provider.rows, `-----> updated_provider.rows in activate function with provider_id = ${provider_id}  at provider_model.js`)
             return updated_provider
         } catch (err) {
-            console.log(err, `-----> err in activateOneProvider function with provider_id = ${provider_id}  at provider_model.js`)
+            console.log(err, `-----> err in activate function with provider_id = ${provider_id}  at provider_model.js`)
             // console.log(err.message, '-----> err.message') 
             throw new Api500Error('activate provider', `${err.message}`)
         }
@@ -102,7 +103,7 @@ class ProviderModel {
 
     //  ### Удалить  провайдера
 
-    async deleteOneProvider(provider_id) {
+    async delete(provider_id) {
         try {
             const sql = `DELETE FROM providers
             WHERE id = ${provider_id} RETURNING *;`
@@ -110,7 +111,7 @@ class ProviderModel {
             const deleted_provider = await db.query(sql)
             return deleted_provider
         } catch (err) {
-            console.log(err, `-----> error  in deleteOneProvider function with provider_id = ${provider_id}  at provider_model.js`)
+            console.log(err, `-----> error  in delete function with provider_id = ${provider_id}  at provider_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('delete provider', `${err.message}`)
         }
@@ -118,7 +119,7 @@ class ProviderModel {
 
     //  ### Получить  провайдера 
 
-    async getOneProvider(provider_id) {
+    async getOne(provider_id) {
         try {
             const sql = `SELECT  *  FROM providers
             WHERE id = ${provider_id};`
@@ -127,7 +128,7 @@ class ProviderModel {
             console.log(provider.rows, '-----> provider.rows in getOneProvider function at provider_model.js')
             return provider
         } catch (err) {
-            console.log(err, `-----> err  in getOneProvider function with provider_id = ${provider_id}  at provider_model.js`)
+            console.log(err, `-----> err  in getOne function with provider_id = ${provider_id}  at provider_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('get one provider', `${err.message}`)
         }
@@ -135,7 +136,7 @@ class ProviderModel {
 
     //  ### Получить несколько провайдеров
 
-    async getListProviders(provider_name,
+    async getAll(provider_name,
         providertype_id,
         user_id,
         location,
@@ -160,7 +161,7 @@ class ProviderModel {
             // Иначе invalid input syntax for type integer: "NaN"
             return providers
         } catch (err) {
-            console.log(err, `-----> err  in getListProviders function with provider_name = ${provider_name}  at provider_model.js`)
+            console.log(err, `-----> err  in getAll function with provider_name = ${provider_name}  at provider_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('get list of providers', `${err.message}`)
         }
