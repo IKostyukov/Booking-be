@@ -93,7 +93,7 @@ class ExtratimetableModel {
         } catch (err) {
             console.log(err, `-----> err  in getAll function   at extratimetable_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('get extratimetable', `${err.message}`)
+            throw new Api500Error('get all extratimetable', `${err.message}`)
         }
     }
 }

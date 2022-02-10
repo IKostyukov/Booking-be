@@ -116,27 +116,27 @@ class ProviderFormCheck {
 
         if (req.body.hasOwnProperty('equipments')) {
 
-            // проверка на количество параметров
             const count_require = 5
             const count_total = 5
-            const count_properties = countProperties(req.body.equipments)
-            console.log(count_properties, "count of properties");
-
-            if (count_properties < count_require || count_properties > count_total) {
-
-                const param = 'equipments in create form of provider '
-                const data = i18n.__('validation.isMatch', ` ${count_total}  `, `${count_properties}`)
-                const bad_request_error = new Api400Error(param, data)
-
-                console.log(bad_request_error, ` ------> bad_request_error in forCreate function at the provider_form_check.js`)
-                return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-            }
-            // проверка на налиние параметров 
-            const equipments = req.body.equipments
+            const equipments = req.body.equipments;
             console.log(equipments, "equipments")
-            for (let i = 0; i < equipments.length; i++) {
-                console.log(equipments[i], i, ' ---> equipments')
+                  
+            for (let i = 0; i < equipments.length; i++) {                
+                 // проверка на количество параметров
+                const count_properties = countProperties(req.body.equipments[i])
+                console.log(count_properties, "count of properties");
+
+                if (count_properties < count_require || count_properties > count_total) {
+                    const param = `${equipments[i]} in create form of provider`
+                    const data = i18n.__('validation.isMatch', ` ${count_total}`, `${count_properties}`)
+                    const bad_request_error = new Api400Error(param, data)
+                    console.log(bad_request_error, ` ------> bad_request_error in forCreate function at the provider_form_check.js`)
+                    return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+                }
+
+                 // проверка на налиние параметров
                 const { equipment_id, availabilitydate, cancellationdate, quantity, fares } = equipments[i]
+
                 if (!equipment_id) {
                     const param = 'equipment_id'
                     const data = i18n.__('validation.isProvided', 'equipments/  equipment_id')
@@ -173,23 +173,22 @@ class ProviderFormCheck {
                     return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
 
                 } else if (fares) {
-
-                    // проверка на количество параметров
                     const count_require = 4
                     const count_total = 4
-                    const count_properties = countProperties(req.body.equipments.fares)
-                    console.log(count_properties, "count of properties");
-
-                    if (count_properties < count_require || count_properties > count_total) {
-                        const param = 'fares in create form of provider '
-                        const data = i18n.__('validation.isMatch', `${count_total}  `, `${count_properties}`)
-                        const bad_request_error = new Api400Error(param, data)
-                        console.log(bad_request_error, ` ------> bad_request_error in forCreate function at the provider_form_check.js`)
-                        return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-                    }
-
-                    // проверка на налиние параметров 
+                    // const fares = req.body.equipments.fares
                     for (let i = 0; i < fares.length; i++) {
+                        // проверка на количество параметров
+                        const count_properties = countProperties(fares[i])
+                        console.log(count_properties, "count of properties");
+
+                        if (count_properties < count_require || count_properties > count_total) {
+                            const param = `${fares[i]} in create form of provider`
+                            const data = i18n.__('validation.isMatch', `${count_total}`, `${count_properties}`)
+                            const bad_request_error = new Api400Error(param, data)
+                            console.log(bad_request_error, ` ------> bad_request_error in forCreate function at the provider_form_check.js`)
+                            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+                        }
+                        // проверка на налиние параметров 
                         const { duration, time_unit, fare, discountnonrefundable } = fares[i]
                         console.log(fares[i], ' ---> fares[i]')
 

@@ -461,8 +461,6 @@ class UserController {
                     }
                 },
             },
-            trim: true,
-            escape: true,
         },
     }
 

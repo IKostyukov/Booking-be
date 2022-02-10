@@ -5,6 +5,10 @@ import { fareFormCheck } from '../check_forms/fare_form_check.js';
 import { providerFormCheck } from '../check_forms/provider_form_check.js';
 import { timetableFormCheck } from '../check_forms/timetable_form_check.js';
 import { extratimetableFormCheck } from '../check_forms/extratimetable_form_check.js';
+import { promotionFormCheck } from '../check_forms/promotion_form_check.js';
+import { descriptionFormCheck } from '../check_forms/description_form_check.js';
+import { serviceproviderFormCheck } from '../check_forms/serviceprovider_form_check.js';
+import { advantageproviderFormCheck } from '../check_forms/advantageprovider_form_check.js';
 
 import { checkSchema } from 'express-validator';
 
@@ -34,16 +38,23 @@ routerProviders.get('/providers/best', provider_controller.getBestProviders);
 
 
 //      Provider's descriptions
-routerProviders.post('/provider/:providerId/description', provider_controller.createDescription);
-routerProviders.patch('/provider/:providerId/description/:descriptionId', provider_controller.updateDescription); // в теле запроса идёт массив;  тогда говорили, что в боди будет информация об одном описании
-routerProviders.delete('/provider/:providerId/description/:descriptionId', provider_controller.deleteDescription);
-routerProviders.get('/provider/:providerId/description/:descriptionId', provider_controller.getDescription);
-routerProviders.get('/provider/:providerId/descriptions', provider_controller.getAllDescriptions);
+const check_form_create_description = descriptionFormCheck.forCreateUpdate
+const check_form_update_description = descriptionFormCheck.forCreateUpdate
+const check_schema_description = checkSchema(provider_controller.descriptionValidationSchema);
+
+routerProviders.post('/provider/:providerId/description', check_form_create_description, check_schema_description, chesk_result, provider_controller.createDescription);
+routerProviders.patch('/provider/:providerId/description/:descriptionId', check_form_update_description, check_schema_description, chesk_result, provider_controller.updateDescription); // в теле запроса идёт массив;  тогда говорили, что в боди будет информация об одном описании
+routerProviders.delete('/provider/:providerId/description/:descriptionId', check_schema_description, chesk_result, provider_controller.deleteDescription); // descriptionId не нужен, так как удаляем все описания у провайдера
+routerProviders.get('/provider/:providerId/description/:descriptionId', check_schema_description, chesk_result, provider_controller.getOneDescription);
+routerProviders.get('/provider/:providerId/descriptions', check_schema_description, chesk_result, provider_controller.getAllDescriptions);
 
 
 //     Provider's services
-routerProviders.patch('/provider/:providerId/services', provider_controller.addServicesToProvider);
-routerProviders.get('/provider/:providerId/services', provider_controller.getServicesOfProvider);
+const check_form_add_serviceprovider = serviceproviderFormCheck.forAdd
+const check_schema_serviceprovider = checkSchema(provider_controller.serviceproviderValidationSchema);
+
+routerProviders.patch('/provider/:providerId/services', check_form_add_serviceprovider, check_schema_serviceprovider, chesk_result, provider_controller.addServicesToProvider);
+routerProviders.get('/provider/:providerId/services', check_schema_serviceprovider, chesk_result, provider_controller.getServicesOfProvider);
 
 
 //   Provider's timetable
@@ -96,17 +107,25 @@ routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare', check_s
 
 
 //    Provider's promotions
-routerProviders.post('/provider/:providerId/equipment/:equipmentId/promotion', provider_controller.createPromotion);
-routerProviders.patch('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', provider_controller.updatePromotion);
-routerProviders.patch('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId/activation', provider_controller.activatePromotion);
-routerProviders.delete('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', provider_controller.deletePromotion);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', provider_controller.getOnePromotion);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion', provider_controller.getAllPromotions)
+const check_form_create_promotion = promotionFormCheck.forCreateUpdate
+const check_form_update_promotion = promotionFormCheck.forCreateUpdate
+const check_form_activate_promotion = promotionFormCheck.forActivate
+const check_schema_promotion = checkSchema(provider_controller.promotionValidationSchema);
+
+routerProviders.post('/provider/:providerId/equipment/:equipmentId/promotion', check_form_create_promotion, check_schema_promotion, chesk_result, provider_controller.createPromotion);
+routerProviders.patch('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_form_update_promotion, check_schema_promotion, chesk_result, provider_controller.updatePromotion);
+routerProviders.patch('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId/activation', check_form_activate_promotion, check_schema_promotion, chesk_result, provider_controller.activatePromotion);
+routerProviders.delete('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_schema_promotion, chesk_result, provider_controller.deletePromotion);
+routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_schema_promotion, chesk_result, provider_controller.getOnePromotion);
+routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion', check_schema_promotion, chesk_result, provider_controller.getAllPromotions)
 
 
 //     Provider's advantages
-routerProviders.post('/provider/:providerId/advantage', provider_controller.addAdvantageToProvider);
-routerProviders.delete('/provider/:providerId/advantage/:advantageId', provider_controller.deleteAdvantageFromProvider);
+const check_form_add_advantageprovider = advantageproviderFormCheck.forAdd
+const check_schema_advantageprovider = checkSchema(provider_controller.advantageproviderValidationSchema);
+
+routerProviders.post('/provider/:providerId/advantage', check_form_add_advantageprovider, check_schema_advantageprovider, chesk_result, provider_controller.addAdvantageToProvider);
+routerProviders.delete('/provider/:providerId/advantage/:advantageId', check_schema_advantageprovider, chesk_result, provider_controller.deleteAdvantageFromProvider);
 
 //      Provider's options
 // In the development...

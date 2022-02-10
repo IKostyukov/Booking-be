@@ -6,14 +6,44 @@ class DeckriptionModel {
 
     //  ### Описание провайдера (descriptions) ###
 
-    async createNewDescription(provider_id, description) {
+    async isExist(description_id) {
+        try {
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM descriptions WHERE id = ${description_id}) AS "exists";`
+            const is_exist = await db.query(sql_query)
+            console.log(is_exist.rows, `----> is_exist. rows in isExist function with description_id = ${description_id}  at  description_model.js`)
+            return is_exist
+        } catch (err) {
+            console.log(err, `-----> err in isExist function with description_id = ${description_id}  at  description_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                  
+            throw new Api500Error('provider_id', `${err.message}`)
+        }
+    }
+
+    async isUniqueCombination(provider_id, locale, descriptiontype) {
+        try {
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM descriptions WHERE provider_id = '${provider_id}' AND locale = '${locale}' AND descriptiontype = '${descriptiontype}') AS "exists";`
+
+            // console.log(sql_query)
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique.rows, ' -----> is_unique.rows in  isUniqueCombination function from description_model.js')
+            return is_unique
+        } catch (err) {
+            console.log(err, `-----> err in isUniqueCombination function with provider_id = ${provider_id}  in description_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error('provider_id, locale, descriptiontype', `${err.message}`)
+        }
+    }
+
+    async create(provider_id, description) {
         try {
             // console.log(provider_id, description)
             let sql_query = ''
             description.forEach(function create_sql_query(descript) {
                 const { locale, descriptiontype, content } = descript
                 // console.log(provider_id, locale, descriptiontype, content)
-                sql_query += `INSERT INTO descriptions(
+                sql_query += `INSERT INTO descriptions (
                     provider_id, locale, descriptiontype, content )
                     VALUES (${provider_id}, '${locale}', '${descriptiontype}', '${content}')
                 RETURNING *;`
@@ -28,29 +58,16 @@ class DeckriptionModel {
                 return added_description
             }
         } catch (err) {
-            console.log(err, `-----> err in createNewDescription function with provider_id = ${provider_id}  at description_model.js`)
+            console.log(err, `-----> err in create function with provider_id = ${provider_id}  at description_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('create new descriptions', `${err.message}`)
+            throw new Api500Error('create new description', `${err.message}`)
         }
     }
 
     // Обновить нельзя, только удалить
 
-    // async updateOneDescription (description_id, provider_id, locale, descriptiontype, content) {
-    //     console.log(provider_id, locale)
-    //     const sql = `UPDATE descriptions
-    //     SET  provider_id=${provider_id}, locale='${locale}',
-    //     descriptiontype='${descriptiontype}', content='${content}'
-    //     WHERE id = ${description_id}
-    //     RETURNING *;` 
-    //     console.log(sql)
-    //     const new_description = await db.query(sql)
 
-    //     return new_description
-    // }
-
-
-    async deleteAllDescriptionsOfProvider(provider_id) {
+    async deleteAll(provider_id) {
         try {
             console.log(provider_id)
             const sql = `DELETE FROM  descriptions
@@ -60,39 +77,39 @@ class DeckriptionModel {
             const deleted_description = await db.query(sql)
             return deleted_description
         } catch (err) {
-            console.log(err, `-----> err in deleteAllDescriptionsOfProvider function with provider_id = ${provider_id}  at description_model.js`)
+            console.log(err, `-----> err in delete function with provider_id = ${provider_id}  at description_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('delete all descriptions', `${err.message}`)
         }
     }
 
-    async getOneDescription(description_id) {
+    async getOne(description_id) {
         try {
             console.log(description_id)
             const sql = `SELECT id AS description_id, provider_id, locale, descriptiontype, content
             FROM descriptions
             WHERE id =${description_id};`
-            console.log(sql)
+            // console.log(sql)
             const one_description = await db.query(sql)
             return one_description
         } catch (err) {
-            console.log(err, `-----> err in getOneDescription function with description_id = ${description_id}  at description_model.js`)
+            console.log(err, `-----> err in getOne function with description_id = ${description_id}  at description_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('delete  one description', `${err.message}`)
         }
     }
 
-    async getAllDescriptionsOfProvider(provider_id) {
+    async getAll(provider_id) {
         try {
             console.log(provider_id)
             const sql = `SELECT id AS description_id, provider_id, locale, descriptiontype, content
             FROM descriptions
             WHERE provider_id =${provider_id};`
-            console.log(sql)
+            // console.log(sql)
             const all_description = await db.query(sql)
             return all_description
         } catch (err) {
-            console.log(err, `-----> err in getAllDescriptionsOfProvider function with description_id = ${description_id}  at description_model.js`)
+            console.log(err, `-----> err in getAll function with description_id = ${description_id}  at description_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('get all descriptions', `${err.message}`)
         }

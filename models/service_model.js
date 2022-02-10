@@ -153,6 +153,5 @@ class ServiceModel {
     }
 }
 
-
     const servicemodel = new ServiceModel()
     export { servicemodel } 

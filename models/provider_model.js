@@ -20,7 +20,7 @@ class ProviderModel {
             const sql_query = `SELECT EXISTS (SELECT 1
             FROM providers WHERE id = ${provider_id}) AS "exists";`
             const is_exist = await db.query(sql_query)
-            console.log(is_exist.rows, '----> is_exist. rows in isExist function with provider_id = ${provider_id}  at  provider_model.js')
+            console.log(is_exist.rows, `----> is_exist. rows in isExist function with provider_id = ${provider_id}  at  provider_model.js`)
             return is_exist
         } catch (err) {
             console.log(err, `-----> err in isExist function with provider_id = ${provider_id}  at  provider_model.js`)

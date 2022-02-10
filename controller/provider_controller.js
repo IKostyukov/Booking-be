@@ -5,13 +5,12 @@ import { timetablemodel } from '../models/timetable_model.js';
 import { extratimetablemodel } from '../models/extratimetable_model.js';
 import { serviceprovidermodel } from '../models/serviceprovider_model.js';
 import { servicemodel } from '../models/service_model.js';
+import { promotionmodel } from '../models/promotion_model.js';
 import { descriptionmodel } from '../models/description_model.js';
 import { equipmentmodel } from '../models/equipment_model.js';
 import { equipmentprovidermodel } from '../models/equipmentprovider_model.js';
 import { faremodel } from '../models/fare_model.js';
 import { user } from '../models/user_model.js';
-
-import { promotionmodel } from '../models/promotion_model.js';
 
 import { validationResult } from 'express-validator';
 import i18n from 'i18n';
@@ -74,7 +73,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('404 ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 494 Error:   как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 Error:   как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -332,7 +331,7 @@ class ProviderController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'geolocation coordinates') },
                 bail: true,
             },
-            isData: {
+            isDate: {
                 errorMessage: () => { return i18n.__('validation.isLatLong', 'geolocation coordinates') },
                 bail: true,
             },
@@ -514,44 +513,52 @@ class ProviderController {
                 bail: true
             },
 
-            // Это второй вариант, первый ниже 
+           
+            custom: { 
+                options: (services, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const services = req.body.services
+                        const unique_array = new Set(services)
+                            if(services.length == unique_array.size){
+                            return true
+                        }else{
+                            return Promise.reject(i18n.__('validation.isDuplicate', `services = ${services}`)); 
+                        };
+             // Это второй вариант, первый ниже 
             // Eсли выбрать второй, то первый надо поднять выше для проверки IsInt в массиве services). 
             // Плюсы - проверяем одним запросом методом  isExistList. 
             // Минусы - цикл в модели и цикл для проверки пезультатов в контроллере
 
-            // custom: { 
-            //     options: (services, { req, location, path }) => {
-            //         if (req.method === 'GET') {
-            //             return true
-            //         } else {
-            //             return servicemodel.isExistList(services).then(result_list => {
-            //                 console.log(result_list[0].rows, '-------> result_list[0].rows services from providerValidationSchema')
-            //                 for (let i = 0; i < result_list.length; i += 1) {
-            //                     if (result_list[i].rows[0].exists === false) {
-            //                         console.log(`Services = ${services[i]} is not in DB (from provider_conrtoller.js)`)
-            //                         return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `services = ${services[i]}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
-            //                     }
-            //                 }
-            //             }).catch(err => {
-            //                 if (err.error) {
-            //                     const server_error = {
-            //                         "success": false,
-            //                         "error": {
-            //                             "code": err.statusCode,
-            //                             "message": err.error.message,
-            //                         },
-            //                         "data": err.data,
-            //                     }
-            //                     console.log(server_error, " ------------------> Server Error in providerValidationSchema at provider_conrtoller.js")
-            //                     return Promise.reject(server_error)
-            //                 } else {
-            //                     const msg = err
-            //                     return Promise.reject(msg)
-            //                 };
-            //             })
-            //         }
-            //     },
-            // },
+                        // return servicemodel.isExistList(services).then(result_list => {
+                        //     console.log(result_list[0].rows, '-------> result_list[0].rows services from providerValidationSchema')
+                        //     for (let i = 0; i < result_list.length; i += 1) {
+                        //         if (result_list[i].rows[0].exists === false) {
+                        //             console.log(`Services = ${services[i]} is not in DB (from provider_conrtoller.js)`)
+                        //             return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `services = ${services[i]}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        //         }
+                        //     }
+                        // }).catch(err => {
+                        //     if (err.error) {
+                        //         const server_error = {
+                        //             "success": false,
+                        //             "error": {
+                        //                 "code": err.statusCode,
+                        //                 "message": err.error.message,
+                        //             },
+                        //             "data": err.data,
+                        //         }
+                        //         console.log(server_error, " ------------------> Server Error in providerValidationSchema at provider_conrtoller.js")
+                        //         return Promise.reject(server_error)
+                        //     } else {
+                        //         const msg = err
+                        //         return Promise.reject(msg)
+                        //     };
+                        // })
+                    }
+                },
+            },
         },
 
         'services.*': {
@@ -575,7 +582,7 @@ class ProviderController {
                             console.log(is_exist.rows, '-------> is_exist.rows services from providerValidationSchema')
                             if (is_exist.rows[0].exists == false) {
                                 console.log(`Services = ${service_id} is not in DB (from provider_conrtoller.js)`)
-                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `services = ${service_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `services = ${service_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -651,7 +658,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists == false) {
                                 console.log('Equipment with equipment_id = ${equipment_id} is not in DB (from equipment_controller.js)')
-                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipment_id = ${equipment_id}`));  // злесь 494 Error:   как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `equipment_id = ${equipment_id}`));  // злесь 404 Error:   как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -912,7 +919,7 @@ class ProviderController {
 
             let added_service = false;
             if (services !== undefined) {
-                const services_provider = await serviceprovidermodel.addOneServiceToProvider(provider_id, services)
+                const services_provider = await serviceprovidermodel.addAllServices(provider_id, services)
                 console.log(services_provider.rows, " ---> services_provider.rows in createProvider at provider_controller.js")
                 if (services_provider.rows.lenth !== 0) {
                     added_service = true
@@ -926,19 +933,19 @@ class ProviderController {
 
             //  Описание провайдера (descriptions) 
 
-            let added_descriptions = false;
+            let added_description = false;
             if (description !== undefined) {
-                const new_descriptions = await descriptionmodel.createNewDescription(provider_id, description)
-                console.log(new_descriptions.rows, " ---> new_descriptions.rows in createProvider at provider_controller.js")
-                if (new_descriptions.rows.lenth !== 0) {
-                    added_descriptions = true
+                const new_description = await descriptionmodel.create(provider_id, description)
+                console.log(new_description.rows, " ---> new_description.rows in createProvider at provider_controller.js")
+                if (new_description.rows.lenth !== 0) {
+                    added_description = true
                 } else {
-                    const result = new Api500Error('added descriptions', 'Unhandled Error')
-                    console.log(result, ' ----> err added descriptions in createProvider function at provider_controller.js')
+                    const result = new Api500Error('added description', 'Unhandled Error')
+                    console.log(result, ' ----> err added description in createProvider function at provider_controller.js')
                     res.status(result.statusCode || 500).json(result)
                 }
             }
-            console.log(added_descriptions, " ---> added_descriptions at provider_controller.js")
+            console.log(added_description, " ---> added_description at provider_controller.js")
 
             //    Инвентарь от объект отдыха  (equipmentprovider)  И тарификация (fares) 
 
@@ -1531,6 +1538,11 @@ class ProviderController {
                 errorMessage: () => { return i18n.__('validation.isISO8601', 'Extratimetable end_time') },
                 bail: true,
             },
+            isAfter: {
+                options: this.start_time,
+                errorMessage: () => { return i18n.__('validation.isAfter', 'end_time', 'start_time') },
+                bail: true,
+            },
         },
     }
 
@@ -1632,7 +1644,7 @@ class ProviderController {
 
     async getAllExtratimetable(req, res) {
         try {
-            const  provider_id  = req.params.providerId
+            const provider_id = req.params.providerId
             console.log(provider_id, ' provider_id Test')
             const all_extratimetable = await extratimetablemodel.getAll(provider_id)
             if (all_extratimetable.rows.length !== 0) {
@@ -1726,7 +1738,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -1775,7 +1787,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from provider_conrtoller.js)')
-                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             } else {
                                 const provider_id = req.params.providerId
                                 return equipmentprovidermodel.isUniqueCombination(provider_id, equipment_id).then(is_unique => {
@@ -1890,7 +1902,7 @@ class ProviderController {
             } = req.body
             const provider_id = req.params.providerId
             const new_equipments = await equipmentprovidermodel.createNewEquipmentProvider(provider_id, equipment_id, quantity, availabilitydate, cancellationdate)
-            if (new_equipments.rows[0].id) {
+            if (new_equipments.rows.length !== 0) {
                 const result = {
                     success: true,
                     data: " Equipment successfully added to Provider"
@@ -2071,7 +2083,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('Equipment with equipmentprovider_id = ${equipmentprovider_id} is not in DB (from fareValidationSchema)')
-                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -2117,7 +2129,7 @@ class ProviderController {
 
                             if (is_exist.rows[0].exists == false) {
                                 console.log('Fare with fare_id = ${fare_id} is not in DB (from fareValidationSchema)')
-                                return Promise.reject('494 Error:   ' + i18n.__('validation.isExist', `fareId = ${fare_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `fareId = ${fare_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -2237,12 +2249,10 @@ class ProviderController {
                     }
                 },
             },
-
             trim: true,
             escape: true,
 
         },
-
         fare: {
             in: ['body'],
             optional: true,
@@ -2436,297 +2446,1182 @@ class ProviderController {
         }
     }
 
-    //     ### Promotions ###
+    //     ### Promotion ###
+
+    promotionValidationSchema = {
+
+        providerId: {
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId') },
+                bail: true,
+            },
+            custom: {
+                options: (providerId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const provider_id = providerId
+                        return providermodel.isExist(provider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows provider from promotionsValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in promotionsValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        equipmentId: {
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'equipmentId') },
+                bail: true,
+            },
+            custom: {
+                options: (equipmentId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const equipmentprovider_id = equipmentId
+                        return equipmentprovidermodel.isExist(equipmentprovider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows equipment from promotionsValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Equipment with equipmentprovider_id = ${equipmentId} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `equipmentprovider_id = ${equipmentId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in promotionsValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        promotionId: {
+            in: ['params'],
+            optional: true,
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                errorMessage: () => { return i18n.__('validation.isInt', 'promotionId') },
+                bail: true,
+            },
+            custom: {
+                options: (promotionId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const promotion_id = promotionId
+                        return promotionmodel.isExist(promotion_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows Promotion from promotionsValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Promotion with promotion_id = ${promotion_id} is not in DB (from provider_controller.js)')
+                                return Promise.reject('404 Error:  ' + i18n.__('validation.isExist', `promotion_id = ${promotion_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }  // если exists == true, то валидация прошла, если нет то ловим 404
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in promotionsValidationSchema at provider_controller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        title: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'title') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'title') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'title') },
+                options: { min: 2, max: 500 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        discount: {
+            in: ['body'],
+            optional: true,
+            isInt: {
+                options: {
+                    min: 1,
+                    max: 100
+                },
+                errorMessage: () => { return i18n.__('validation.isInt', 'discount') },
+                bail: true,
+            },
+        },
+
+        booking_start: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'booking_start') },
+                bail: true,
+            },
+            isAfter: {
+                errorMessage: () => { return i18n.__('validation.isAfter', 'activity_start', 'now') },
+                bail: true,
+            },
+        },
+
+        booking_end: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'booking_end') },
+                bail: true,
+            },
+            isAfter: {
+                options: this.booking_start,
+                errorMessage: () => { return i18n.__('validation.isAfter', 'booking_end', 'booking_start') },
+                bail: true,
+            },
+        },
+
+        activity_start: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'activity_start') },
+                bail: true,
+            },
+            isAfter: {
+                options: this.booking_start,
+                errorMessage: () => { return i18n.__('validation.isAfter', 'activity_start', 'booking_start') },
+                bail: true,
+            },
+        },
+
+        activity_end: {
+            in: ['body'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'activity_end') },
+                bail: true,
+            },
+            isAfter: {
+                options: this.activity_start,
+                errorMessage: () => { return i18n.__('validation.isAfter', 'activity_end', 'activity_start') },
+                bail: true,
+            },
+        },
+        active: {
+            in: ['body'],
+            optional: true,
+            isBoolean: {
+                errorMessage: () => { return i18n.__('validation.isBoolean', 'active') },
+                bail: true,
+            },
+        }
+    }
 
     async createPromotion(req, res) {
         try {
             console.log('Test')
-            const { equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
-            const new_promotion = await promotionmodel.createNewPromotion(equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end)
-            if (new_promotion.rows[0] !== undefined) {
+            const { title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
+            const equipmentprovider_id = req.params.equipmentId
+            const new_promotion = await promotionmodel.create(equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end)
+            if (new_promotion.rows.length !== 0) {
                 const result = {
                     "success": true,
-                    "data": all_equipmentprovider.rows
+                    "data": new_promotion.rows
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 200).json(result)
             } else {
-                const result = new Api404Error('getAllEquipmentProvider', i18n.__('validation.isExist', `providerId =${provider_id}`))
-                console.log(result, ` -----> err in getAllEquipmentProvider function  at provider_controller.js;`)
+                const result = new Api404Error('create promotion', i18n.__('validation.isExist', `equipmentprovider_id =${equipmentprovider_id}`))
+                console.log(result, ` -----> err in createPromotion function  at provider_controller.js;`)
                 res.status(result.statusCode || 400).json(result)
             }
         } catch (err) {
-            console.error({ err }, '---->err in getAllEquipmentProvider function at provider_controller.js ')
+            console.error({ err }, '---->err in createPromotion function at provider_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
 
     async updatePromotion(req, res) {
-        console.log('Test')
-        const { equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
-        const promotion_id = req.params.promotionId
-        const updatad_promotion = await promotionmodel.updateNewPromotion(promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end)
-        if (updatad_promotion.rows[0] !== undefined) {
-            const result = { success: true }
-            res.json(result)
-            console.log(updatad_promotion.rows[0], result)
-            // res.json( updatad_promotion.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+            const promotion_id = req.params.promotionId
+            const equipmentprovider_id = req.params.equipmentId
+            const { title, discount, booking_start, booking_end, activity_start, activity_end } = req.body
+            const updatad_promotion = await promotionmodel.update(promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end)
+            if (updatad_promotion.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: "Promotion successfully updated"
+                }
+                res.status(httpStatusCodes.OK || 500).json(result)
+                console.log(updatad_promotion.rows, result)
+            } else {
+                const result = new Api404Error('equipmentprovider_id', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
+                console.log(result, ' ----> err from updatePromotion function at provider_controller.js')
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in updatePromotion function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async activatePromotion(req, res) {
-        const promotion_id = req.params.promotionId
-        const { active } = req.body
-        console.log('Test', active)
-        const activated_promotion = await promotionmodel.deleteOnePromotion(promotion_id, active)
-        if (activated_promotion.rows && active == "true") {
-            const result = { success: "Promotion successfully activated" }
-            res.json(result)
-            // console.log(activated_equipmentprovider.rows[0], result)
-        } else if (activated_promotion.rows && active == "false") {
-            const result = { success: "Promotion successfully deactivated" }
-            res.json(result)
-            console.log(activated_promotion.rows, result)
-        } else {
-            const result = { Error: "Error" }
-            res.json(result)
+        try {
+            const promotion_id = req.params.promotionId
+            const { active } = req.body
+            console.log('Test', active)
+            const activated_promotion = await promotionmodel.activate(promotion_id, active)
+            if (activated_promotion.rowCount == 0) {
+                const result = new Api404Error('provider_id', i18n.__('validation.isExist', `promotionId  ${promotion_id}`))
+                console.log(result, ` ----> err in activatePromotion function with promotion_id ${promotion_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            } else if (activated_promotion.rows[0].active == true) {
+                const result = {
+                    success: true,
+                    data: "Promotion successfully activated"
+                }
+                console.log(activated_promotion.rows, result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = {
+                    success: true,
+                    data: "Promotion successfully deactivated"
+                }
+                console.log(activated_promotion.rows, result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '-----> err in activatePromotion function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async deletePromotion(req, res) {
-        console.log('Test')
-        const promotion_id = req.params.promotionId
-        const deleted_promotion = await promotionmodel.deleteOnePromotion(promotion_id)
-        if (deleted_promotion.rows[0] !== undefined) {
-            const result = { success: true }
-            res.json(result)
-            console.log(deleted_promotion.rows[0], result)
-            // res.json( deleted_promotion.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            console.log(deleted_promotion.rows[0], result)
-            res.json(result)
+        try {
+            console.log('Test')
+            const promotion_id = req.params.promotionId
+            const deleted_promotion = await promotionmodel.delete(promotion_id)
+            if (deleted_promotion.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: "Promotion successfully deleted"
+                }
+                console.log(deleted_promotion.rows, result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('promotion_id', i18n.__('validation.isExist', `promotionId = ${promotion_id}`))
+                console.log(result, ' ----> err in deletePromotion function with promotion_id = ${promotion_id} not exists at provider_controller.js;')
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in deletePromotion function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async getOnePromotion(req, res) {
-        const promotion_id = req.params.promotionId
-        console.log('Test', promotion_id)
-        const one_promotion = await promotionmodel.getOnePromotionOfProvider(promotion_id)
-        if (one_promotion.rows[0] !== undefined) {
-            const result = one_promotion.rows[0]
-            res.json(result)
-            console.log(one_promotion.rows[0], result)
-            // res.json( one_promotion.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const promotion_id = req.params.promotionId
+            console.log('Test', promotion_id)
+            const one_promotion = await promotionmodel.getOne(promotion_id)
+            if (one_promotion.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": one_promotion.rows[0]
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('promotion_id', i18n.__('validation.isExist', `promotion_id = ${promotion_id}`))
+                console.log(result, ` -----> err in getOnePromotion function with promotion_id = ${promotion_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getOnePromotion function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async getAllPromotions(req, res) {
-        const equipmentprovider_id = req.params.equipmentId
-        console.log('Test', equipmentprovider_id)
-        const all_promotion = await promotionmodel.getAllPromotionsOfProvider(equipmentprovider_id)
-        if (all_promotion.rows[0] !== undefined) {
-            const result = all_promotion.rows
-            res.json(result)
-            console.log(all_promotion.rows, result)
-            // res.json(all_promotion.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const equipmentprovider_id = req.params.equipmentId
+            console.log('Test', equipmentprovider_id)
+            const all_promotion = await promotionmodel.getAll(equipmentprovider_id)
+            if (all_promotion.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": all_promotion.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('get all promotion', i18n.__('validation.isExist', ` promotion `))
+                console.log(result, ` -----> err in getAllPromotions function with equipmentprovider_id = ${equipmentprovider_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getAllPromotions function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     //  ### Описание объекта (descriptions) ###
 
+    descriptionValidationSchema = {
+
+        providerId: {
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId') },
+                bail: true,
+            },
+            custom: {
+                options: (providerId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const provider_id = providerId
+                        return providermodel.isExist(provider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows provider from descriptionValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in descriptionValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        descriptionId: {
+            in: ['params'],
+            optional: true,
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                errorMessage: () => { return i18n.__('validation.isInt', 'descriptionId') },
+                bail: true,
+            },
+            custom: {
+                options: (descriptionId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const description_id = descriptionId
+                        return descriptionmodel.isExist(description_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows description from descriptionValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Description with description_id = ${description_id} is not in DB (from provider_controller.js)')
+                                return Promise.reject('404 Error:  ' + i18n.__('validation.isExist', `description_id = ${description_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }  // если exists == true, то валидация прошла, если нет то ловим 404
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in descriptionValidationSchema at provider_controller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        description: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'description') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'description') },
+                bail: true,
+            },
+            custom: {
+                options: (description, { req }) => {
+                    if (req.method == 'PATCH') {
+                        return true
+                    } else {
+                        const provider_id = req.params.providerId
+                        for (let i = 0; i < description.length; i++) {
+
+                            if (i === description.length - 1) {
+                                console.log('description fields ----------------->>>>> OK')
+                                return true
+                            } else {
+                                console.log(description[i], i, ' ---> description')
+                                const { locale, descriptiontype, content } = description[i]
+                                if (!locale || !descriptiontype || !content) {
+                                    console.log(provider_id, `description fields with provider_id = ${provider_id} ----------->>>>> NOT OK`)
+                                    return Promise.reject(i18n.__('validation.isProvided', 'description/  locale, descriptiontype, content'))
+                                }
+
+                                return descriptionmodel.isUniqueCombination(provider_id, locale, descriptiontype).then(is_unique => {
+                                    console.log(is_unique.rows, '-------> is_unique.rows of profile_id from descriptionValidationSchema')
+
+                                    if (is_unique.rows[0].exists == true) {
+                                        return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & locale = ${locale} & descriptiontype = ${descriptiontype}`));
+                                    }
+                                }).catch(err => {
+                                    if (err.error) {
+                                        const server_error = {
+                                            "success": false,
+                                            "error": {
+                                                "code": err.statusCode,
+                                                "message": err.error.message,
+                                            },
+                                            "data": err.data,
+                                        }
+                                        console.log(server_error, " ------------------> Server Error in validationSchema at user_conrtoller.js")
+                                        return Promise.reject(server_error)
+                                    } else {
+                                        const msg = err
+                                        return Promise.reject(msg)
+                                    };
+                                })
+                            }
+                        }
+                    }
+                },
+                bail: true,
+            },
+        },
+
+        'description.*.locale': {
+            in: ['body'],
+            optional: true,
+            custom: {
+                options: (value, { req }) => {
+                    // console.log(languages_enums, ' ----> languages_enums')
+                    let existed_locales = []
+                    languages_enums.forEach((obj_locale, index, array) => {
+                        console.log(value, obj_locale.locale, ' ----> value, locale ')
+                        existed_locales.push(obj_locale.locale)
+                    })
+                    if (existed_locales.includes(value)) {
+                        console.log(existed_locales, '  existed_locales ----------------->>>>> OK')
+                        return true
+                    }
+                },
+                errorMessage: () => { return i18n.__('validation.isIn', 'locale') },
+                bail: true,
+            },
+        },
+
+        'description.*.descriptiontype': {
+            in: ['body'],
+            optional: true,
+            custom: {
+                options: (value) => {
+                    if (value in descriptiontypes_enums) {
+                        return true
+                    }
+                },
+                errorMessage: () => { return i18n.__('validation.isIn', 'descriptiontype') },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        'description.*.content': {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'content') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'content') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'content') },
+                options: { min: 2, max: 500 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        }
+    }
+
     async createDescription(req, res) {
-        console.log('Test')
-        const descriptions = req.body
-        console.log(descriptions)
-        const provider_id = req.params.id
-        let new_descriptions = []
+        try {
+            // console.log('Test')
+            const description = req.body.description
+            const provider_id = req.params.providerId
+            const new_description = await descriptionmodel.create(provider_id, description)
 
-        descriptions.description.forEach(function create(descript) {
-            const { locale, descriptiontype, content } = descript
-            console.log(typeof (provider_id))
-            const new_description = descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)
-            console.log(new_description.rows, 1111111111111)
-            new_description.then(
-                new_descriptions.push(new_description.rows)
-            )
-            console.log(new_descriptions, '2222222222222')
-        })
-        console.log(new_descriptions)
-
-        if (new_descriptions.length != 0) {
-            const result = { success: "Description  successfully created" }
-            res.json(result)
-            console.log(result)
-            // res.json( new_description.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+            if (new_description.rows.length != 0) {
+                const result = {
+                    success: true,
+                    data: " Description successfully added to Provider"
+                }
+                console.log(new_description.rows, result, ' -----> new_description.rows in createDescription function at provider_controller.js')
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('description to provider', 'Unhandled Error')
+                console.log(result, ' ----> err from createDescription function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            if (err.error) {
+                console.error({ err }, '-----> err in createDescription function at provider_controller.js ')
+                res.status(err.statusCode || 500).json(err)
+            } else {
+                console.error({ err }, '-----> code_error in the  createDescription function at provider_controller.js ')
+                res.json({ 'Code Error': err.message })
+            }
         }
     }
 
 
     async updateDescription(req, res) {
-        const descriptions = req.body
-        const provider_id = req.params.id
-        descriptionmodel.deleteAllDescriptionsOfProvider(provider_id)
-        let new_descriptions = []
+        try {
+            const description = req.body.description
+            const provider_id = req.params.providerId
+            await descriptionmodel.deleteAll(provider_id)
+            // let updated_description = []
 
-        description.forEach(function create(descript) {
-            const { locale, descriptiontype, content } = descript
-            console.log(typeof (provider_id))
-            const new_description = descriptionmodel.createNewDescription(provider_id, locale, descriptiontype, content)
-            console.log(new_description.rows, '1111111111111')
-            new_description.then(
-                new_descriptions.push(new_description.rows)
-            )
-            console.log(new_descriptions, '2222222222222')
-        })
-        console.log(new_descriptions)
+            // description.forEach(function create(descript) {
+            //     const { locale, descriptiontype, content } = descript
+            //     console.log(typeof (provider_id))
+            const updated_description = await descriptionmodel.create(provider_id, description)
+            //     console.log(new_description.rows, '1111111111111')
+            //     new_description.then(
+            //         updated_descriptions.push(new_description.rows)
+            //     )
+            //     console.log(updated_descriptions, '2222222222222')
+            // })
+            console.log(updated_description)
 
-        if (new_descriptions.length != 0) {
-            const result = { success: "Description  successfully updated" }
-            res.json(result)
-            console.log(result)
-            // res.json( new_description.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+            if (updated_description.rows.length != 0) {
+                const result = {
+                    success: true,
+                    data: " Description of Provider successfully updated"
+                }
+                res.status(httpStatusCodes.OK || 200).json(result)
+                console.log( updated_description.rows, ' -----> updated_description.rows in updateEquipmentProvider function at provider_controller.js', result)
+            } else {
+                const result = new Api404Error('provider_id', i18n.__('validation.isExist', 'updated description'))
+                console.log(result, ' ----> err from updateDescription function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '-----> err in updateDescription function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async deleteDescription(req, res) {
-        console.log('Test')
-        const provider_id = req.params.id
-        const deleted_description = await descriptionmodel.deleteAllDescriptionsOfProvider(provider_id)
-        if (deleted_description.rows[0].id) {
-            const result = { success: "Description  successfully deleted" }
-            res.json(result)
-            console.log(deleted_description.rows[0], result)
-            // res.json( deleted_description.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+            const provider_id = req.params.providerId
+            const deleted_description = await descriptionmodel.deleteAll(provider_id)
+            if (deleted_description.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: " Description of Provider successfully deleted"
+                }
+                console.log(deleted_description.rows, result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else if (deleted_description.rows.length == 0) {
+                const result = new Api404Error('provider_id', i18n.__('validation.isExist', 'description'))
+                console.log(result, ' ----> err in deleteDescription function with provider_id = ${provider_id} not exists at provider_controller.js;')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '----> err in deleteDescription function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
+    async getOneDescription(req, res) {
+        try {
+            console.log('Test')
+            const description_id = req.params.descriptionId
+            // const provider_id = req.params.providerId
+            console.log(req.params)
 
-
-    async getDescription(req, res) {
-        console.log('Test')
-        const description_id = req.params.descriptionId
-        // const provider_id = req.params.providerId
-        console.log(req.params)
-
-        const one_description = await descriptionmodel.getOneDescription(description_id)
-        if (one_description.rows[0] !== undefined) {
-            const result = one_description.rows[0]
-            res.json(result)
-            console.log(one_description.rows[0], result)
-            // res.json( one_description.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+            const one_description = await descriptionmodel.getOne(description_id)
+            if (one_description.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": one_description.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api404Error('equipmentId', i18n.__('validation.isExist', `description_id = ${description_id}`))
+                console.log(result, ` -----> err in getOneDescription function  with description_id = ${description_id} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 400).json(result)   //  в отвере не надо отправлять "data"  на get запрос, если, сущность не найдена
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getOneDescription function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
     async getAllDescriptions(req, res) {
-        console.log('Test')
-        const provider_id = req.params.providerId
-        console.log(req.params)
+        try {
+            console.log('Test')
+            const provider_id = req.params.providerId
+            console.log(req.params)
 
-        const all_descriptions = await descriptionmodel.getAllDescriptionsOfProvider(provider_id)
-        if (all_descriptions.rows[0] !== undefined) {
-            const result = all_descriptions.rows
-            res.json(result)
-            console.log(result)
-            // res.json( all_descriptions.rows)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+            const all_description = await descriptionmodel.getAll(provider_id)
+            if (all_description.rows.length !== 0) {
+                const result = {
+                    "success": true,
+                    "data": all_description.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api404Error('get all description of provider', i18n.__('validation.isExist', `providerId =${provider_id}`))
+                console.log(result, ` -----> err in getAllDescriptions function  at provider_controller.js;`)
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getAllDescriptions function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
-    //  ### Yдобства у Провайдера ###    
+    //  ### Yдобства у Провайдера ###  
+    
+    serviceproviderValidationSchema = {
+
+        providerId: {
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId') },
+                bail: true,
+            },
+            custom: {
+                options: (providerId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const provider_id = providerId
+                        return providermodel.isExist(provider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows provider from serviceproviderValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in serviceproviderValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        services: {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
+                bail: true
+            },
+            custom: { 
+                options: (services, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {                   
+                        const services = req.body.services
+                        const unique_array = new Set(services)
+                            if(services.length == unique_array.size){
+                            return true
+                        }else{
+                            return Promise.reject(i18n.__('validation.isDuplicate', `services = ${services}`)); 
+                        };
+                            
+            // Это второй вариант, первый ниже 
+            // Eсли выбрать второй, то первый надо поднять выше для проверки IsInt в массиве services). 
+            // Плюсы - проверяем одним запросом методом  isExistList. 
+            // Минусы - цикл в модели и цикл для проверки пезультатов в контроллере
+
+                        // return servicemodel.isExistList(services).then(result_list => {
+                        //     console.log(result_list[0].rows, '-------> result_list[0].rows services from serviceproviderValidationSchema')
+                        //     for (let i = 0; i < result_list.length; i += 1) {
+                        //         if (result_list[i].rows[0].exists === false) {
+                        //             console.log(`Services = ${services[i]} is not in DB (from provider_conrtoller.js)`)
+                        //             return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `services = ${services[i]}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                        //         }
+                        //     }
+                        // }).catch(err => {
+                        //     if (err.error) {
+                        //         const server_error = {
+                        //             "success": false,
+                        //             "error": {
+                        //                 "code": err.statusCode,
+                        //                 "message": err.error.message,
+                        //             },
+                        //             "data": err.data,
+                        //         }
+                        //         console.log(server_error, " ------------------> Server Error in serviceproviderValidationSchema at provider_conrtoller.js")
+                        //         return Promise.reject(server_error)
+                        //     } else {
+                        //         const msg = err
+                        //         return Promise.reject(msg)
+                        //     };
+                        // })
+                    }
+                },
+            },
+        },
+
+        'services.*': {
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
+                bail: true,
+            },
+            isInt: {
+                errorMessage: () => { return i18n.__('validation.isInt', 'services') },
+                options: { min: 0, max: 100 },
+                bail: true,
+            },
+            custom: {
+                options: (service_id, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        return servicemodel.isExist(service_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows services from serviceproviderValidationSchema')
+                            if (is_exist.rows[0].exists == false) {
+                                console.log(`Services = ${service_id} is not in DB (from provider_conrtoller.js)`)
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `services = ${service_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in serviceproviderValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+    }
 
     async addServicesToProvider(req, res) {
-        const { services } = req.body
-        const services_id = Array.from(services[0].split(','), Number)
-        const provider_id = req.params.id
-        serviceprovidermodel.deleteAllServicesOfProvider(provider_id)
-        let services_list = []
-        services_id.forEach(service_id => {
-            console.log(service_id, "service_id from addServicesToProvider of providercontroller")
-            const updated_service = serviceprovidermodel.addOneServiceToProvider(provider_id, service_id)
-            const serv = updated_service.then(function (service) {
-                console.log(service.rows, "Tect of adding services to provideres")
-                // return  updated_service
-            })
-            services_list.push(serv)
-        });
-        if (services_list.length == services_id.length) {
-            const result = { success: "Services updated successfully" }
-            res.json(result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const { services } = req.body
+            const provider_id = req.params.providerId
+            await serviceprovidermodel.deleteAll(provider_id)
+            const updated_service = await serviceprovidermodel.addAllServices(provider_id, services)
+              
+            if (updated_service.rows.length != 0) {
+                const result = {
+                    success: true,
+                    data: " Services successfully added to Provider"
+                }
+                console.log(updated_service.rows, ' -----> updated_service[0].rows in addServicesToProvider function at provider_controller.js', { result })
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('add service to provider', 'Unhandled Error')
+                console.log(result, ' ----> err from addServicesToProvider function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            if (err.error) {
+                console.error({ err }, '-----> err in addServicesToProvider function at provider_controller.js ')
+                res.status(err.statusCode || 500).json(err)
+            } else {
+                console.error({ err }, '-----> code_error in the  addServicesToProvider function at provider_controller.js ')
+                res.status(500).json({ 'Code Error': err.message })
+            }
         }
     }
 
     async getServicesOfProvider(req, res) {
-        const provider_id = req.params.providerId
-        console.log(provider_id)
-        const all_services = await serviceprovidermodel.getAllServicesOfProvider(provider_id)
-        console.log(all_services)
-        if (all_services.rows) {
-            const result = all_services.rows
-            res.json(result)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            const provider_id = req.params.providerId
+            console.log(provider_id)
+            const all_services = await serviceprovidermodel.getAll(provider_id)
+            if (all_services.rows.length !==0) {
+                const result = {
+                    "success": true,
+                    "data": all_services.rows
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api404Error('provider_id', i18n.__('validation.isExist', 'services'))
+                console.log(result, ` -----> err in getServicesOfProvider function  at provider_controller.js;`)
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in getServicesOfProvider function at provider_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
+
     //  ### Преимущуства провайдера ###
+
+    advantageproviderValidationSchema = {
+
+        providerId: {
+            in: ['params'],
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'provider_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'providerId') },
+                bail: true,
+            },
+            custom: {
+                options: (providerId, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        const provider_id = providerId
+                        return providermodel.isExist(provider_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows provider from advantageproviderValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Provider with provider_id = ${provider_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `providerId = ${provider_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in advantageproviderValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        advantageId: { // для удаления
+            in: ['params'],
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                if: advantageId => {
+                    return advantageId !== undefined;
+                },
+                errorMessage: () => { return i18n.__('validation.isInt', 'advantageId')},       
+                bail: true,             
+            },
+            custom: {
+                options:  (advantageId, { req, location, path}) => {   
+                    if(req.method === 'GET'){
+                        return true
+                    }else{ 
+                        const provider_id = req.params.providerId
+                        const advantage_id = advantageId
+
+                        return advantagemodel.isUniqueCombination(provider_id, advantage_id).then(is_unique => {
+                            console.log(is_unique.rows, '-------> is_unique.rows in Advantage from advantageproviderValidationSchema')
+                            if (is_unique.rows[0].exists == true) {
+                                return true
+                            }else{
+                                return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & advantage_id = ${advantage_id}`));
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": {
+                                        "advantage_id": err.data,
+                                    }
+                                }
+                                console.log(server_error, " ------------------> Server Error in advantageproviderValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+
+        advantage_id: { // для создания
+            in: ['body'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'advantage_id') },
+                bail: true,
+            },
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                if: advantage_id => {
+                    return advantage_id !== undefined;
+                },
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'advantage_id') },
+                bail: true,
+            },
+            custom: {
+                options: (advantage_id, { req, location, path }) => {
+                    if (req.method === 'GET') {
+                        return true
+                    } else {
+                        return advantagemodel.isExist(advantage_id).then(is_exist => {
+                            console.log(is_exist.rows, '-------> is_exist.rows Advantage from advantageproviderValidationSchema')
+
+                            if (is_exist.rows[0].exists !== true) {
+                                console.log('Advantage with advantage_id = ${advantage_id} is not in DB (from provider_conrtoller.js)')
+                                return Promise.reject('404 Error:   ' + i18n.__('validation.isExist', `advantage_id = ${advantage_id}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
+                            } else {
+                                const provider_id = req.params.providerId
+                                return advantagemodel.isUniqueCombination(provider_id, advantage_id).then(is_unique => {
+                                    console.log(is_unique.rows, '-------> is_unique.rows in Advantage from advantageproviderValidationSchema')
+                                    if (is_unique.rows[0].exists == true) {
+                                        return Promise.reject(i18n.__('validation.isUniqueCombination', `provider_id = ${provider_id} & advantage_id = ${advantage_id}`));
+                                    }
+                                }).catch(err => {
+                                    if (err.error) {
+                                        const server_error = {
+                                            "success": false,
+                                            "error": {
+                                                "code": err.statusCode,
+                                                "message": err.error.message,
+                                            },
+                                            "data": {
+                                                "advantage_id": err.data,
+                                            }
+                                        }
+                                        console.log(server_error, " ------------------> Server Error in advantageproviderValidationSchema at provider_conrtoller.js")
+                                        return Promise.reject(server_error)
+                                    } else {
+                                        const msg = err
+                                        return Promise.reject(msg)
+                                    };
+                                })
+                            }
+                        }).catch(err => {
+                            if (err.error) {
+                                const server_error = {
+                                    "success": false,
+                                    "error": {
+                                        "code": err.statusCode,
+                                        "message": err.error.message,
+                                    },
+                                    "data": err.data,
+                                }
+                                console.log(server_error, " ------------------> Server Error in advantageproviderValidationSchema at provider_conrtoller.js")
+                                return Promise.reject(server_error)
+                            } else {
+                                const msg = err
+                                return Promise.reject(msg)
+                            };
+                        })
+                    }
+                },
+            },
+        },
+    }
+
 
 
     async addAdvantageToProvider(req, res) {
-        console.log('Test', req.params, req.body)
-        const { advantage_id } = req.body
-        const provider_id = req.params.providerId
-        const added_advantage = await advantagemodel.addNewAdvantageToProvider(provider_id, advantage_id)
-        if (added_advantage.rows[0]) {
-            const result = { success: true }
-            res.json(result)
-            console.log(added_advantage.rows[0])
-            // res.json( added_advantage.rows[0])
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test', req.params, req.body)
+            const { advantage_id } = req.body
+            const provider_id = req.params.providerId
+            const added_advantage = await advantagemodel.addOneAdvantage(provider_id, advantage_id)
+            if (added_advantage.rows[0]) {
+                const result = {
+                    success: true,
+                    data: " Advantage successfully added to Provider"
+                }
+                console.log(added_advantage.rows, ' -----> added_advantage[0].rows in addAdvantageToProvider function at provider_controller.js', { result })
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('add advantage to provider', 'Unhandled Error')
+                console.log(result, ' ----> err from addAdvantageToProvider function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            if (err.error) {
+                console.error({ err }, '-----> err in addAdvantageToProvider function at provider_controller.js ')
+                res.status(err.statusCode || 500).json(err)
+            } else {
+                console.error({ err }, '-----> code_error in the  addAdvantageToProvider function at provider_controller.js ')
+                res.status(500).json({ 'Code Error': err.message })
+            }
         }
     }
 
     async deleteAdvantageFromProvider(req, res) {
-        console.log('Test')
-        const advantage_id = req.params.advantageId
-        const { provider_id } = req.body
-        const deleted_advantage = await advantagemodel.deleteOneAdvantageFromProvider(provider_id, advantage_id)
-        if (deleted_advantage.rows[0] !== undefined) {
-            const result = { success: true }
-            res.json(result)
-            console.log(deleted_advantage.rows[0], result)
-            // res.json( deleted_advantage.rows[0].id)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+        try {
+            console.log('Test')
+            const advantage_id = req.params.advantageId
+            const  provider_id  = req.params.providerId
+            const deleted_advantage = await advantagemodel.deleteOneAdvantage(provider_id, advantage_id)
+            if (deleted_advantage.rows.length !== 0) {
+                const result = {
+                    success: true,
+                    data: " Advantage successfully deleted"
+                }
+                console.log(deleted_advantage.rows, ' -----> deleted_advantage.rows in deleteAdvantageFromProvider function at provider_controller.js', { result })
+                res.status(httpStatusCodes.OK || 200).json(result)
+            } else {
+                const result = new Api400Error('delete advantage', 'Unhandled Error')
+                console.log(result, ' ----> err from deleteAdvantageFromProvider function at provider_controller.js')
+                res.status(result.statusCode || 400).json(result)
+            }
+        } catch (err) {
+            if (err.error) {
+                console.error({ err }, '-----> err in deleteAdvantageFromProvider function at provider_controller.js ')
+                res.status(err.statusCode || 500).json(err)
+            } else {
+                console.error({ err }, '-----> code_error in the  deleteAdvantageFromProvider function at provider_controller.js ')
+                res.status(500).json({ 'Code Error': err.message })
+            }
         }
     }
 

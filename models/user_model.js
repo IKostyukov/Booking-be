@@ -148,10 +148,10 @@ class UsersModel {
             FROM users WHERE profile_id = '${profile_id}' AND service = '${service}') AS "exists";`
 
             const is_unique = await db.query(sql_query)
-            console.log(is_unique.rows, ' -----> is_unique.rows in  isUUniqueProfilIdAndService function from user_model.js')
+            console.log(is_unique.rows, ' -----> is_unique.rows in  isUniqueCombination function from user_model.js')
             return is_unique
         } catch (err) {
-            console.log(err, `-----> err in isUUniqueProfilIdAndService function with profile_id = ${profile_id}  in user_model.js`)
+            console.log(err, `-----> err in isUniqueCombination function with profile_id = ${profile_id}  in user_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('profile_id, service', `${err.message}`)
         }

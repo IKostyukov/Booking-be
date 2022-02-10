@@ -104,9 +104,9 @@ class AdvantageModel {
     }
 
     async isUnique(advantage_name) {
-        const sql_query = `SELECT EXISTS (SELECT 1
-        FROM advantages WHERE advantage_name = '${advantage_name}') AS "exists";`
         try{
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM advantages WHERE advantage_name = '${advantage_name}') AS "exists";`
             const is_unique = await db.query(sql_query)
             console.log(is_unique)
             return  is_unique
@@ -117,27 +117,53 @@ class AdvantageModel {
         }
     }
 
-    async addNewAdvantageToProvider(provider_id, advantage_id)  {
-        console.log(provider_id, advantage_id)
+    async isUniqueCombination(provider_id, advantage_id) {
+        try {
+            const sql_query = `SELECT EXISTS (SELECT 1
+            FROM advantages_providers WHERE provider_id = '${provider_id}' AND advantage_id = '${advantage_id}') AS "exists";`
 
-        const sql_query = `INSERT INTO advantages_providers
-        (provider_id, advantage_id)
-        VALUES (${provider_id}, ${advantage_id}) 
-        RETURNING *;`        
-        const advantage_provider = await db.query(sql_query)
-        return advantage_provider
+            // console.log(sql_query)
+            const is_unique = await db.query(sql_query)
+            console.log(is_unique.rows, ' -----> is_unique.rows in  isUniqueCombination function from advantage_model.js')
+            return is_unique
+        } catch (err) {
+            console.log(err, `-----> err in isUniqueCombination function with provider_id = ${provider_id}  in advantage_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error('provider_id, locale, descriptiontype', `${err.message}`)
+        }
     }
 
-    async deleteOneAdvantageFromProvider(provider_id, advantage_id)  {
-        console.log(provider_id, advantage_id)
-        const sql_query = `DELETE FROM advantages_providers 
-        WHERE provider_id = ${provider_id} AND advantage_id = ${advantage_id}
-        RETURNING *;`     
-        // console.log(sql_query)   
-        const deleted_advantage_provider = await db.query(sql_query)
-        return deleted_advantage_provider
+    async addOneAdvantage(provider_id, advantage_id)  {
+        try{
+            console.log(provider_id, advantage_id)
+            const sql_query = `INSERT INTO advantages_providers
+            (provider_id, advantage_id)
+            VALUES (${provider_id}, ${advantage_id}) 
+            RETURNING *;`        
+            const advantage_provider = await db.query(sql_query)
+            return advantage_provider
+        } catch (err) {                                       
+            console.log(err, `-----> error  in addOneAdvantage function with advantage_id = ${advantage_id}  at advantage_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'advantage_id', `${err.message}`)                                                                 
+        }
     }
 
+    async deleteOneAdvantage(provider_id, advantage_id)  {
+        try{
+            console.log(provider_id, advantage_id)
+            const sql_query = `DELETE FROM advantages_providers 
+            WHERE provider_id = ${provider_id} AND advantage_id = ${advantage_id}
+            RETURNING *;`     
+            // console.log(sql_query)   
+            const deleted_advantage_provider = await db.query(sql_query)
+            return deleted_advantage_provider
+        } catch (err) {                                       
+            console.log(err, `-----> error  in deleteOneAdvantage function with advantage_id = ${advantage_id}  at advantage_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'advantage_id', `${err.message}`)                                                                 
+        }
+    }
 }
 
 const advantagemodel = new AdvantageModel();

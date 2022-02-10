@@ -6,7 +6,7 @@ const db = pool
 class ServiceProviderModel {
 
     //  ### Добавление удобствa  провайдеру ###
-    async addOneServiceToProvider(provider_id, services) {
+    async addAllServices(provider_id, services) {
         try {
             let sql_query = ''
             console.log('provider_id -', provider_id, 'services -', services)
@@ -30,8 +30,7 @@ class ServiceProviderModel {
     }
 
     //  ###  Удаление удобствa у провайдера ###
-
-    async deleteOneServicesOfProvider(provider_id) {
+    async deleteAll(provider_id) {
         try {
             const deleted_service = await db.query(`DELETE FROM services_providers
             WHERE provider_id = ${provider_id} RETURNING *;`);
@@ -45,11 +44,11 @@ class ServiceProviderModel {
 
     //  ### Редактирование удобстa у провайдера ###
 
-    // (delete + create) in controller
+    // (deleteAll + create) in controller
 
 
     //  ### Получение удобств провайдера ###
-    async getAllServicesOfProvider(provider_id) {
+    async getAll(provider_id) {
         try {
             const all_services = await db.query(`SELECT 
             sp.provider_id, sp.service_id, s.service_name, s.active

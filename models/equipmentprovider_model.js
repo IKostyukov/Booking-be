@@ -97,7 +97,7 @@ class EquipmentProviderModel {
         FROM equipmentsproviders WHERE id = ${equipmentprovider_id}) AS "exists";`
         try {
             const is_exist = await db.query(sql_query)
-            console.log(is_exist)
+            // console.log(is_exist.rows)
             return is_exist
         } catch (err) {
             console.log(err, `-----> err in isExist function with equipmentprovider_id = ${equipmentprovider_id}  at  equipmentprovider_model.js`)
