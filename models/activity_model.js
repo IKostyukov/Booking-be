@@ -68,10 +68,32 @@ class ActivityModel {
         }        
     }
 
-    async getAll(activity_name) {
+    async getAll({ activity_name, sortBy, limit, offset }) {
         try {
-            const sql_query = `SELECT id AS activity_id, activity_name 
-                FROM activities WHERE activity_name LIKE '%'||'${activity_name}'||'%' ;`
+            console.log({ activity_name, sortBy, limit, offset })
+            let sql_query = `SELECT id 
+                AS activity_id, activity_name 
+                FROM activities 
+                WHERE activity_name 
+                LIKE '%'||'${activity_name}'||'%' 
+                ORDER BY ${sortBy[0].field} ${sortBy[0].direction} 
+                LIMIT ${limit} 
+                OFFSET ${offset};
+                SELECT COUNT(id) 
+                AS count
+                FROM activities 
+                WHERE activity_name 
+                LIKE '%'||'${activity_name}'||'%';`
+
+            // if (sortBy) {
+            //     const sql_end = `ORDER BY ${sortBy[0].field} ${sortBy[0].direction} LIMIT ${limit} OFFSET ${offset};`
+            //     sql_query += sql_end
+            // } else {
+            //     const sql_end = ';'
+            //     sql_query += sql_end
+            // }
+            console.log(sql_query, `-----> sql_query  in getAll function with activity_name = ${activity_name}  at activiy_model.js`)
+
             const all_activitirs = await db.query(sql_query)
             return all_activitirs
         } catch (err) {                                       
