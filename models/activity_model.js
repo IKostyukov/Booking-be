@@ -1,13 +1,11 @@
 import { pool } from '../db.js';
 import Api500Error from '../errors/api500_error.js';
 
-
 const db = pool
 
 class ActivityModel {
 
-    
-    async create (activity_name) {
+        async create (activity_name) {
         try{
             const new_activity = await db.query(`INSERT INTO activities 
                 (activity_name) VALUES ($1) RETURNING *;`, [activity_name])
@@ -55,55 +53,67 @@ class ActivityModel {
         }
     }
 
-    async getOne(activity_id) {
+    async findOne(activity_id) {
         try{
             const sql_query = `SELECT id AS activity_id, activity_name 
                 FROM activities WHERE id = ${activity_id};`
             const one_activity = await db.query(sql_query)
             return one_activity
         } catch (err) {                                       
-            console.log(err, `-----> err  in getOne function with activity_id = ${activity_id}  at activiy_model.js`)
+            console.log(err, `-----> err  in findOne function with activity_id = ${activity_id}  at activiy_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_id', `${err.message}`)                                                                  
         }        
     }
 
-    async getAll({ activity_name, sortBy, limit, offset }) {
+    async findAll({state,  s, sortBy, limit, offset }) {
         try {
-            console.log({ activity_name, sortBy, limit, offset })
-            let sql_query = `SELECT id 
-                AS activity_id, activity_name 
-                FROM activities 
-                WHERE activity_name 
-                LIKE '%'||'${activity_name}'||'%' 
-                ORDER BY ${sortBy[0].field} ${sortBy[0].direction} 
-                LIMIT ${limit} 
-                OFFSET ${offset};
-                SELECT COUNT(id) 
-                AS count
-                FROM activities 
-                WHERE activity_name 
-                LIKE '%'||'${activity_name}'||'%';`
+            console.log({ state, sortBy, limit, offset, s })
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
 
-            // if (sortBy) {
-            //     const sql_end = `ORDER BY ${sortBy[0].field} ${sortBy[0].direction} LIMIT ${limit} OFFSET ${offset};`
-            //     sql_query += sql_end
-            // } else {
-            //     const sql_end = ';'
-            //     sql_query += sql_end
-            // }
-            console.log(sql_query, `-----> sql_query  in getAll function with activity_name = ${activity_name}  at activiy_model.js`)
+            if ( sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if ( sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
 
+            let sql_query = `SELECT id AS activity_id, activity_name FROM activities `
+            let condition = ''
+
+            const where = `WHERE `
+            const state_condition = `active = 'true' `
+            const search_condition = `activity_name LIKE '%'||'${s}'||'%' `
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM activities '
+            const and = 'AND '
+            const end = '; '
+        
+            if ( state && s ){
+                condition +=  state_condition + and + search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            }else if (state) {
+                condition += state_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else if ( s ) {
+                condition += search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else {
+                sql_query +=  filter + end + query_count + end  
+            }
+
+            console.log(sql_query, `-----> sql_query  in findAll function with ${s}  at activiy_model.js`)
             const all_activitirs = await db.query(sql_query)
             return all_activitirs
         } catch (err) {                                       
-            console.log(err, `-----> err  in getAll function with activity_name = ${activity_name}  at activiy_model.js`)
+            console.log(err, `-----> err  in findAll function with ${s}  at activiy_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
         }        
     }
 
-    async getPopular() {
+    async findPopular() {
         try{
             const sql_query = `SELECT  
                 COUNT(b.id) as orders, activity_name, 
@@ -125,8 +135,8 @@ class ActivityModel {
             const popular_activities = await db.query(sql_query)
             return popular_activities
         } catch (err) {                                       
-            console.log(err, `-----> err in getPopular function at activiy_model.js`)
-            throw new Api500Error( 'getPopular', `${err.message}`)                                                                  
+            console.log(err, `-----> err in findPopular function at activiy_model.js`)
+            throw new Api500Error( 'find popular activities', `${err.message}`)                                                                  
         }
     }
 

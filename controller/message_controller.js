@@ -1,13 +1,13 @@
 import { messagemodel } from '../models/message_model.js';
 import { user } from '../models/user_model.js';
 import { messagethreadmodel } from '../models/messagethread_model.js';
-
 import { validationResult } from 'express-validator';
 import  i18n   from 'i18n';
 
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
 import httpStatusCodes from'../enums/http_status_codes_enums.js';
+import {getPagination, getPagingData} from './_pagination.js';
 
 
 class MessageController {
@@ -73,7 +73,7 @@ class MessageController {
                     if(req.methods === 'GET'){
                         return true
                     }else{
-                        return user.isExist(user_id).then( is_exist => {
+                        return user.isExistUserId(user_id).then( is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows of user_id from validationSchema')
         
                             if ( is_exist.rows[0].exists == false) {
@@ -280,6 +280,102 @@ class MessageController {
                 },
             },
         },
+        state: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'state')},
+                bail: true,
+            },                
+            isIn: { 
+                options: [['active', 'notactive', 'pending']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'state')},
+                bail: true,
+            },
+        },
+
+        sortBy: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy')},
+                bail: true,
+            },                
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.field': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
+                bail: true,
+            },
+            isIn: { 
+                options: [['id', 'messagethread_id', 'user_id']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'field')},
+                bail: true,
+            },
+        },
+
+        'sortBy.*.direction': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
+                bail: true,
+            },
+            isIn: { 
+                options: [['asc', 'desc']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction')},
+                bail: true,
+            },
+        },
+
+        size: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'size') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'size') },
+                bail: true,
+            },
+        },
+
+        page: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'page') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        },
+
+        s: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 's') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        }
       }
 
     checkResult(req, res, next)  {
@@ -402,7 +498,7 @@ class MessageController {
                 console.log(deleted_message.rows, result)
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else if (deleted_message.rows.length == 0) {
-                const result = new Api404Error( 'message_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
+                const result = new Api404Error( 'messagethread_id', i18n.__('validation.isExist', `message_id = ${message_id}`)) 
                 console.log(result, ' ----> err in deletemessage function with message_id = ${message_id} not exists at message_controller.js;')
                 res.status(result.statusCode || 500).json(result) 
             }
@@ -412,48 +508,82 @@ class MessageController {
         }     
     }
 
-    async getMessages(req, res) {
-        try{    
-            const {messagethread_id} = req.body
-            console.log(messagethread_id, "messagethread_id")
-            const get_messages = await messagemodel.getManyMessages(messagethread_id)
-            if (get_messages.rows.length !== 0) {
+    async retrieveMultipleMessages(req, res) {
+        try{
+            const {state, sortBy, size, page, s }  = req.query 
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const get_messages = await messagemodel.findAllMessages({ state, sortBy, limit, offset, s})
+            // console.log(get_messages)
+
+            if (get_messages[0].rows.length !== 0) {
+                console.log(get_messages[0].rows, get_messages[1].rows)
+                const pagination = getPagingData(get_messages, page, limit);
+                // console.log(pagination)
+
                 const result = {
                     "success": true,
-                    "data": get_messages.rows
+                    "data": get_messages[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
-                const result = new Api404Error( 'messagethread_id', i18n.__('validation.isExist', `messagethread_id = ${messagethread_id}`)) 
-                console.log(result, ` -----> err in getMessages function  with messagethread_id = ${messagethread_id} not exists at message_controller.js;`)
+                const result = new Api404Error( 'user_id', i18n.__('validation.isExist', `${s}`)) 
+                console.log(result, ` -----> err in retrieveMultipleMessages function  with  ${s} not exists at message_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
         }catch(err) {
-            console.error({err},  '---->err in getMessages function at message_controller.js ')
+            console.error({err},  '---->err in retrieveMultipleMessages function at message_controller.js ')
             res.status(err.statusCode || 500).json(err)             
         }
     }
    
-    async getThreads(req, res) {
-        try{    
-            const {user_id} = req.body
-            console.log(user_id, "user_id")
-            const get_messagethreads = await messagemodel.getManyThreads(user_id)
-            if (get_messagethreads.rows.length !== 0) {
+    async retrieveMultipleThreads(req, res) {
+        try{   
+            const {state, sortBy, size, page, s }  = req.query 
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const get_messagethreads = await messagemodel.findAllThreads({ state, sortBy, limit, offset, s})
+            // console.log(get_messagethreads)
+
+            if (get_messagethreads[0].rows.length !== 0) {
+                console.log(get_messagethreads[0].rows, get_messagethreads[1].rows)
+                const pagination = getPagingData(get_messagethreads, page, limit);
+                // console.log(pagination)
+
                 const result = {
                     "success": true,
-                    "data": get_messagethreads.rows
+                    "data": get_messagethreads[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 500).json(result)  
             }else {
-                const result = new Api404Error( 'user_id', i18n.__('validation.isExist', `user_id = ${user_id}`)) 
-                console.log(result, ` -----> err in getThreads function  with user_id = ${user_id} not exists at message_controller.js;`)
+                const result = new Api404Error( 'activity_name', i18n.__('validation.isExist', `${s}`)) 
+                console.log(result, ` -----> err in retrieveMultipleThreads function  with  ${s} not exists at message_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
+            
+            
+
+            // const {user_id} = req.body
+            // console.log(user_id, "user_id")
+            // const get_messagethreads = await messagemodel.findAllThreads(user_id)
+            // if (get_messagethreads.rows.length !== 0) {
+            //     const result = {
+            //         "success": true,
+            //         "data": get_messagethreads.rows
+            //     }
+            //     console.log(result)
+            //     res.status(httpStatusCodes.OK || 500).json(result)  
+            // }else {
+            //     const result = new Api404Error( 'user_id', i18n.__('validation.isExist', `user_id = ${user_id}`)) 
+            //     console.log(result, ` -----> err in retrieveMultipleThreads function  with user_id = ${user_id} not exists at message_controller.js;`)
+            //     res.status(result.statusCode || 500).json(result)
+            // }
         }catch(err) {
-            console.error({err},  '---->err in getThreads function at message_controller.js ')
+            console.error({err},  '---->err in retrieveMultipleThreads function at message_controller.js ')
             res.status(err.statusCode || 500).json(err)             
         }
     }

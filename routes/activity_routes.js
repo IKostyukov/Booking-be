@@ -6,20 +6,19 @@ import { checkSchema } from 'express-validator';
 const Router = express.Router;
 const routerActivities = new Router();
 
-const check_create_form = activityFormCheck.forCreateUpdateGetAll
-const check_update_form = activityFormCheck.forCreateUpdateGetAll
+const check_create_form = activityFormCheck.forCreateUpdate
+const check_update_form = activityFormCheck.forCreateUpdate
 const check_activate_form = activityFormCheck.forActivate
-const check_get_form = activityFormCheck.forCreateUpdateGetAll
+const check_retrieve_form = activityFormCheck.forRetrieve
 
 const check_schema = checkSchema(activity_controller.validationSchema);
 const chesk_result = activity_controller.checkResult;
 
-
 // ### Activities
 
-routerActivities.get('/activity/:activityId', check_schema, chesk_result, activity_controller.getActivity);
-routerActivities.get('/activities', check_get_form,  check_schema, chesk_result, activity_controller.getActivities);
-routerActivities.get('/activities/popular', activity_controller.getPopularActivities);
+routerActivities.get('/activity/:activityId', check_schema, chesk_result, activity_controller.retrieveSingleActivity);
+routerActivities.get('/activities', check_retrieve_form, check_schema, chesk_result, activity_controller.retrieveMultipleActivities);
+routerActivities.get('/activities/popular', activity_controller.retrievePopularActivities);
 routerActivities.post('/activity', check_create_form, check_schema, chesk_result, activity_controller.createActivity);
 routerActivities.patch('/activity/:activityId', check_update_form, check_schema, chesk_result, activity_controller.updateActivity);
 routerActivities.patch('/activity/:activityId/activation', check_activate_form, check_schema, chesk_result, activity_controller.activateActivity);

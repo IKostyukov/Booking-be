@@ -93,32 +93,98 @@ class MessageModel {
         }
     }
 
-   
-    async getManyMessages(messagethread_id) {
+    async findAllMessages({state,  s, sortBy, limit, offset }) {
         try {
-            const get_messages = await db.query(`SELECT * FROM messages 
-            WHERE messagethread_id = ${messagethread_id} ;`)       
-            console.log(get_messages.rows)
-            return get_messages
-        } catch (err) {                                       
-            console.log(err, `-----> err  in getManyMessages function with messagethread_id = ${messagethread_id}  at message_model.js`)
-            // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error( 'messagethread_id', `${err.message}`)                                                                  
-        }     
-    } 
+            console.log({ state, sortBy, limit, offset, s })
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
 
-    async getManyThreads(user_id) {        
-        try {
-            const get_threads = await db.query(`SELECT * 
-            FROM users_messagethreads 
-            WHERE user_id = ${user_id};`)
-            // console.log(get_threads.rows)
-            return get_threads
+            if ( sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if ( sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT * FROM messages `
+            let condition = ''
+
+            const where = `WHERE `
+            const state_condition = `is_reminder = 'true' `
+            const search_condition = `messagethread_id = ${s} `
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM messages '
+            const and = 'AND '
+            const end = '; '
+        
+            if ( state && s ){
+                condition +=  state_condition + and + search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            }else if (state) {
+                condition += state_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else if ( s ) {
+                condition += search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else {
+                sql_query +=  filter + end + query_count + end  
+            }
+
+            console.log(sql_query, `-----> sql_query  in findAll function with ${s}  at message_model.js`)
+            const all_activitirs = await db.query(sql_query)
+            return all_activitirs
         } catch (err) {                                       
-            console.log(err, `-----> err  in getManyThreads function with user_id = ${user_id}  at message_model.js`)
+            console.log(err, `-----> err  in findAll function with ${s}  at message_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error( 'user_id', `${err.message}`)                                                                  
-        }     
+            throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
+        }        
+    }
+
+    async findAllThreads({state,  s, sortBy, limit, offset }) {
+        try {
+            console.log({ state, sortBy, limit, offset, s })
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
+
+            if ( sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if ( sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT * FROM users_messagethreads `
+            let condition = ''
+
+            const where = `WHERE `
+            const state_condition = `is_active = 'true' `
+            const search_condition = `user_id = ${s} `
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM users_messagethreads '
+            const and = 'AND '
+            const end = '; '
+        
+            if ( state && s ){
+                condition +=  state_condition + and + search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            }else if (state) {
+                condition += state_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else if ( s ) {
+                condition += search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else {
+                sql_query +=  filter + end + query_count + end  
+            }
+
+            console.log(sql_query, `-----> sql_query  in findAll function with ${s}  at message_model.js`)
+            const all_activitirs = await db.query(sql_query)
+            return all_activitirs
+        } catch (err) {                                       
+            console.log(err, `-----> err  in findAll function with ${s}  at message_model.js`)
+            // console.log(err.message, '-----> err.message')                                                                   
+            throw new Api500Error( 'activity_name', `${err.message}`)                                                                  
+        }        
     }
 
     async isExist(message_id) {

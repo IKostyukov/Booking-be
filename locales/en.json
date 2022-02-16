@@ -27,6 +27,7 @@
 		"isLatLong": "validation.isLatLong",
 		"isAfter": "%s must be after %s",
 		"isBefore": "%s must be before %s",
-		"isDuplicate": "validation.isDuplicate"
+		"isDuplicate": "%s has dublicates",
+		"isExpected": "%s unexpected parametr"
 	}
 }

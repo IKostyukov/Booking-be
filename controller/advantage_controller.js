@@ -5,6 +5,7 @@ import  i18n   from 'i18n';
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
 import httpStatusCodes from'../enums/http_status_codes_enums.js';
+import {getPagination, getPagingData} from './_pagination.js';
 
 
 
@@ -58,8 +59,8 @@ class AdvantageController {
         },
 
         advantage_name: {
-
             in: ['body'],
+            optional: true,
             notEmpty: {
                 if: value => {
                     return value !== undefined;
@@ -145,6 +146,109 @@ class AdvantageController {
                 bail: true,
             },
         },
+
+        state: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'state')},
+                bail: true,
+            },                
+            isIn: { 
+                options: [['active', 'notactive', 'pending']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'state')},
+                bail: true,
+            },
+        },
+
+        sortBy: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy')},
+                bail: true,
+            },                
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.field': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
+                bail: true,
+            },
+            isIn: { 
+                options: [['advantage_id', 'advantage_name']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'field')},
+                bail: true,
+            },
+        },
+
+        'sortBy.*.direction': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
+                bail: true,
+            },
+            isIn: { 
+                options: [['asc', 'desc']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction')},
+                bail: true,
+            },
+        },
+
+        size: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'size') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'size') },
+                bail: true,
+            },
+        },
+
+        page: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'page') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        },
+
+        s: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 's') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 's') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 's') },
+                options: { min: 0, max: 100 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        }
       }
 
     checkResult(req, res, next)  {
@@ -279,10 +383,10 @@ class AdvantageController {
         }
     }
 
-    async getOneAdvantage(req, res) {
+    async retrieveSingleAdvantage(req, res) {
         try{    
             const advantage_id = req.params.advantageId  
-            const get_advantage = await advantagemodel.getOne(advantage_id)
+            const get_advantage = await advantagemodel.findOne(advantage_id)
             if (get_advantage.rows.length !== 0 ) {
                 const result = {
                     "success": true,
@@ -292,23 +396,33 @@ class AdvantageController {
                 res.status(httpStatusCodes.OK || 500).json(result)            
             } else {
                 const result = new Api404Error( 'advantage_id', i18n.__('validation.isExist', `advantage_id = ${advantage_id}`)) 
-                console.log(result, ` -----> err in getAdvantage function with advantage_id = ${advantage_id} not exists at advantage_controller.js;`)
+                console.log(result, ` -----> err in retrieveSingleAdvantage function with advantage_id = ${advantage_id} not exists at advantage_controller.js;`)
                 res.status(result.statusCode || 500).json(result) 
             }
         }catch(err) {
-            console.error({err},  '---->err in getAdvantage function at advantage_controller.js ')
+            console.error({err},  '---->err in retrieveSingleAdvantage function at advantage_controller.js ')
             res.status(err.statusCode || 500).json(err)            
         }
     }
 
-    async getAllAdvantages(req, res) {
+    async retrieveMultipleAdvantages(req, res) {
         try{    
-            const { advantage_name } = req.body
-            const get_advantages = await advantagemodel.getMany(advantage_name)
-            if (get_activities.rows.length !== 0) {
+            // console.log(req.query)
+            const {state, sortBy, size, page, s }  = req.query 
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const get_advantages = await advantagemodel.findAll({ state, sortBy, limit, offset, s})
+            // console.log(get_advantages)
+
+            if (get_advantages[0].rows.length !== 0) {
+                console.log(get_advantages[0].rows, get_advantages[1].rows[0])
+                const pagination = getPagingData(get_advantages, page, limit);
+                // console.log(pagination)
+
                 const result = {
                     "success": true,
-                    "data": get_activities.rows
+                    "data": get_advantages[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 500).json(result)  

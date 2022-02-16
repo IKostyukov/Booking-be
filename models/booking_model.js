@@ -80,27 +80,72 @@ class BookingModel {
         }
     }
 
-    async getOne(booking_id) {
+    async findOne(booking_id) {
         try {
             const get_booking = await db.query(`SELECT id AS booking_id, approved, equipmentprovider_id, activity_start, activity_end, time_unit, fare, fare_sum
             FROM bookings WHERE bookings.id = ${booking_id};`)
             console.log(get_booking.rows)        
             return get_booking
         } catch (err) {                                       
-            console.log(err, `-----> err  in getOne function with booking_id = ${booking_id}  at booking_model.js`)
+            console.log(err, `-----> err  in findOne function with booking_id = ${booking_id}  at booking_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'booking_id', `${err.message}`)                                                                  
         }  
     }
 
-    async getAll(equipmentprovider_id) {
+    async findAll({ state, sortBy, limit, offset, s }) {
         try {
-            const get_bookings = await db.query(`SELECT id AS booking_id, approved, equipmentprovider_id, activity_start, activity_end, time_unit, fare, fare_sum
-            FROM bookings WHERE equipmentprovider_id = ${equipmentprovider_id};`)       
-            // console.log(get_bookings.rows)
-            return get_bookings
+            console.log({ state, sortBy, limit, offset, s }) 
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
+
+            if ( sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if ( sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT id AS booking_id, approved, equipmentprovider_id, activity_start, activity_end, time_unit, fare, fare_sum 
+                            FROM bookings `
+            let condition = ''
+
+            const where = `WHERE `
+            const state_condition = `approved = 'true' `
+            const search_condition = `equipmentprovider_id = ${s}`
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM bookings '
+            const and = 'AND '
+            const end = '; '
+        
+           
+           
+            if ( state && s ){
+                condition +=  state_condition + and + search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            }else if (state) {
+                condition += state_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else if ( s ) {
+                condition += search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else {
+                sql_query +=  filter + end + query_count + end  
+            }
+
+            console.log(sql_query, `-----> sql_query  in findAll function with ${s}  at booking_model.js`)
+
+            const all_activitirs = await db.query(sql_query)
+            return all_activitirs
+
+
+
+            // const get_bookings = await db.query(`SELECT id AS booking_id, approved, equipmentprovider_id, activity_start, activity_end, time_unit, fare, fare_sum
+            // FROM bookings WHERE equipmentprovider_id = ${equipmentprovider_id};`)       
+            // // console.log(get_bookings.rows)
+            // return get_bookings
         } catch (err) {                                       
-            console.log(err, `-----> err  in getAll function with equipmentprovider_id = ${equipmentprovider_id}  at booking_model.js`)
+            console.log(err, `-----> err  in findAll function with equipmentprovider_id = ${equipmentprovider_id}  at booking_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'equipmentprovider_id', `${err.message}`)                                                                  
         } 

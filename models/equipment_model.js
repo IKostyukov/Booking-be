@@ -5,7 +5,6 @@ const db = pool
 
 class EquipmentModel {
 
-
     async create (equipment_name, activity_id,  capacity) {
         try {      
             // console.log(equipment_name, activity_id, capacity, ' -----> equipment_name, activity_id, capacityin create function  at equipment_model.js') 
@@ -60,29 +59,69 @@ class EquipmentModel {
         }
     }
 
-    async getOne(equipment_id) {
+    async findOne(equipment_id) {
         try {
             const sql_query = `SELECT id AS equipment_id, equipment_name 
             FROM equipments WHERE id = ${equipment_id};`
             const one_equipment = await db.query(sql_query)
             return one_equipment
         } catch (err) {                                       
-            console.log(err, `-----> err  in getOne function with equipment_id = ${equipment_id}  at equipment_model.js`)
+            console.log(err, `-----> err  in findOne function with equipment_id = ${equipment_id}  at equipment_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'equipment_id', `${err.message}`)                                                                  
         }  
     }
 
-    async getAll(equipment_name) {           
+    async findAll({ state, sortBy, limit, offset, s }) {           
         try {
-            const sql_query = `SELECT id AS equipment_id, equipment_name 
-            FROM equipments WHERE  equipment_name LIKE  '%'||'${equipment_name}'||'%';`
-            const all_equipments = await db.query(sql_query)
-            console.log(sql_query, all_equipments.rows, `-----> all_equipments.rows  in getAll function with equipment_name = ${equipment_name}  at equipment_model.js`)
+            console.log({ state, sortBy, limit, offset, s })
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
 
-            return all_equipments
+            if ( sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if ( sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT id AS equipment_id, equipment_name  FROM equipments `
+            let condition = ''
+
+            const where = `WHERE `
+            const state_condition = `active = 'true' `
+            const search_condition = `equipment_name LIKE '%'||'${s}'||'%' `
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM equipments '
+            const and = 'AND '
+            const end = '; '
+        
+            if ( state && s ){
+                condition +=  state_condition + and + search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            }else if (state) {
+                condition += state_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else if ( s ) {
+                condition += search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + end
+            } else {
+                sql_query +=  filter + end + query_count + end  
+            }
+
+            console.log(sql_query, `-----> sql_query  in findAll function with ${s}  at activiy_model.js`)
+            const all_activitirs = await db.query(sql_query)
+            return all_activitirs
+
+
+            // const sql_query = `SELECT id AS equipment_id, equipment_name 
+            // FROM equipments WHERE  equipment_name LIKE  '%'||'${equipment_name}'||'%';`
+            // const all_equipments = await db.query(sql_query)
+            // console.log(sql_query, all_equipments.rows, `-----> all_equipments.rows  in findAll function with equipment_name = ${equipment_name}  at equipment_model.js`)
+
+            // return all_equipments
         } catch (err) {                                       
-            console.log(err, `-----> err  in getAll function with equipment_name = ${equipment_name}  at equipment_model.js`)
+            console.log(err, `-----> err  in findAll function with equipment_name = ${equipment_name}  at equipment_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error( 'equipment_name', `${err.message}`)                                                                  
         } 

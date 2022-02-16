@@ -9,8 +9,8 @@ const routerMessages = new Router();
 const check_create_form = messageFormCheck.forCreateUpdate
 const check_update_form = messageFormCheck.forCreateUpdate
 const check_activate_form = messageFormCheck.forActivate
-const check_getMessages_form = messageFormCheck.getMessages
-const check_getThreads_form = messageFormCheck.getThreads
+const check_retrieve_messages_form = messageFormCheck.forRetrieve
+const check_retrieve_threads_form = messageFormCheck.forRetrieve
 
 
 const check_schema = checkSchema(message_controller.validationSchema);
@@ -22,7 +22,7 @@ routerMessages.post('/message', check_create_form, check_schema, chesk_result, m
 routerMessages.patch('/message/:messageId', check_update_form, check_schema, chesk_result, message_controller.updateMessage);
 routerMessages.patch('/message/:messageId/activation', check_activate_form, check_schema, chesk_result, message_controller.activateMessage);
 routerMessages.delete('/message/:messageId', check_schema, chesk_result, message_controller.deleteMessage);
-routerMessages.get('/messages', check_getMessages_form, check_schema, chesk_result, message_controller.getMessages);
-routerMessages.get('/messagethreads', check_getThreads_form, check_schema, chesk_result, message_controller.getThreads);
+routerMessages.get('/messages', check_retrieve_messages_form, check_schema, chesk_result, message_controller.retrieveMultipleMessages);
+routerMessages.get('/messagethreads', check_retrieve_threads_form, check_schema, chesk_result, message_controller.retrieveMultipleThreads);
 
 export { routerMessages };

@@ -1,19 +1,18 @@
 import { bookingmodel } from '../models/booking_model.js';
 import { equipmentprovidermodel } from '../models/equipmentprovider_model.js';
-
 import { validationResult } from 'express-validator';
 import i18n from 'i18n';
 
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
-import Api500Error from '../errors/api500_error.js';
 import httpStatusCodes from '../enums/http_status_codes_enums.js';
+import {getPagination, getPagingData} from './_pagination.js';
+
 
 class BookingControlller {
 
     validationSchema = {
         bookingId: {
-
             in: ['params'],
             isInt: {  // набо будет заменить на isString когда введет UUID вместо id
                 if: bookingId => {
@@ -55,6 +54,7 @@ class BookingControlller {
                 },
             },
         },
+
         equipmentprovider_id: {
 
             in: ['body'],
@@ -100,6 +100,7 @@ class BookingControlller {
                 },
             },
         },
+
         activity_start: {
             in: ['body'],
             optional: true,
@@ -114,6 +115,7 @@ class BookingControlller {
                 bail: true,
             },   
         },
+
         activity_end: {
             in: ['body'],
             optional: true,
@@ -127,6 +129,7 @@ class BookingControlller {
                 bail: true,
             },  
         },
+
         time_unit: {  // в БД это (var char 5) day / hour
             in: ['body'],
             optional: true,
@@ -147,6 +150,7 @@ class BookingControlller {
             trim: true,
             escape: true,
         },
+
         fare: {
             in: ['body'],
             optional: true,
@@ -159,6 +163,7 @@ class BookingControlller {
                 bail: true,
             },
         },
+
         fare_sum: {
             in: ['body'],
             optional: true,
@@ -171,6 +176,104 @@ class BookingControlller {
                 bail: true,
             },
         },
+
+        state: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'state')},
+                bail: true,
+            },                
+            isIn: { 
+                options: [['active', 'notactive', 'pending']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'state')},
+                bail: true,
+            },
+        },
+
+        sortBy: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy')},
+                bail: true,
+            },                
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.field': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
+                bail: true,
+            },
+            isIn: { 
+                options: [['booking_id', 'fare_sum:']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'field')},
+                bail: true,
+            },
+        },
+
+        'sortBy.*.direction': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
+                bail: true,
+            },
+            isIn: { 
+                options: [['asc', 'desc']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction')},
+                bail: true,
+            },
+        },
+
+        size: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'size') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'size') },
+                bail: true,
+            },
+        },
+
+        page: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'page') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        },
+
+        s: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 's') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1 },
+                errorMessage: () => { return i18n.__('validation.isInt', 's') },
+                bail: true,
+            },
+        },
+
     }
 
     checkResult(req, res, next) {
@@ -328,11 +431,11 @@ class BookingControlller {
     }
 
     //  ### Получить одно бронирование ###
-    async getOneBooking(req, res) {
+    async retrieveSingleBooking(req, res) {
         try {
             const booking_id = req.params.bookingId
             console.log(booking_id, "Test getBooking")
-            const one_booking = await bookingmodel.getOne(booking_id)
+            const one_booking = await bookingmodel.findOne(booking_id)
             if (one_booking.rows[0]) {
                 const result = {
                     "success": true,
@@ -342,29 +445,53 @@ class BookingControlller {
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api404Error('booking_id', i18n.__('validation.isExist', `booking_id = ${booking_id}`))
-                console.log(result, ` -----> err in getBooking function with booking_id = ${booking_id} not exists at booking_controller.js;`)
+                console.log(result, ` -----> err in retrieveSingleBookings function with booking_id = ${booking_id} not exists at booking_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
-            console.error({ err }, '---->err in getBooking function at booking_controller.js ')
+            console.error({ err }, '---->err in retrieveSingleBookings function at booking_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
 
     //  ### Получить все бронирование ###
-    async getAllBookings(req, res) {
+    async retrieveMultipleBookings(req, res) {
+        try{
+             // console.log(req.query)
+            const {state, sortBy, size, page, s }  = req.query 
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const all_bookings = await bookingmodel.findAll({ state, sortBy, limit, offset, s})
+            // console.log(all_bookings)
 
-        const { equipmentprovider_id } = req.body
-        console.log(equipmentprovider_id, "Test getBookings")
+            if (all_bookings[0].rows.length !== 0) {
+                console.log(all_bookings[0].rows, all_bookings[1].rows)
+                const pagination = getPagingData(all_bookings, page, limit);
+                // console.log(pagination)
 
-        const all_bookings = await bookingmodel.getAll(equipmentprovider_id)
-        if (all_bookings.rows[0]) {
-            const result = all_bookings.rows
-            res.json(result)
-            console.log(all_bookings.rows)
-        } else {
-            const result = { success: "Error" }
-            res.json(result)
+                const result = {
+                    "success": true,
+                    "data": all_bookings[0].rows,
+                    "pagination": pagination
+                }
+                console.log(result)
+                res.status(httpStatusCodes.OK || 500).json(result)  
+                // const { equipmentprovider_id } = req.body
+                // console.log(equipmentprovider_id, "Test getBookings")
+
+                // const all_bookings = await bookingmodel.findAll(equipmentprovider_id)
+                // if (all_bookings.rows[0]) {
+                //     const result = all_bookings.rows
+                //     res.json(result)
+                //     console.log(all_bookings.rows)
+            } else {
+                const result = new Api404Error('booking_id', i18n.__('validation.isExist', `booking_id = ${booking_id}`))
+                console.log(result, ` -----> err in retrieveMultipleBookings function with booking_id = ${booking_id} not exists at booking_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
+            }
+        } catch (err) {
+            console.error({ err }, '---->err in retrieveMultipleBookings function at booking_controller.js ')
+            res.status(err.statusCode || 500).json(err)
         }
     }
 
