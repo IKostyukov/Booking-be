@@ -3,22 +3,20 @@ import { pool } from '../db.js';
 import { user } from '../models/user_model.js';
 import { favoriteequipment_model } from '../models/favoriteequipment_model.js';
 import { equipmentprovidermodel } from '../models/equipmentprovider_model.js';
-
-
 import { validationResult } from 'express-validator';
 import i18n from 'i18n';
 
 import Api400Error from '../errors/api400_error.js';
 import Api404Error from '../errors/api404_error.js';
 import httpStatusCodes from '../enums/http_status_codes_enums.js';
-
+import { getPagination, getPagingData } from './_pagination.js';
 
 
 const db = pool
 
 //  UUID generaate
 
-const createUuid = (req) => {
+const createUuid = () => {
     let profile_id = uid(15)
     return profile_id
 };
@@ -40,12 +38,12 @@ class UserController {
             },
             custom: {
                 options: (userId, { req, location, path }) => {
-                    if(req.methods === 'GET'){
+                    if (req.methods === 'GET') {
                         return true
-                    }else{
+                    } else {
                         return user.isExistUserId(userId).then(is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows userId from validationSchema')
-    
+
                             if (is_exist.rows[0].exists !== true) {
                                 console.log('User with user_id = ${userId} is not in DB (from user_controller.js)')
                                 return Promise.reject('404 Error:' + i18n.__('validation.isExist', `user_id = ${userId}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
@@ -84,7 +82,7 @@ class UserController {
             },
             custom: {
                 options: (equipmentId, { req, location, path }) => {
-                    if(req.methods === 'GET'){
+                    if (req.methods === 'GET') {
                         return equipmentprovidermodel.isExist(equipmentId).then(is_exist => {
                             console.log(is_exist, '-------> is_exist equipmentId from validationSchema')
 
@@ -149,18 +147,23 @@ class UserController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'email') },
                 bail: true,
             },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'first_name') },
+                options: { min: 6, max: 40 },
+                bail: true,
+            },
             isEmail: {
                 errorMessage: () => { return i18n.__('validation.isEmail') },
                 bail: true,
             },
-            custom: {              
-                options: (email, { req, location, path }) => {                  
-                    if(req.method === 'GET'){
+            custom: {
+                options: (email, { req, location, path }) => {
+                    if (req.method === 'GET') {
                         return true
-                    }else{
+                    } else {
                         return user.isUniqueEmail(email).then(is_exist => {
                             console.log(is_exist.rows, '-------> is_exist.rows of email from validationSchema')
-    
+
                             if (is_exist.rows[0].exists == true) {
                                 return Promise.reject(i18n.__('validation.isUnique', `email = ${email}`));  // злесь 404 как флаг, который мы проверяем в checkResult()
                             }
@@ -249,7 +252,7 @@ class UserController {
             trim: true,
             escape: true,
         },
-        
+
         patronymic: {
             in: ['body'],
             optional: true,
@@ -273,7 +276,7 @@ class UserController {
             escape: true,
         },
 
-       // Проверка на всякий случай, хотя  приходить profile_id никогда не будет
+        // Проверка на всякий случай, хотя  приходить profile_id никогда не будет
 
         profile_id: {
             in: ['body'],
@@ -349,6 +352,15 @@ class UserController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'phone') },
                 bail: true,
             },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'phone') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'phone') },
+                options: { min: 11, max: 15 },
+                bail: true,
+            },
             isMobilePhone: {
                 errorMessage: () => { return i18n.__('validation.isMobilePhone', 'phone') },
                 bail: true,
@@ -376,7 +388,7 @@ class UserController {
             optional: true,
             custom: {
                 options: (roles, { req, location, path }) => {
-                    console.log(req.body.roles, typeof(req.body.roles),' -------> req.roles  from validationSchema')
+                    console.log(req.body.roles, typeof (req.body.roles), ' -------> req.roles  from validationSchema')
                     return user.isExistRoles(roles).then(is_exist => {
                         console.log(is_exist.exists, '-------> is_exist.exists at roles from validationSchema')
 
@@ -431,15 +443,15 @@ class UserController {
             },
             custom: {  // Проверка на всякий случай, хотя в приходить profile_id никогда не будет
                 options: (service, { req, location, path }) => {
-                    if(req.body.profile_id === undefined){
-                        return true                       
-                    }else{
-                         // const profile_id = req.body.profile_id
-                         return user.isUniqueCombination(profile_id, service).then(is_unique => {
+                    if (req.body.profile_id === undefined) {
+                        return true
+                    } else {
+                        // const profile_id = req.body.profile_id
+                        return user.isUniqueCombination(profile_id, service).then(is_unique => {
                             console.log(is_unique.rows, '-------> is_unique.rows of profile_id from validationSchema')
-    
+
                             if (is_unique.rows[0].exists == true) {
-                                return Promise.reject( i18n.__('validation.isUniqueCombination', `profile_id = ${profile_id} & service = ${service}`));  
+                                return Promise.reject(i18n.__('validation.isUniqueCombination', `profile_id = ${profile_id} & service = ${service}`));
                             }
                         }).catch(err => {
                             if (err.error) {
@@ -462,6 +474,179 @@ class UserController {
                 },
             },
         },
+
+        state: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'state') },
+                bail: true,
+            },
+            isIn: {
+                options: [['active', 'notactive', 'pending']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'state') },
+                bail: true,
+            },
+        },
+
+        sortBy: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.field': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
+                bail: true,
+            },
+            isIn: {
+                options: [['user_id', 'last_name']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'field') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.direction': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
+                bail: true,
+            },
+            isIn: {
+                options: [['asc', 'desc']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction') },
+                bail: true,
+            },
+        },
+
+        size: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'size') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'size') },
+                bail: true,
+            },
+        },
+
+        page: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'page') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        },
+
+        's.firstName': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'firstName') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'firstName') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'firstName') },
+                options: { min: 2, max: 20 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        's.lastName': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'lastName') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'lastName') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'lastName') },
+                options: { min: 2, max: 20 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        's.email': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                if: value => {
+                    return value !== undefined;
+                },
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'email') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'email') },
+                options: { min: 6, max: 40 },
+                bail: true,
+            },
+            isEmail: {
+                errorMessage: () => { return i18n.__('validation.isEmail') },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        's.phone': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                if: value => {
+                    return value !== undefined;
+                },
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'phone') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'phone') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'phone') },
+                options: { min: 11, max: 15 },
+                bail: true,
+            },
+            isMobilePhone: {
+                errorMessage: () => { return i18n.__('validation.isMobilePhone', 'phone') },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        }
     }
 
     checkResult(req, res, next) {
@@ -500,34 +685,34 @@ class UserController {
 
     async createUser(req, res) {
         try {
-            let profile_id = '';                
+            let profile_id = '';
 
-            if(req.body.service == 'locale'){
+            if (req.body.service == 'locale') {
                 // Сщздаем profile_id для стратегии аутентификации " locale"  и проверяем на уникальность
                 let is_uuid_exists
                 do {
                     // let profile_id = 'uUbrCK9JwlgqidL'
-                    profile_id = createUuid();                
+                    profile_id = createUuid();
                     const is_unique = await user.isUniqueProfilId(profile_id);
                     let is_uuid_exists = is_unique.rows[0].exists
                     console.log(is_uuid_exists, '---> is_uuid_exists in createUser function at user_controller.js')
                 } while (is_uuid_exists == true);
                 profile_id = 'l_' + profile_id
 
-            }else if (req.body.service == 'facebook'){
-                 // profile_id = 'f_' + 'Добаваить Facebook profile_id'
+            } else if (req.body.service == 'facebook') {
+                // profile_id = 'f_' + 'Добаваить Facebook profile_id'
                 const is_unique = await user.isUniqueProfilId(profile_id);
 
-            }else if (req.body.service == 'google'){
-                 // profile_id = 'g_'+ 'Добаваить Google profile_id'
-                 const is_unique = await user.isUniqueProfilId(profile_id);
+            } else if (req.body.service == 'google') {
+                // profile_id = 'g_'+ 'Добаваить Google profile_id'
+                const is_unique = await user.isUniqueProfilId(profile_id);
 
-            }else{
+            } else {
                 const result = new Api400Error('service', i18n.__('validation.isExist', `service = ${req.body.service}`))
                 console.log(result, ' ----> err from createUser function at user_controller.js')
                 res.status(result.statusCode || 500).json(result)
             }
-            
+
             const { email, phone, first_name, last_name, patronymic, dob, service, roles } = req.body
             // const roles_id = Array.from(roles.split(','), Number)
             const roles_id = Array.from(roles, Number)
@@ -544,7 +729,7 @@ class UserController {
                 console.log(result, ' ----> err from createUser function at user_controller.js')
                 res.status(result.statusCode || 500).json(result)
             }
-            
+
         } catch (err) {
             if (err.error) {
                 console.error({ err }, '-----> err in createUser function at user_controller.js ')
@@ -631,10 +816,10 @@ class UserController {
         }
     }
 
-    async getOneUserWithRoles(req, res) {
+    async retrieveSingleUserWithRoles(req, res) {
         try {
             const user_id = req.params.userId
-            const get_user = await user.getOneWithRoles(user_id)
+            const get_user = await user.findOneWithRoles(user_id)
             if (get_user) {
                 const result = {
                     "success": true,
@@ -644,33 +829,42 @@ class UserController {
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else {
                 const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
-                console.log(result, ` -----> err in getOneUserWithRoles function  with user_id = ${user_id} not exists at user_controller.js;`)
+                console.log(result, ` -----> err in retrieveSingleUserWithRoles function  with user_id = ${user_id} not exists at user_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
-            console.error({ err }, '---->err in getOneUserWithRoles function at user_controller.js ')
+            console.error({ err }, '---->err in retrieveSingleUserWithRoles function at user_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
 
-    async getManyUsers(req, res) {
+    async retrieveMultipleUsers(req, res) {
         try {
-            const { first_name, last_name, email, phone } = req.body
-            const get_users = await user.getMany(first_name, last_name, email, phone)
-            if (get_users.rows.length !== 0) {
+            const { state, sortBy, size, page, s } = req.query
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const users = await user.findAll({ state, sortBy, limit, offset, s })
+            // console.log(users)
+
+            if (users[0].rows.length !== 0) {
+                console.log(users[0].rows, users[1].rows)
+                const pagination = getPagingData(users, page, limit);
+                // console.log(pagination)
+
                 const result = {
                     "success": true,
-                    "data": get_users.rows
+                    "data": users[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else {
-                const result = new Api404Error('getManyUsers', i18n.__('validation.isExist', `getManyUsers`))
-                console.log(result, ` -----> err in getManyUsers function  at user_controller.js;`)
+                const result = new Api404Error('activity_name', i18n.__('validation.isExist', `${s}`))
+                console.log(result, ` -----> err in retrieveMultipleUsers function  with  ${s} not exists at user_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
-            console.error({ err }, '---->err in getManyUsers function at user_controller.js ')
+            console.error({ err }, '---->err in retrieveMultipleUsers function at user_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
@@ -721,20 +915,30 @@ class UserController {
         }
     }
 
-    async getFavoriteEquipment(req, res) {
+    async retrieveFavoriteEquipment(req, res) {
         try {
-            const user_id = req.params.userId
-            const list_favoriteequipment = await favoriteequipment_model.getFavorite(user_id)
-            if (list_favoriteequipment.rows.length !== 0) {
+            const s = req.params.userId
+            const { state, sortBy, size, page } = req.query
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const list_favoriteequipment = await favoriteequipment_model.findFavorite({ sortBy, limit, offset, s })
+            // console.log(list_favoriteequipment)
+
+            if (list_favoriteequipment[0].rows.length !== 0) {
+                console.log(list_favoriteequipment[0].rows, list_favoriteequipment[1].rows)
+                const pagination = getPagingData(list_favoriteequipment, page, limit);
+                // console.log(pagination)
+
                 const result = {
                     "success": true,
-                    "data": list_favoriteequipment.rows
+                    "data": list_favoriteequipment[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else {
-                const result = new Api404Error('user_id', i18n.__('validation.isExist', `user_id = ${user_id}`))
-                console.log(result, ` -----> err in getFavoriteEquipment function  with user_id = ${user_id} not exists at user_controller.js;`)
+                const result = new Api404Error('activity_name', i18n.__('validation.isExist', `${s}`))
+                console.log(result, ` -----> err in retrieveMultipleActivities function  with  ${s} not exists at user_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {

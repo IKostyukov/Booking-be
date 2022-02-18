@@ -80,7 +80,6 @@ class ActivityFormCheck {
         const expected_array = ['state', 'sortBy', 'size', 'page', 's']
         const check_properties = checkQueryProperties(req.query, expected_array)
         // console.log(check_properties)
-
         if (check_properties !== true) {
             const param = 'retrieve activites'
             const data = i18n.__('validation.isExpected', `${check_properties}`)
@@ -88,20 +87,23 @@ class ActivityFormCheck {
             console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the activity_form_check.js`)
             return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
-
-        const expected_array_of_sortBy = ['field', 'direction']
-        for (let i = 0; i < req.query.sortBy.length; i++) {
-            const check_properties_of_sortBy = checkQueryProperties(req.query.sortBy[i], expected_array_of_sortBy)
-            if (check_properties_of_sortBy !== true) {
-                const param = 'retrieve activites'
-                const data = i18n.__('validation.isExpected', `${check_properties_of_sortBy}`)
-                const bad_request_error = new Api400Error(param, data)
-                console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the activity_form_check.js`)
-                return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-            } else {
-                return next()
+        if (req.query.sortBy) {
+            const expected_array_of_sortBy = ['field', 'direction']
+            for (let i = 0; i < req.query.sortBy.length; i++) {
+                const check_properties_of_sortBy = checkQueryProperties(req.query.sortBy[i], expected_array_of_sortBy)
+                if (check_properties_of_sortBy !== true) {
+                    const param = 'retrieve activites'
+                    const data = i18n.__('validation.isExpected', `${check_properties_of_sortBy}`)
+                    const bad_request_error = new Api400Error(param, data)
+                    console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the activity_form_check.js`)
+                    return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+                } else {
+                    return next()
+                }
             }
         }
+        return next()
+        
     }
 }
 

@@ -1,4 +1,4 @@
-const maxPerPage = 100;
+const maxPerPage = 25;
 
 
 const getPagination = (page, size) => {

@@ -89,7 +89,7 @@ class UsersModel {
 
     async isExistRoles(roles) {
         try {
-            console.log(roles, typeof(roles), ' roles ----->>>')
+            console.log(roles, typeof (roles), ' roles ----->>>')
             let arr_roles = roles.map(Number);
             const roles_id = await db.query(`SELECT id AS exists FROM roles ORDER BY id;`)   // Проверуку убрать в контороллер в валидациию
             let list_roles_id = []
@@ -157,8 +157,6 @@ class UsersModel {
         }
     }
 
-
-
     async create(email, phone, first_name, last_name, patronymic, dob, profile_id, service, roles_id) {
         try {
             const new_user = await db.query(`INSERT INTO users 
@@ -173,11 +171,11 @@ class UsersModel {
                 VALUES (${user_id}, ${roles_id[i]}) RETURNING *;`
             }
             const new_role = await db.query(sql_query)
-            
+
             if (roles_id.length > 1) {
                 console.log(new_role[0].rows, ' ----> new_role[0].rows at serviceprovider_model.js')
                 return { new_user: new_user, new_role: new_role }
-            }else{
+            } else {
                 console.log(new_role.rows, ' ----> new_role.rows at serviceprovider_model.js')
                 return { new_user: new_user, new_role: [new_role] }
             }
@@ -211,7 +209,7 @@ class UsersModel {
             // console.log(sql_query)
             const updated_roles = await db.query(sql_query) // 'insert or update on table "users_roles" violates foreign key constraint "user_id"
             // console.log(updated_roles[1])                    // то есть не можеть DELETE FROM users_roles WHERE user_id = ${user_id};`
-           
+
 
             return { updated_user: updated_user, updated_roles: updated_roles }
         } catch (err) {
@@ -285,10 +283,9 @@ class UsersModel {
         }
     }
 
-
     async findByProfileId(profile) {
         try {
-            console.log(profile, "profile comes to model")
+            console.log(profile, "profile comes to user_model")
             const sql = `SELECT id, active, email, phone, first_name, last_name, patronymic,
             dob, password, profile_id, service
             FROM users
@@ -296,7 +293,7 @@ class UsersModel {
             console.log(sql, 'sql -test')
 
             const found_user = await db.query(sql)
-            console.log(found_user.rows, 'found_user.rows test findByProfileId from user_model.js-129')
+            console.log(found_user.rows, 'found_user.rows test findByProfileId from user_model.js')
 
             if (found_user.rows == undefined) {
                 const err = found_user // "Error 400 "
@@ -308,14 +305,14 @@ class UsersModel {
             if (found_user.rows.length == 0) {
                 const err = null
                 const user = null
-                console.log(err, user, "test (err, user) Error 401 (User not found) user_model.js -140")
+                console.log(err, user, "test (err, user) Error 401 (User not found) user_model.js")
                 return found_user
 
 
             } else if (found_user.rows[0]) {
                 const err = null
                 const user = found_user.rows[0]
-                console.log(err, user, "test (err, user) (User found) user_model.js -145")
+                console.log(err, user, "test (err, user) (User found) user_model.js")
                 return found_user
             }
         } catch (err) {
@@ -333,9 +330,9 @@ class UsersModel {
     //     }
     // }
 
-    async getOneWithRoles(user_id) {
+    async findOneWithRoles(user_id) {
         try {
-            const get_user = await db.query(`SELECT id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
+            const get_user = await db.query(`SELECT id, AS user_id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
             FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id WHERE users.id = ${user_id};`)
             console.log(user_id, get_user, ' ----> getOneWithRoles at user_model.js')
             let roles = []
@@ -355,66 +352,120 @@ class UsersModel {
             }
             return user
         } catch (err) {
-            console.log(err, `-----> err  in getOneWithRoles function with user_id = ${user_id}  at user_model.js`)
+            console.log(err, `-----> err  in findOneWithRoles function with user_id = ${user_id}  at user_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('user_id', `${err.message}`)
         }
     }
 
-    async getMany(first_name, last_name, email, phone) {
+    async findAll({ state, sortBy, limit, offset, s }) {
+        // (first_name, last_name, email, phone) {
         try {
-            const get_users = await db.query(`SELECT  id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
-            FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id 
-            WHERE first_name LIKE '%'||$1||'%' OR last_name LIKE '%'||$2||'%' OR email LIKE '%'||$3||'%'
-            OR phone LIKE '%'||$4||'%' ;`, [first_name, last_name, email, phone])
+            console.log({ state, sortBy, limit, offset, s })
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
 
-            let users = []
+            if (sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if (sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let search_condition;
+            if (s) {
+                const first_name = s.firstName;
+                const last_name = s.lastName;
+                const email = s.email;
+                const phone = s.phone;
+                search_condition = `first_name LIKE '%'||'${first_name}'||'%' OR last_name LIKE '%'||'${last_name}'||'%' 
+                                    OR email LIKE '%'||'${email}'||'%'  OR phone LIKE '%'||'${phone}'||'%'  `
+            }
+
+            let sql_query = `SELECT  id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
+                            FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id `
+            let condition = ''
+
+            const where = `WHERE `
+            const state_condition = `active = 'true' `
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = 'SELECT COUNT(id) AS count FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id  '
+            const and = 'AND '
+            const group = 'GROUP BY users.id  '
+            const end = '; '
+
+
+            if (state && s) {
+                condition += state_condition + and + search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + group + end
+            } else if (state) {
+                condition += state_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + group + end
+            } else if (s) {
+                condition += search_condition
+                sql_query += where + condition + filter + end + query_count + where + condition + group + end
+            } else {
+                sql_query += filter + end + query_count + group + end
+            }
+
+            // console.log(sql_query, `-----> sql_query  in findAll function at user_model.js`)
+
+            const get_users = await db.query(sql_query)
+
+            // console.log(get_users[0].rows, get_users[1].rows)
+
+            // const get_users = await db.query(`SELECT  id, active, email, phone, first_name, last_name, patronymic, dob, role_id 
+            // FROM users LEFT JOIN users_roles ON users.id = users_roles.user_id 
+            // WHERE first_name LIKE '%'||$1||'%' OR last_name LIKE '%'||$2||'%' OR email LIKE '%'||$3||'%'
+            // OR phone LIKE '%'||$4||'%' ;`, [first_name, last_name, email, phone])
+
+            let users = [{ 'rows': [] }, { 'rows': [{ 'count': 0 }] }]
             let roles = []
-            for (let i = 0; i < get_users.rowCount; i += 1) {
 
-                if (get_users.rows[i] && get_users.rows[i + 1] && get_users.rows[i].id !== get_users.rows[i + 1].id) {
-                    roles.push(get_users.rows[i].role_id)
+            for (let i = 0; i < get_users[0].rowCount; i += 1) {
+                if (get_users[0].rows[i] && get_users[0].rows[i + 1] && get_users[0].rows[i].id !== get_users[0].rows[i + 1].id) {
+                    roles.push(get_users[0].rows[i].role_id)
                     let user = {
-                        user_id: get_users.rows[i].id,
-                        active: get_users.rows[i].active,
-                        email: get_users.rows[i].email,
-                        phone: get_users.rows[i].phone,
-                        firstName: get_users.rows[i].first_name,
-                        lastName: get_users.rows[i].last_name,
-                        patronymic: get_users.rows[i].patronymic,
-                        dob: get_users.rows[i].dob,
+                        user_id: get_users[0].rows[i].id,
+                        active: get_users[0].rows[i].active,
+                        email: get_users[0].rows[i].email,
+                        phone: get_users[0].rows[i].phone,
+                        firstName: get_users[0].rows[i].first_name,
+                        lastName: get_users[0].rows[i].last_name,
+                        patronymic: get_users[0].rows[i].patronymic,
+                        dob: get_users[0].rows[i].dob,
                         roles: roles
                     }
-                    users.push(user);
+                    users[0].rows.push(user);
                     roles = []
-                } else if (get_users.rows[i] && get_users.rows[i + 1] === undefined) {
-                    roles.push(get_users.rows[i].role_id)
+                } else if (get_users[0].rows[i] && get_users[0].rows[i + 1] === undefined) {
+                    roles.push(get_users[0].rows[i].role_id)
                     let user = {
-                        user_id: get_users.rows[i].id,
-                        active: get_users.rows[i].active,
-                        email: get_users.rows[i].email,
-                        phone: get_users.rows[i].phone,
-                        firstName: get_users.rows[i].first_name,
-                        lastName: get_users.rows[i].last_name,
-                        patronymic: get_users.rows[i].patronymic,
-                        dob: get_users.rows[i].dob,
+                        user_id: get_users[0].rows[i].id,
+                        active: get_users[0].rows[i].active,
+                        email: get_users[0].rows[i].email,
+                        phone: get_users[0].rows[i].phone,
+                        firstName: get_users[0].rows[i].first_name,
+                        lastName: get_users[0].rows[i].last_name,
+                        patronymic: get_users[0].rows[i].patronymic,
+                        dob: get_users[0].rows[i].dob,
                         roles: roles
                     }
-                    users.push(user);
+                    users[0].rows.push(user);
+                    users[1].rows[0].count = get_users[1].rows.length;
                     roles = []
                 } else {
-                    roles.push(get_users.rows[i].role_id)
+                    roles.push(get_users[0].rows[i].role_id)
                 }
             }
-            console.log(get_users.rows)
+            // console.log(users)
             return users
         } catch (err) {
-            console.log(err, `-----> err  in getMany function with email = ${email}  at user_model.js`)
+            console.log(err, `-----> err  in findAll function   at user_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('email', `${err.message}`)
         }
     }
-
 }
 
 const user = new UsersModel();

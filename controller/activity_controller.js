@@ -399,7 +399,7 @@ class ActivityController {
             const { limit, offset } = getPagination(page, size);
             console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
             const get_activities = await activity.findAll({ state, sortBy, limit, offset, s})
-            // console.log(get_activities)
+            console.log(get_activities)
 
             if (get_activities[0].rows.length !== 0) {
                 console.log(get_activities[0].rows, get_activities[1].rows)

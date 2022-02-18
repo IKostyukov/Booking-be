@@ -1,15 +1,7 @@
 import i18n from 'i18n';
 import Api400Error from '../errors/api400_error.js';
+import { countProperties, checkQueryProperties } from './_form_check_methods.js';
 
-
-const countProperties = (obj) => {
-    let count = 0;
-    for (let prop in obj) {
-        if (obj.hasOwnProperty(prop))
-            ++count;
-    }
-    return count;
-}
 
 class ProviderFormCheck {
 
@@ -428,102 +420,61 @@ class ProviderFormCheck {
         }
     }
 
-    forGetAll(req, res, next) {
+    forRetrieve(req, res, next) {
 
         // проверка на количество параметров
-        const count_require = 8
-        const count_total = 8
-        const count_properties = countProperties(req.body)
+        const count_require = 0
+        const count_total = 5
+        const count_properties = countProperties(req.query)
         console.log(count_properties, "count of properties");
 
         if (count_properties < count_require || count_properties > count_total) {
-            const param = 'in get form of provider '
-            const data = i18n.__('validation.isMatch', `${count_total}`, `${count_properties}`)
+            const param = 'retrieve providers'
+            const data = i18n.__('validation.isMatch', ` ${count_require} - ${count_total} `, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
+            console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the provider_form_check.js`)
             return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
-        // проверка на налиние параметров
-        if (req.body.hasOwnProperty('provider_name')) {
-            console.log(req.body.provider_name, "provider_name")
-        } else {
-            const param = 'provider_name'
-            const data = i18n.__('validation.isProvided', 'provider_name')
+        // проверка на налиние параметров            
+        const expected_array = ['state', 'sortBy', 'size', 'page', 's']
+        const check_properties = checkQueryProperties(req.query, expected_array)
+        // console.log(check_properties)
+        if (check_properties !== true) {
+            const param = 'retrieve providers'
+            const data = i18n.__('validation.isExpected', `${check_properties}`)
             const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-        }
-
-        if (req.body.hasOwnProperty('providertype_id')) {
-            console.log(req.body.providertype_id, "providertype_id")
-        } else {
-            const param = 'providertype_id'
-            const data = i18n.__('validation.isProvided', 'providertype_id')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
+            console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the provider_form_check.js`)
             return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
 
-        if (req.body.hasOwnProperty('user_id')) {
-            console.log(req.body.user_id, "user_id")
-        } else {
-            const param = 'user_id'
-            const data = i18n.__('validation.isProvided', 'user_id')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+        if (req.query.sortBy) {
+            const expected_array_of_sortBy = ['field', 'direction']
+            for (let i = 0; i < req.query.sortBy.length; i++) {
+                const check_properties_of_sortBy = checkQueryProperties(req.query.sortBy[i], expected_array_of_sortBy)
+                if (check_properties_of_sortBy !== true) {
+                    const param = 'retrieve providers'
+                    const data = i18n.__('validation.isExpected', `${check_properties_of_sortBy}`)
+                    const bad_request_error = new Api400Error(param, data)
+                    console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the provider_form_check.js`)
+                    return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+                }
+            }
         }
-
-        if (req.body.hasOwnProperty('location')) {
-            console.log(req.body.location, "location")
-        } else {
-            const param = 'location'
-            const data = i18n.__('validation.isProvided', 'location')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+        
+        if (req.query.s) {
+            const expected_array_of_s = ['providerName', 'providertypeId', 'userId', 'location', 'address', 'postIndex', 'rating', 'distanceFromCenter' ]
+            const check_properties_of_s = checkQueryProperties(req.query.s, expected_array_of_s)
+            if (check_properties_of_s !== true) {
+                const param = 'retrieve providers'
+                const data = i18n.__('validation.isExpected', `${check_properties_of_s}`)
+                const bad_request_error = new Api400Error(param, data)
+                console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the provider_form_check.js`)
+                return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
+            } else {
+                return next()
+            }
         }
-
-        if (req.body.hasOwnProperty('address')) {
-            console.log(req.body.address, "address")
-        } else {
-            const param = 'address'
-            const data = i18n.__('validation.isProvided', 'address')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-        }
-
-        if (req.body.hasOwnProperty('post_index')) {
-            console.log(req.body.post_index, "post_index")
-        } else {
-            const param = 'post_index'
-            const data = i18n.__('validation.isProvided', 'post_index')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-        }
-
-        if (req.body.hasOwnProperty('rating')) {
-            console.log(req.body.rating, "rating")
-        } else {
-            const param = 'rating'
-            const data = i18n.__('validation.isProvided', 'rating')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-        }
-
-        if (req.body.hasOwnProperty('distance_from_center')) {
-            console.log(req.body.distance_from_center, "distance_from_center")
-            return next()
-        } else {
-            const param = 'user_id'
-            const data = i18n.__('validation.isProvided', 'distance_from_center')
-            const bad_request_error = new Api400Error(param, data)
-            console.log(bad_request_error, ` ------> bad_request_error in forGetAll function at the provider_form_check.js`)
-            return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
-        }
+        return next()
     }
 }
 

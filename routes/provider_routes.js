@@ -16,25 +16,24 @@ const Router = express.Router;
 const routerProviders = new Router();
 const chesk_result = provider_controller.checkResult;
 
-
 //  ### Providers ###
 
 const check_form_create_provider = providerFormCheck.forCreate
 const check_form_update_provider = providerFormCheck.forUpdate
 const check_form_activate_provider = providerFormCheck.forActivate
-const check_form_get_providers = providerFormCheck.forGetAll
+const check_form_retrive_providers = providerFormCheck.forRetrieve
 const check_schema_provider = checkSchema(provider_controller.providerValidationSchema);
 
 routerProviders.post('/provider', check_form_create_provider, check_schema_provider, chesk_result, provider_controller.createProvider);
 routerProviders.patch('/provider/:providerId', check_form_update_provider, check_schema_provider, chesk_result, provider_controller.updateProvider);
 routerProviders.patch('/provider/:providerId/activation', check_form_activate_provider, check_schema_provider, chesk_result, provider_controller.activateProvider);
 routerProviders.delete('/provider/:providerId', check_schema_provider, chesk_result, provider_controller.deleteProvider);
-routerProviders.get('/provider/:providerId', check_schema_provider, chesk_result, provider_controller.getOneProvider);
-routerProviders.get('/provider', check_form_get_providers, check_schema_provider, chesk_result, provider_controller.getAllProviders);
+routerProviders.get('/provider/:providerId', check_schema_provider, chesk_result, provider_controller.retrieveSingleProvider);
+routerProviders.get('/provider', check_form_retrive_providers, check_schema_provider, chesk_result, provider_controller.retrieveMultipleProviders);
 
 
 //      Provider's top 10
-routerProviders.get('/providers/best', provider_controller.getBestProviders);
+routerProviders.get('/providers/best', check_form_retrive_providers, check_schema_provider, chesk_result, provider_controller.retrievBestProviders);
 
 
 //      Provider's descriptions
@@ -53,8 +52,8 @@ routerProviders.get('/provider/:providerId/descriptions', check_schema_descripti
 const check_form_add_serviceprovider = serviceproviderFormCheck.forAdd
 const check_schema_serviceprovider = checkSchema(provider_controller.serviceproviderValidationSchema);
 
-routerProviders.patch('/provider/:providerId/services', check_form_add_serviceprovider, check_schema_serviceprovider, chesk_result, provider_controller.addServicesToProvider);
-routerProviders.get('/provider/:providerId/services', check_schema_serviceprovider, chesk_result, provider_controller.getServicesOfProvider);
+routerProviders.patch('/provider/:providerId/service', check_form_add_serviceprovider, check_schema_serviceprovider, chesk_result, provider_controller.addServicesToProvider);
+routerProviders.get('/provider/:providerId/service', check_schema_serviceprovider, chesk_result, provider_controller.getServicesOfProvider);
 
 
 //   Provider's timetable
@@ -110,14 +109,16 @@ routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare', check_s
 const check_form_create_promotion = promotionFormCheck.forCreateUpdate
 const check_form_update_promotion = promotionFormCheck.forCreateUpdate
 const check_form_activate_promotion = promotionFormCheck.forActivate
+const check_form_retrive_promotion = promotionFormCheck.forRetrieve
+
 const check_schema_promotion = checkSchema(provider_controller.promotionValidationSchema);
 
 routerProviders.post('/provider/:providerId/equipment/:equipmentId/promotion', check_form_create_promotion, check_schema_promotion, chesk_result, provider_controller.createPromotion);
 routerProviders.patch('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_form_update_promotion, check_schema_promotion, chesk_result, provider_controller.updatePromotion);
 routerProviders.patch('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId/activation', check_form_activate_promotion, check_schema_promotion, chesk_result, provider_controller.activatePromotion);
 routerProviders.delete('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_schema_promotion, chesk_result, provider_controller.deletePromotion);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_schema_promotion, chesk_result, provider_controller.getOnePromotion);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion', check_schema_promotion, chesk_result, provider_controller.getAllPromotions)
+routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion/:promotionId', check_schema_promotion, chesk_result, provider_controller.retrieveSinglePromotion);
+routerProviders.get('/provider/:providerId/equipment/:equipmentId/promotion', check_form_retrive_promotion, check_schema_promotion, chesk_result, provider_controller.retrieveMultiplePromotions)
 
 
 //     Provider's advantages
