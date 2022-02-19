@@ -40,7 +40,7 @@ class ExtratimetableModel {
         try {
             console.log(start_time, end_time)
             const updsted_extratimetable = await db.query(`UPDATE extratimetables
-            SET provider_id=$1, date=$2, start_time=$3, end_time=$4, mtime=$5
+            SET provider_id = $1, date = $2, start_time = $3, end_time = $4, mtime = $5
             WHERE id = $6
             RETURNING *;`, [provider_id, date, start_time, end_time, mtime, extratimetable_id])
             return updsted_extratimetable
@@ -66,7 +66,7 @@ class ExtratimetableModel {
     }
 
 
-    async getOne(extratimetable_id) {
+    async findtOne(extratimetable_id) {
         try {
             console.log(extratimetable_id)
             const one_extratimetable = await db.query(`SELECT id AS extradate_id,
@@ -75,25 +75,45 @@ class ExtratimetableModel {
             WHERE id = ${extratimetable_id};`)
             return one_extratimetable
         } catch (err) {
-            console.log(err, `-----> err  in getOne function   at extratimetable_model.js`)
+            console.log(err, `-----> err  in findtOne function   at extratimetable_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('get extratimetable', `${err.message}`)
+            throw new Api500Error('find one extratimetable', `${err.message}`)
         }
     }
 
-    async getAll(provider_id) {
+    async findAll({ sortBy, limit, offset, s }) {
         try {
-            console.log(provider_id)
-            const sql = `SELECT id AS extradate_id,  date, start_time, end_time
-            FROM extratimetables
-            WHERE provider_id = ${provider_id};`
-            console.log(sql)
-            const all_extratimetable = await db.query(sql)
-            return all_extratimetable
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
+            if (sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if (sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT id AS extradate_id,  date, start_time, end_time
+            FROM extratimetables `
+            const where = `WHERE `
+            let condition = ''
+            const state_condition = ``
+            let search_condition = `provider_id = ${s}`;
+
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM extratimetables '
+            const and = 'AND '
+            const end = '; '
+
+            condition += search_condition
+            sql_query += where + condition + filter + end + query_count + where + condition + end
+
+            console.log(sql_query, `-----> sql_query  in findAll function  at provider_model.js`)
+            const all_promotions = await db.query(sql_query)
+            return all_promotions
         } catch (err) {
-            console.log(err, `-----> err  in getAll function   at extratimetable_model.js`)
+            console.log(err, `-----> err  in findAll function   at extratimetable_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('get all extratimetable', `${err.message}`)
+            throw new Api500Error('find all extratimetable', `${err.message}`)
         }
     }
 }

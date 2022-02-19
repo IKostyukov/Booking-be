@@ -58,7 +58,7 @@ class PromotionModel {
         try {
             console.log(promotion_id ) 
             const activated_promotion = await db.query(`UPDATE promotions_equipment
-            SET is_active=$2
+            SET is_active = $2
             WHERE id = $1
             RETURNING *;`, [promotion_id, is_active])
             return activated_promotion
@@ -132,7 +132,7 @@ class PromotionModel {
                 sql_query += where + condition + filter + end + query_count + where + condition + end
             }
 
-            console.log(sql_query, `-----> sql_query  in findAll function  at provider_model.js`)
+            console.log(sql_query, `-----> sql_query  in findAll function  at promotion_model.js`)
             const all_promotions = await db.query(sql_query)
             return all_promotions
 

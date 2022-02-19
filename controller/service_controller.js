@@ -414,25 +414,6 @@ class ServiceControlller {
                 console.log(result, ` -----> err in retrieveMultipleServices function  with  ${s} not exists at service_contrpller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
-
-
-
-            // console.log(req.params.serviceId)
-            // const service_id = req.params.serviceId
-            // console.log(service_id, "Test deleteService")
-            // const all_services = await servicemodel.findAll()
-            // if (all_services.rows[0]) {
-            //     const result = {
-            //         "success": true,
-            //         "data": all_services.rows
-            //     }
-            //     console.log(result)
-            //     res.status(httpStatusCodes.OK || 500).json(result)  
-            // }else {
-            //     const result = new Api404Error( 'service_name', i18n.__('validation.isExist', `service_name = ${service_name}`)) 
-            //     console.log(result, ` -----> err in retrieveMultipleServices function not exists at service_contrpller.js;`)
-            //     res.status(result.statusCode || 500).json(result)
-            // }
         } catch (err) {
             console.error({ err }, '---->err in retrieveMultipleServices function at service_contrpller.js ')
             res.status(err.statusCode || 500).json(err)

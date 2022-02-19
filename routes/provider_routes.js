@@ -39,21 +39,24 @@ routerProviders.get('/providers/best', check_form_retrive_providers, check_schem
 //      Provider's descriptions
 const check_form_create_description = descriptionFormCheck.forCreateUpdate
 const check_form_update_description = descriptionFormCheck.forCreateUpdate
+const check_form_retrive_description = descriptionFormCheck.forRetrieve
+
 const check_schema_description = checkSchema(provider_controller.descriptionValidationSchema);
 
 routerProviders.post('/provider/:providerId/description', check_form_create_description, check_schema_description, chesk_result, provider_controller.createDescription);
 routerProviders.patch('/provider/:providerId/description/:descriptionId', check_form_update_description, check_schema_description, chesk_result, provider_controller.updateDescription); // в теле запроса идёт массив;  тогда говорили, что в боди будет информация об одном описании
 routerProviders.delete('/provider/:providerId/description/:descriptionId', check_schema_description, chesk_result, provider_controller.deleteDescription); // descriptionId не нужен, так как удаляем все описания у провайдера
-routerProviders.get('/provider/:providerId/description/:descriptionId', check_schema_description, chesk_result, provider_controller.getOneDescription);
-routerProviders.get('/provider/:providerId/descriptions', check_schema_description, chesk_result, provider_controller.getAllDescriptions);
+routerProviders.get('/provider/:providerId/description/:descriptionId', check_schema_description, chesk_result, provider_controller.retrieveSingleDescription);
+routerProviders.get('/provider/:providerId/description', check_form_retrive_description, check_schema_description, chesk_result, provider_controller.retrieveMultipleDescriptions);
 
 
 //     Provider's services
 const check_form_add_serviceprovider = serviceproviderFormCheck.forAdd
+const check_form_retrive_serviceprovider = serviceproviderFormCheck.forRetrieve
 const check_schema_serviceprovider = checkSchema(provider_controller.serviceproviderValidationSchema);
 
 routerProviders.patch('/provider/:providerId/service', check_form_add_serviceprovider, check_schema_serviceprovider, chesk_result, provider_controller.addServicesToProvider);
-routerProviders.get('/provider/:providerId/service', check_schema_serviceprovider, chesk_result, provider_controller.getServicesOfProvider);
+routerProviders.get('/provider/:providerId/service', check_form_retrive_serviceprovider, check_schema_serviceprovider, chesk_result, provider_controller.retrieveMultipleServicesOfProvider);
 
 
 //   Provider's timetable
@@ -70,27 +73,29 @@ routerProviders.get('/provider/:providerId/timetable/:timetableId', check_schema
 //   Provider's extratimetable
 const check_form_create_extratimetable = extratimetableFormCheck.forCreateUpdate
 const check_form_update_extratimetable = extratimetableFormCheck.forCreateUpdate
+const check_form_retrive_extratimetable = extratimetableFormCheck.forRetrieve
 const check_schema_extratimetable = checkSchema(provider_controller.extratimetableValidationSchema);
 
 routerProviders.post('/provider/:providerId/extradate', check_form_create_extratimetable, check_schema_extratimetable, chesk_result, provider_controller.createExtratimetable);
 routerProviders.patch('/provider/:providerId/extradate/:extradateId', check_form_update_extratimetable, check_schema_extratimetable, chesk_result, provider_controller.updateExtratimetable);
 routerProviders.delete('/provider/:providerId/extradate/:extradateId', check_schema_extratimetable, chesk_result, provider_controller.deleteExtratimetable);
-routerProviders.get('/provider/:providerId/extradate/:extradateId', check_schema_extratimetable, chesk_result, provider_controller.getOneExtratimetable);
-routerProviders.get('/provider/:providerId/extradate', check_schema_extratimetable, chesk_result, provider_controller.getAllExtratimetable);
+routerProviders.get('/provider/:providerId/extradate/:extradateId', check_schema_extratimetable, chesk_result, provider_controller.retrieveSingleExtratimetable);
+routerProviders.get('/provider/:providerId/extradate', check_form_retrive_extratimetable, check_schema_extratimetable, chesk_result, provider_controller.retrieveMultipleExtratimetables);
 
 
 //     Provider's equipment 
 const check_form_create_equipmentprovider = equipmentproviderFormCheck.forCreateUpdate
 const check_form_update_equipmentprovider = equipmentproviderFormCheck.forCreateUpdate
 const check_form_activate_equipmentprovider = equipmentproviderFormCheck.forActivate
+const check_form_retrive_equipmentprovider = equipmentproviderFormCheck.forRetrieve
 const check_schema_equipmentprovider = checkSchema(provider_controller.equipmentproviderValidationSchema);
 
 routerProviders.post('/provider/:providerId/equipment', check_form_create_equipmentprovider, check_schema_equipmentprovider, chesk_result, provider_controller.createEquipmentProvider); // called addEquipment in the Postman AND must add to route '/:equipmentId
 routerProviders.patch('/provider/:providerId/equipment/:equipmentId/activation', check_form_activate_equipmentprovider, check_schema_equipmentprovider, chesk_result, provider_controller.activateEquipmentProvider);
 routerProviders.patch('/provider/:providerId/equipment/:equipmentId', check_form_update_equipmentprovider, check_schema_equipmentprovider, chesk_result, provider_controller.updateEquipmentProvider); //  equipmentId  в запросе  /provider/:providerId/equipment/:equipmentId это на самом деле equipmentprovider_id в коде
 routerProviders.delete('/provider/:providerId/equipment/:equipmentId', check_schema_equipmentprovider, chesk_result, provider_controller.deleteEquipmentProvider);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId', check_schema_equipmentprovider, chesk_result, provider_controller.getOneEquipmentProvider);
-routerProviders.get('/provider/:providerId/equipment', check_schema_equipmentprovider, chesk_result, provider_controller.getAllEquipmentProvider);
+routerProviders.get('/provider/:providerId/equipment/:equipmentId', check_schema_equipmentprovider, chesk_result, provider_controller.retrieveSingleEquipmentProvider);
+routerProviders.get('/provider/:providerId/equipment', check_form_retrive_equipmentprovider, check_schema_equipmentprovider, chesk_result, provider_controller.retrieveMultipleEquipmentProvider);
 
 
 //   Provider's fares                      

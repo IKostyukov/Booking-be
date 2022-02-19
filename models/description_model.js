@@ -83,7 +83,7 @@ class DeckriptionModel {
         }
     }
 
-    async getOne(description_id) {
+    async findOne(description_id) {
         try {
             console.log(description_id)
             const sql = `SELECT id AS description_id, provider_id, locale, descriptiontype, content
@@ -93,25 +93,50 @@ class DeckriptionModel {
             const one_description = await db.query(sql)
             return one_description
         } catch (err) {
-            console.log(err, `-----> err in getOne function with description_id = ${description_id}  at description_model.js`)
+            console.log(err, `-----> err in findOne function with description_id = ${description_id}  at description_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('delete  one description', `${err.message}`)
+            throw new Api500Error('find one description', `${err.message}`)
         }
     }
 
-    async getAll(provider_id) {
+    async findAll({ sortBy, limit, offset, s }) {
         try {
-            console.log(provider_id)
-            const sql = `SELECT id AS description_id, provider_id, locale, descriptiontype, content
-            FROM descriptions
-            WHERE provider_id =${provider_id};`
-            // console.log(sql)
-            const all_description = await db.query(sql)
-            return all_description
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
+            if (sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if (sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT id AS description_id, provider_id, locale, descriptiontype, content
+            FROM descriptions `
+            const where = `WHERE `
+            let condition = ''
+            const state_condition = ``
+            let search_condition = `provider_id = ${s}`;
+
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM descriptions '
+            const and = 'AND '
+            const end = '; '
+
+            condition += search_condition
+            sql_query += where + condition + filter + end + query_count + where + condition + end
+
+            console.log(sql_query, `-----> sql_query  in findAll function  at provider_model.js`)
+            const all_promotions = await db.query(sql_query)
+            return all_promotions
+
+            // const sql = `SELECT id AS description_id, provider_id, locale, descriptiontype, content
+            // FROM descriptions
+            // WHERE provider_id =${provider_id};`
+
         } catch (err) {
-            console.log(err, `-----> err in getAll function with description_id = ${description_id}  at description_model.js`)
+            console.log(err, `-----> err in findAll function with description_id = ${description_id}  at description_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('get all descriptions', `${err.message}`)
+            throw new Api500Error('find all descriptions', `${err.message}`)
         }
     }
 }

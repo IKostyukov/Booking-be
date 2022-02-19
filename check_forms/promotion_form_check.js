@@ -121,14 +121,14 @@ class PromotionFormCheck {
         console.log(count_properties, "count of properties");
 
         if (count_properties < count_require || count_properties > count_total) {
-            const param = 'retrieve providers'
+            const param = 'retrieve promotions'
             const data = i18n.__('validation.isMatch', ` ${count_require} - ${count_total} `, `${count_properties}`)
             const bad_request_error = new Api400Error(param, data)
             console.log(bad_request_error, ` ------> bad_request_error in forRetrieve function at the promotion_form_check.js`)
             return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
         }
         // проверка на налиние параметров            
-        const expected_array = ['state', 'sortBy', 'size', 'page', 's']
+        const expected_array = ['state', 'sortBy', 'size', 'page']
         const check_properties = checkQueryProperties(req.query, expected_array)
         // console.log(check_properties)
         if (check_properties !== true) {
