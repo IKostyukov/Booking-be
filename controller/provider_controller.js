@@ -2670,6 +2670,70 @@ class ProviderController {
                 bail: true,
             },
         },
+        sortBy: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
+                bail: true,
+            },
+        },
+        'sortBy.*.field': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
+                bail: true,
+            },
+            isIn: {
+                options: [['id', 'fare_id', 'time_unit']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'field') },
+                bail: true,
+            },
+        },
+        'sortBy.*.direction': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
+                bail: true,
+            },
+            isIn: {
+                options: [['asc', 'desc']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction') },
+                bail: true,
+            },
+        },
+        size: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'size') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'size') },
+                bail: true,
+            },
+        },
+        page: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'page') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        },
 
     }
     async createFare(req, res) {
@@ -2784,11 +2848,11 @@ class ProviderController {
     }
 
 
-    async getFare(req, res) {
+    async retrieveSingleFare(req, res) {
         try {
             const fare_id = req.params.fareId
             console.log(fare_id)
-            const one_fare = await faremodel.getOneFare(fare_id)
+            const one_fare = await faremodel.findOne(fare_id)
             if (one_fare.rows.length !== 0) {
                 const result = {
                     "success": true,
@@ -2797,35 +2861,44 @@ class ProviderController {
                 console.log(result)
                 res.status(httpStatusCodes.OK || 200).json(result)
             } else {
-                const result = new Api404Error('fareId', i18n.__('validation.isExist', `fareId = ${fare_id}`))
-                console.log(result, ` -----> err in getFare function  with fareId = ${fare_id} not exists at provider_controller.js;`)
+                const result = new Api404Error('retrieve single fare', i18n.__('validation.isExist', `fareId = ${fare_id}`))
+                console.log(result, ` -----> err in retrieveSingleFare function not exists at provider_controller.js;`)
                 res.status(result.statusCode || 400).json(result)   //  в отвере не надо отправлять "data"  на get запрос, если, сущность не найдена
             }
         } catch (err) {
-            console.error({ err }, '---->err in getFare function at provider_controller.js ')
+            console.error({ err }, '---->err in retrieveSingleFare function at provider_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
 
-    async getFares(req, res) {
+    async retrieveMultipleFares(req, res) {
         try {
-            const equipmentprovider_id = req.params.equipmentId
-            console.log(equipmentprovider_id)
-            const all_fare = await faremodel.getAllFares(equipmentprovider_id)
-            if (all_fare.rows.length !== 0) {
+            const s = req.params.equipmentId
+            const { state, sortBy, size, page } = req.query
+            const { limit, offset } = getPagination(page, size);
+            console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
+            const all_promotion = await faremodel.findAll({ state, sortBy, limit, offset, s })
+            console.log(all_promotion)
+
+            if (all_promotion[0].rows.length !== 0) {
+                console.log(all_promotion[0].rows, all_promotion[1].rows)
+                const pagination = getPagingData(all_promotion, page, limit);
+                // console.log(pagination)
+
                 const result = {
                     "success": true,
-                    "data": all_fare.rows
+                    "data": all_promotion[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 200).json(result)
+                res.status(httpStatusCodes.OK || 500).json(result)
             } else {
-                const result = new Api404Error('get fares', i18n.__('validation.isExist', `equipmentId = ${equipmentprovider_id}`))
-                console.log(result, ` -----> err in getFares function  at provider_controller.js;`)
-                res.status(result.statusCode || 400).json(result)
+                const result = new Api404Error('retrieve multiple fares', i18n.__('validation.isExist', ` promotion `))
+                console.log(result, ` -----> err in retrieveMultipleFares function with equipmentprovider_id = ${s} not exists at provider_controller.js;`)
+                res.status(result.statusCode || 500).json(result)
             }
         } catch (err) {
-            console.error({ err }, '---->err in getFares function at provider_controller.js ')
+            console.error({ err }, '---->err in retrieveMultipleFares function at provider_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
@@ -3611,7 +3684,7 @@ class ProviderController {
             const description = req.body.description
             const provider_id = req.params.providerId
             await descriptionmodel.deleteAll(provider_id)
-        
+
             const updated_description = await descriptionmodel.create(provider_id, description)
             console.log(updated_description.rows)
 
@@ -3979,10 +4052,10 @@ class ProviderController {
     async retrieveMultipleServicesOfProvider(req, res) {
         try {
             const s = req.params.providerId
-            const {state, sortBy, size, page }  = req.query 
+            const { state, sortBy, size, page } = req.query
             const { limit, offset } = getPagination(page, size);
             console.log(state, sortBy, limit, offset, s, ' -------->>>>>> req.query')
-            const all_services = await serviceprovidermodel.findAll({ state, sortBy, limit, offset, s})
+            const all_services = await serviceprovidermodel.findAll({ state, sortBy, limit, offset, s })
             console.log(all_services)
 
             if (all_services[0].rows.length !== 0) {
@@ -3996,9 +4069,9 @@ class ProviderController {
                     "pagination": pagination
                 }
                 console.log(result)
-                res.status(httpStatusCodes.OK || 500).json(result)  
-            }else {
-                const result = new Api404Error( 'retrieve services of rovider', i18n.__('validation.isExist', `${s}`)) 
+                res.status(httpStatusCodes.OK || 500).json(result)
+            } else {
+                const result = new Api404Error('retrieve services of rovider', i18n.__('validation.isExist', `${s}`))
                 console.log(result, ` -----> err in retrieveMultipleServicesOfProvider function  with  ${s} not exists at activity_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }

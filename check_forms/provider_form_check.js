@@ -112,9 +112,9 @@ class ProviderFormCheck {
             const count_total = 5
             const equipments = req.body.equipments;
             console.log(equipments, "equipments")
-                  
-            for (let i = 0; i < equipments.length; i++) {                
-                 // проверка на количество параметров
+
+            for (let i = 0; i < equipments.length; i++) {
+                // проверка на количество параметров
                 const count_properties = countProperties(req.body.equipments[i])
                 console.log(count_properties, "count of properties");
 
@@ -126,7 +126,7 @@ class ProviderFormCheck {
                     return res.status(bad_request_error.statusCode || 500).json(bad_request_error)
                 }
 
-                 // проверка на налиние параметров
+                // проверка на налиние параметров
                 const { equipment_id, availabilitydate, cancellationdate, quantity, fares } = equipments[i]
 
                 if (!equipment_id) {
@@ -460,9 +460,9 @@ class ProviderFormCheck {
                 }
             }
         }
-        
+
         if (req.query.s) {
-            const expected_array_of_s = ['providerName', 'providertypeId', 'userId', 'location', 'address', 'postIndex', 'rating', 'distanceFromCenter' ]
+            const expected_array_of_s = ['providerName', 'providertypeId', 'userId', 'location', 'address', 'postIndex', 'rating', 'distanceFromCenter']
             const check_properties_of_s = checkQueryProperties(req.query.s, expected_array_of_s)
             if (check_properties_of_s !== true) {
                 const param = 'retrieve providers'

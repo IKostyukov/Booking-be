@@ -130,7 +130,7 @@ class ProviderModel {
 
     //  ### Получить несколько провайдеров
 
-    async findAll({ state, sortBy, limit, offset, s}) {
+    async findAll({ state, sortBy, limit, offset, s }) {
         try {
             console.log({ state, sortBy, limit, offset, s })
 
@@ -150,13 +150,13 @@ class ProviderModel {
             let search_condition = '';
             if (s) {
                 const provider_name = s.providerName;
-                const providertype_id = s.providertypeId? s.providertypeId: null;
-                const user_id = s.userId? s.userId: null;
+                const providertype_id = s.providertypeId ? s.providertypeId : null;
+                const user_id = s.userId ? s.userId : null;
                 const location = s.location;
                 const address = s.address;
-                const post_index = s.postIndex? s.postIndex: null;
-                const rating = s.rating? s.rating: null;
-                const distance_from_center = s.distanceFromCenter? s.distanceFromCenter: null;
+                const post_index = s.postIndex ? s.postIndex : null;
+                const rating = s.rating ? s.rating : null;
+                const distance_from_center = s.distanceFromCenter ? s.distanceFromCenter : null;
 
                 search_condition = `provider_name LIKE '%'||'${provider_name}'||'%' 
                 OR providertype_id = ${providertype_id}
@@ -189,30 +189,30 @@ class ProviderModel {
             console.log(sql_query, `-----> sql_query  in findAll function  at provider_model.js`)
             const providers = await db.query(sql_query)
             return providers
-   
-    //         const sql = `SELECT *  FROM providers  
-    //         WHERE 
-    //         provider_name LIKE '%'||'${provider_name}'||'%' 
-    //         OR providertype_id = ${providertype_id}
-    //         OR user_id = ${user_id}
-    //         OR location LIKE '%'||'${location}'||'%'
-    //         OR address LIKE '%'||'${address}'||'%'
-    //         OR post_index LIKE '%'||${post_index}||'%'
-    //         OR rating = ${rating}
-    //         OR distance_from_center = ${distance_from_center} ;`
-    //         // console.log(sql)
-    //         const providers = await db.query(sql)
+
+            //         const sql = `SELECT *  FROM providers  
+            //         WHERE 
+            //         provider_name LIKE '%'||'${provider_name}'||'%' 
+            //         OR providertype_id = ${providertype_id}
+            //         OR user_id = ${user_id}
+            //         OR location LIKE '%'||'${location}'||'%'
+            //         OR address LIKE '%'||'${address}'||'%'
+            //         OR post_index LIKE '%'||${post_index}||'%'
+            //         OR rating = ${rating}
+            //         OR distance_from_center = ${distance_from_center} ;`
+            //         // console.log(sql)
+            //         const providers = await db.query(sql)
 
         } catch (err) {
             console.log(err, `-----> err  in findAll function at provider_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
             throw new Api500Error('find all providers', `${err.message}`)
         }
-    } 
+    }
 
     //  ### Лучшие провайдеры услуг  ###
 
-    async findBest({ state, sortBy, limit, offset}) {
+    async findBest({ state, sortBy, limit, offset }) {
         try {
             let sort_by_field = 'rating'
             let sort_by_direction = 'DESC'
@@ -243,7 +243,7 @@ class ProviderModel {
             if (state) {
                 condition += state_condition + and + search_condition
                 sql_query += fromm + where + condition + group + filter + end + query_count + fromm + where + condition + end
-           
+
             } else {
                 condition += search_condition
                 sql_query += fromm + where + condition + group + filter + end + query_count + fromm + where + condition + end
@@ -253,15 +253,15 @@ class ProviderModel {
             const all_activitirs = await db.query(sql_query)
             return all_activitirs
 
-        //    `SELECT 
-        //     r.id, provider_name, 
-        //     location, address, distance_from_center, rating, 
-        //     COUNT(f.id) as feedbacks  
-        //     FROM providers r 
-        //     INNER  JOIN feedbacks f
-        //         ON  r.id = f.provider_id 
-        //     WHERE rating > 90  
-        //     GROUP BY r.id;`
+            //    `SELECT 
+            //     r.id, provider_name, 
+            //     location, address, distance_from_center, rating, 
+            //     COUNT(f.id) as feedbacks  
+            //     FROM providers r 
+            //     INNER  JOIN feedbacks f
+            //         ON  r.id = f.provider_id 
+            //     WHERE rating > 90  
+            //     GROUP BY r.id;`
 
         } catch (err) {
             console.log(err, `-----> err in findBest function  at provider_model.js`)

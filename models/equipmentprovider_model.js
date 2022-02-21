@@ -7,7 +7,7 @@ class EquipmentProviderModel {
 
     // ####  Инвентарь от объект отдыха  (equipmentsproviders) ###
 
-    async create (provider_id, equipment_id, quantity, availabilitydate, cancellationdate) {
+    async create(provider_id, equipment_id, quantity, availabilitydate, cancellationdate) {
         try {
             // console.log(provider_id, equipment_id, '------------> in createNewEquipmentProvider function  at equipmentprovider_model.js') 
             const new_equipmentprovider = await db.query(`INSERT INTO equipmentsproviders(
@@ -79,7 +79,7 @@ class EquipmentProviderModel {
         }
     }
 
-    async findAll({ state, sortBy, limit, offset, s}) {
+    async findAll({ state, sortBy, limit, offset, s }) {
         try {
             let sort_by_field = 'id'
             let sort_by_direction = 'ASC'

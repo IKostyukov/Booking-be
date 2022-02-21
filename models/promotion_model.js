@@ -5,9 +5,9 @@ const db = pool
 
 class PromotionModel {
 
-      // ### Экстрадаты ###
+    // ### Экстрадаты ###
 
-      async isExist(promotion_id) {
+    async isExist(promotion_id) {
         try {
             const sql_query = `SELECT EXISTS (SELECT 1
             FROM promotions_equipment WHERE id = ${promotion_id}) AS "exists";`
@@ -21,14 +21,14 @@ class PromotionModel {
         }
     }
 
-    async create(equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end ) {
+    async create(equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end) {
         try {
-            console.log({equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end} ) 
+            console.log({ equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end })
             const new_promotion = await db.query(`INSERT INTO promotions_equipment(
                 equipmentprovider_id, title, discount,
                 booking_start, booking_end, activity_start, activity_end)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *;`, [equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end ])
+            RETURNING *;`, [equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end])
             return new_promotion
         } catch (err) {
             console.log(err, `-----> err  in create function   at promotion_model.js`)
@@ -36,10 +36,10 @@ class PromotionModel {
             throw new Api500Error('create promotion', `${err.message}`)
         }
     }
-    
-    async update (promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end ) {
+
+    async update(promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end) {
         try {
-            console.log({promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end} ) 
+            console.log({ promotion_id, equipmentprovider_id, title, discount, booking_start, booking_end, activity_start, activity_end })
             const updated_promotion = await db.query(`
             UPDATE promotions_equipment
             SET equipmentprovider_id=$1, title=$2, discount=$3,
@@ -56,7 +56,7 @@ class PromotionModel {
 
     async activate(promotion_id, is_active) {
         try {
-            console.log(promotion_id ) 
+            console.log(promotion_id)
             const activated_promotion = await db.query(`UPDATE promotions_equipment
             SET is_active = $2
             WHERE id = $1
@@ -71,7 +71,7 @@ class PromotionModel {
 
     async delete(promotion_id) {
         try {
-            console.log(promotion_id) 
+            console.log(promotion_id)
             const deleted_promotion = await db.query(`DELETE FROM promotions_equipment
             WHERE id = $1
             RETURNING *;`, [promotion_id])
@@ -86,7 +86,7 @@ class PromotionModel {
 
     async findOne(promotion_id) {
         try {
-            console.log(promotion_id) 
+            console.log(promotion_id)
             const one_promotion = await db.query(`SELECT id AS promotion_id,
             equipmentprovider_id, title, discount, booking_start, booking_end,
             activity_start, activity_end
@@ -100,7 +100,7 @@ class PromotionModel {
         }
     }
 
-    async findAll({ state, sortBy, limit, offset, s}) {
+    async findAll({ state, sortBy, limit, offset, s }) {
         try {
             let sort_by_field = 'id'
             let sort_by_direction = 'ASC'

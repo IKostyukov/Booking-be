@@ -1,6 +1,6 @@
 import express from 'express';
-import {equipment_controller} from '../controller/equipment_controller.js';
-import {equipmentFormCheck} from '../check_forms/equipment_form_check.js';
+import { equipment_controller } from '../controller/equipment_controller.js';
+import { equipmentFormCheck } from '../check_forms/equipment_form_check.js';
 import { checkSchema } from 'express-validator';
 
 const Router = express.Router;
@@ -21,6 +21,6 @@ routerEquipments.patch('/equipment/:equipmentId', check_update_form, check_schem
 routerEquipments.patch('/equipment/:equipmentId/activation', check_activate_form, check_schema, chesk_result, equipment_controller.activateEquipment);
 routerEquipments.delete('/equipment/:equipmentId', check_schema, chesk_result, equipment_controller.deleteEquipment);
 routerEquipments.get('/equipment/:equipmentId', check_schema, chesk_result, equipment_controller.retrieveSingleEquipment);
-routerEquipments.get('/equipments', check_retrieve_form, check_schema, chesk_result, equipment_controller.retrieveMultipleEquipments);
+routerEquipments.get('/equipment', check_retrieve_form, check_schema, chesk_result, equipment_controller.retrieveMultipleEquipments);
 
 export { routerEquipments };

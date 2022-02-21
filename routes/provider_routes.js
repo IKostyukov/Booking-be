@@ -101,13 +101,14 @@ routerProviders.get('/provider/:providerId/equipment', check_form_retrive_equipm
 //   Provider's fares                      
 const check_create_form_fare = fareFormCheck.forCreateUpdate
 const check_update_form_fare = fareFormCheck.forCreateUpdate
+const check_form_retrive_fare = fareFormCheck.forRetrieve
 const check_schema_fare = checkSchema(provider_controller.fareValidationSchema);
 
 routerProviders.post('/provider/:providerId/equipment/:equipmentId/fare', check_create_form_fare, check_schema_fare, chesk_result, provider_controller.createFare);
 routerProviders.patch('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_update_form_fare, check_schema_fare, chesk_result, provider_controller.updateFare);
 routerProviders.delete('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_schema_fare, chesk_result, provider_controller.deleteFare);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_schema_fare, chesk_result, provider_controller.getFare);
-routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare', check_schema_fare, chesk_result, provider_controller.getFares);
+routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare/:fareId', check_schema_fare, chesk_result, provider_controller.retrieveSingleFare);
+routerProviders.get('/provider/:providerId/equipment/:equipmentId/fare', check_form_retrive_fare, check_schema_fare, chesk_result, provider_controller.retrieveMultipleFares);
 
 
 //    Provider's promotions

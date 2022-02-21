@@ -96,7 +96,7 @@ class FareModel {
         }
     }
 
-    async getOneFare(fare_id) {
+    async findOne(fare_id) {
         try {
             console.log(fare_id)
             const one_fare = await db.query(`SELECT id AS fare_id,
@@ -104,27 +104,48 @@ class FareModel {
             FROM fares WHERE id = ${fare_id};`)
             return one_fare
         } catch (err) {
-            console.log(err, `-----> err in getOneFare function with fare_id = ${fare_id}  at fares_model.js`)
+            console.log(err, `-----> err in findOne function with fare_id = ${fare_id}  at fares_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('get one fare', `${err.message}`)
+            throw new Api500Error('find one fare', `${err.message}`)
         }
     }
 
 
-    async getAllFares(equipmentprovider_id) {
+    async findAll({ state, sortBy, limit, offset, s }) {
         try {
-            console.log(equipmentprovider_id)
-            const all_fares = await db.query(`SELECT id AS fare_id,
+            let sort_by_field = 'id'
+            let sort_by_direction = 'ASC'
+            if (sortBy && sortBy[0].field) {
+                sort_by_field = sortBy[0].field
+            }
+            if (sortBy && sortBy[0].direction) {
+                sort_by_direction = sortBy[0].direction
+            }
+
+            let sql_query = `SELECT id AS fare_id,
             equipmentprovider_id, duration, time_unit, fare, discountnonrefundable
-            FROM fares WHERE equipmentprovider_id = ${equipmentprovider_id};`)
+            FROM fares `
+            const where = `WHERE `
+            let condition = ''
+            let search_condition = `equipmentprovider_id = ${s}`;
+
+            const filter = `ORDER BY ${sort_by_field} ${sort_by_direction} LIMIT ${limit} OFFSET ${offset} `
+            const query_count = ' SELECT COUNT(id) AS count FROM fares '
+            const and = 'AND '
+            const end = '; '
+
+            condition += search_condition
+            sql_query += where + condition + filter + end + query_count + where + condition + end
+
+            console.log(sql_query, `-----> sql_query  in findAll function  at fares_model.js`)
+            const all_fares = await db.query(sql_query)
             return all_fares
         } catch (err) {
-            console.log(err, `-----> err in getAllFares function with equipmentprovider_id = ${equipmentprovider_id}  at fares_model.js`)
+            console.log(err, `-----> err in findAll function with equipmentprovider_id = ${s}  at fares_model.js`)
             // console.log(err.message, '-----> err.message')                                                                   
-            throw new Api500Error('get all fares', `${err.message}`)
+            throw new Api500Error('find all fares', `${err.message}`)
         }
     }
-
 }
 
 const faremodel = new FareModel();

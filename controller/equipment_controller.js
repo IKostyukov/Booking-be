@@ -13,7 +13,6 @@ class EquipmentController {
     validationSchema = {
 
         equipmentId: {
-
             in: ['params'],
             isInt: {  // набо будет заменить на isString когда введет UUID вместо id
                 if: equipmentId => {
@@ -57,7 +56,6 @@ class EquipmentController {
         },
 
         equipment_name: {
-
             in: ['body'],
             optional: true,
             notEmpty: {
@@ -115,6 +113,7 @@ class EquipmentController {
             trim: true,
             escape: true,
         },
+
         capacity: {  // в БД это (var char 2)
             in: ['body'],
             optional: true,
@@ -150,199 +149,16 @@ class EquipmentController {
             },
         },
 
-        // Валидация для поисковаго запроса
-        // Перенести в отдельный контроллер или же в провайдер, так будет легче делать check_form
-        //     "{
-        //         location: String,
-        //         acitvity_name: String,
-        //         date_start: Int,
-        //         date_end: Int,
-        //         time_start: Int,
-        //         time_end: Int,
-        //         capacity: Int,  ---> см выше
-        //         price_start: Int,
-        //         price_end: Int,
-        //         max_distance_from_center: Int,
-        //         services: [Int],
-        //         equipment_id: [Int],
-        //         short: Boolean
-        // }"
-
-        location: {
-            in: ['body'],
-            optional: true,
-            isString: {
-                errorMessage: () => { return i18n.__('validation.isString', 'location') },
-                bail: true,
-            },
-            isLength: {
-                errorMessage: () => { return i18n.__('validation.isLength', 'location') },
-                options: { min: 1, max: 30 },
-                bail: true,
-            },
-            trim: true,
-            escape: true,
-        },
-        acitvity_name: {
-            in: ['body'],
-            optional: true,
-            isString: {
-                errorMessage: () => { return i18n.__('validation.isString', 'acitvity_name') },
-                bail: true,
-            },
-            isLength: {
-                errorMessage: () => { return i18n.__('validation.isLength', 'acitvity_name') },
-                options: { min: 1, max: 100 },
-                bail: true,
-            },
-            trim: true,
-            escape: true,
-        },
-        date_start: {
-            in: ['body'],
-            optional: true,
-            isDate: {
-                errorMessage: () => { return i18n.__('validation.isDate', 'date_start') },
-                bail: true,
-            },
-        },
-        date_end: {
-            in: ['body'],
-            optional: true,
-            isDate: {
-                errorMessage: () => { return i18n.__('validation.isDate', 'date_end') },
-                bail: true,
-            },
-        },
-        time_start: {
-            in: ['body'],
-            optional: true,
-            isISO8601: {  //isISO8601  требует представление даты и времени
-                // strict: true, 
-                // strictSeparator: true ,
-                errorMessage: () => { return i18n.__('validation.isISO8601', 'time_start') },
-                bail: true,
-            },
-            trim: true,
-            escape: true,
-        },
-        time_end: {
-            in: ['body'],
-            optional: true,
-            isISO8601: {
-                errorMessage: () => { return i18n.__('validation.isISO8601', 'time_end') },
-                bail: true,
-            },
-            trim: true,
-            escape: true,
-        },
-        price_start: {
-            in: ['body'],
-            optional: true,
-            isInt: {
-                options: { min: 0 },
-                errorMessage: () => { return i18n.__('validation.isInt', 'price_start') },
-                bail: true,
-            },
-            trim: true,
-            escape: true,
-        },
-
-        price_end: {
-            in: ['body'],
-            optional: true,
-            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
-                options: {
-                    min: 0,
-                    max: 1000000
-                },
-                errorMessage: () => { return i18n.__('validation.isInt', 'price_end') },
-                bail: true,
-            },
-        },
-
-        max_distance_from_center: {
-            in: ['body'],
-            optional: true,
-            isInt: {
-                options: { min: 0 },
-                errorMessage: () => { return i18n.__('validation.isInt', 'max_distance_from_center') },
-                bail: true,
-            },
-        },
-        services: {
-            in: ['body'],
-            optional: true,
-            notEmpty: {
-                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
-                bail: true,
-            },
-            isArray: {
-                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
-                bail: true
-            },
-        },
-
-        'services.*': {
-            in: ['body'],
-            optional: true,
-            notEmpty: {
-                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
-                bail: true,
-            },
-            isInt: {
-                errorMessage: () => { return i18n.__('validation.isInt', 'services') },
-                options: { min: 0, max: 100 },
-                bail: true,
-            },
-        },
-
-        equipment_id: {
-            in: ['body'],
-            optional: true,
-            notEmpty: {
-                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_id') },
-                bail: true,
-            },
-            isArray: {
-                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
-                bail: true
-            },
-        },
-
-        'equipment_id.*': {
-            in: ['body'],
-            optional: true,
-            notEmpty: {
-                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_id') },
-                bail: true,
-            },
-            isInt: {
-                errorMessage: () => { return i18n.__('validation.isInt', 'equipment_id') },
-                options: { min: 0 },
-                bail: true,
-            },
-        },
-
-        short: {
-            in: ['body'],
-            optional: true,
-            isBoolean: {
-                errorMessage: () => { return i18n.__('validation.isBoolean', 'short') },
-                bail: true,
-            },
-        },
-
         state: {
             in: ['query'],
             optional: true,
             notEmpty: {
-                errorMessage: () => { return i18n.__('validation.isEmpty', 'state')},
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'state') },
                 bail: true,
-            },                
-            isIn: { 
+            },
+            isIn: {
                 options: [['active', 'notactive', 'pending']],
-                errorMessage: () => { return i18n.__('validation.isIn', 'state')},
+                errorMessage: () => { return i18n.__('validation.isIn', 'state') },
                 bail: true,
             },
         },
@@ -351,9 +167,9 @@ class EquipmentController {
             in: ['query'],
             optional: true,
             notEmpty: {
-                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy')},
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy') },
                 bail: true,
-            },                
+            },
             isArray: {
                 errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
                 bail: true,
@@ -367,9 +183,9 @@ class EquipmentController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
                 bail: true,
             },
-            isIn: { 
+            isIn: {
                 options: [['equipment_id', 'activity_id', 'equipment_name']],
-                errorMessage: () => { return i18n.__('validation.isIn', 'field')},
+                errorMessage: () => { return i18n.__('validation.isIn', 'field') },
                 bail: true,
             },
         },
@@ -381,9 +197,9 @@ class EquipmentController {
                 errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
                 bail: true,
             },
-            isIn: { 
+            isIn: {
                 options: [['asc', 'desc']],
-                errorMessage: () => { return i18n.__('validation.isIn', 'direction')},
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction') },
                 bail: true,
             },
         },
@@ -621,24 +437,341 @@ class EquipmentController {
         }
     }
 
-    async getSearchEquipment(req, res) {
+    searchEquipmentValidationSchema = {
+
+        // Валидация для поисковаго запроса
+
+        //     "{
+        //         location: String,
+        //         acitvity_name: String,
+        //         date_start: Int,
+        //         date_end: Int,
+        //         time_start: Int,
+        //         time_end: Int,
+        //         capacity: Int,  ---> см выше
+        //         price_start: Int,
+        //         price_end: Int,
+        //         max_distance_from_center: Int,
+        //         services: [Int],
+        //         equipment_id: [Int],
+        //         short: Boolean
+        // }"
+
+        state: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'state') },
+                bail: true,
+            },
+            isIn: {
+                options: [['active', 'notactive', 'pending']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'state') },
+                bail: true,
+            },
+        },
+
+        sortBy: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'sortBy') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'sortBy') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.field': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'field') },
+                bail: true,
+            },
+            isIn: {
+                options: [['id', 'location:', 'equipment_id', 'rating']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'field') },
+                bail: true,
+            },
+        },
+
+        'sortBy.*.direction': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'direction') },
+                bail: true,
+            },
+            isIn: {
+                options: [['asc', 'desc']],
+                errorMessage: () => { return i18n.__('validation.isIn', 'direction') },
+                bail: true,
+            },
+        },
+
+        size: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'size') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 100 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'size') },
+                bail: true,
+            },
+        },
+
+        page: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'page') },
+                bail: true,
+            },
+            isInt: {
+                options: { min: 1, max: 10000 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'page') },
+                bail: true,
+            },
+        },
+
+        capacity: {  // в БД это (var char 2)
+            in: ['query'],
+            optional: true,
+            isNumeric: {
+                errorMessage: () => { return i18n.__('validation.isNumeric', 'capacity') },
+                bail: true,
+            },
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'capacity') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'capacity') },
+                options: { min: 1, max: 2 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        location: {
+            in: ['query'],
+            optional: true,
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'location') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'location') },
+                options: { min: 1, max: 30 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        acitvity_name: {
+            in: ['query'],
+            optional: true,
+            isString: {
+                errorMessage: () => { return i18n.__('validation.isString', 'acitvity_name') },
+                bail: true,
+            },
+            isLength: {
+                errorMessage: () => { return i18n.__('validation.isLength', 'acitvity_name') },
+                options: { min: 1, max: 100 },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        date_start: {
+            in: ['query'],
+            optional: true,
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'date_start') },
+                bail: true,
+            },
+        },
+        date_end: {
+            in: ['query'],
+            optional: true,
+            isDate: {
+                errorMessage: () => { return i18n.__('validation.isDate', 'date_end') },
+                bail: true,
+            },
+        },
+        time_start: {
+            in: ['query'],
+            optional: true,
+            isISO8601: {  //isISO8601  требует представление даты и времени
+                // strict: true, 
+                // strictSeparator: true ,
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'time_start') },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        time_end: {
+            in: ['query'],
+            optional: true,
+            isISO8601: {
+                errorMessage: () => { return i18n.__('validation.isISO8601', 'time_end') },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+        price_start: {
+            in: ['query'],
+            optional: true,
+            isInt: {
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'price_start') },
+                bail: true,
+            },
+            trim: true,
+            escape: true,
+        },
+
+        price_end: {
+            in: ['query'],
+            optional: true,
+            isInt: {  // набо будет заменить на isString когда введет UUID вместо id
+                options: {
+                    min: 0,
+                    max: 1000000
+                },
+                errorMessage: () => { return i18n.__('validation.isInt', 'price_end') },
+                bail: true,
+            },
+        },
+
+        max_distance_from_center: {
+            in: ['query'],
+            optional: true,
+            isInt: {
+                options: { min: 0 },
+                errorMessage: () => { return i18n.__('validation.isInt', 'max_distance_from_center') },
+                bail: true,
+            },
+        },
+        services: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
+                bail: true
+            },
+        },
+
+        'services.*': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'services') },
+                bail: true,
+            },
+            isInt: {
+                errorMessage: () => { return i18n.__('validation.isInt', 'services') },
+                options: { min: 0, max: 100 },
+                bail: true,
+            },
+        },
+
+        equipment_id: {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_id') },
+                bail: true,
+            },
+            isArray: {
+                errorMessage: () => { return i18n.__('validation.isArray', 'services') },
+                bail: true
+            },
+        },
+
+        'equipment_id.*': {
+            in: ['query'],
+            optional: true,
+            notEmpty: {
+                errorMessage: () => { return i18n.__('validation.isEmpty', 'equipment_id') },
+                bail: true,
+            },
+            isInt: {
+                errorMessage: () => { return i18n.__('validation.isInt', 'equipment_id') },
+                options: { min: 0 },
+                bail: true,
+            },
+        },
+
+        short: {
+            in: ['query'],
+            optional: true,
+            isBoolean: {
+                errorMessage: () => { return i18n.__('validation.isBoolean', 'short') },
+                bail: true,
+            },
+        },
+    }
+
+    async searchEquipment(req, res) {
         try {
-            const body = req.body
-            const get_equipments = await equipmentmodel.getSearch(body)
-            if (get_equipments.rows.length !== 0) {
+            const query = req.query;
+            const size = req.query.size;
+            const page = req.query.page;
+            const { limit, offset } = getPagination(page, size);
+            console.log(limit, offset, ' -------->>>>>> req.query')
+            const get_equipments = await equipmentmodel.searchAll(query, limit, offset)
+            // console.log(get_equipments)
+
+            if (get_equipments[0].rows.length !== 0) {
+                console.log(get_equipments[0].rows, get_equipments[1].rows)
+                const pagination = getPagingData(get_equipments, page, limit);
+                // console.log(pagination) 
                 const result = {
                     "success": true,
-                    "data": get_equipments.rows
+                    "data": get_equipments[0].rows,
+                    "pagination": pagination
                 }
                 console.log(result)
                 res.status(httpStatusCodes.OK || 500).json(result)
             } else {
-                const result = new Api404Error('getSearchEquipment', i18n.__('validation.isExist', 'equipment'))
-                console.log(result, ` -----> err 404 Not Found in getSearchEquipment function   at equipment_controller.js;`)
+                const result = new Api404Error('search equipment', i18n.__('validation.isExist', 'equipment'))
+                console.log(result, ` -----> err in searchEquipment function not exists at equipment_controller.js;`)
                 res.status(result.statusCode || 500).json(result)
             }
+
+
+
+            // const query = req.query
+            // const get_equipments = await equipmentmodel.searchAll(query)
+            // if (get_equipments.rows.length !== 0) {
+            //     const result = {
+            //         "success": true,
+            //         "data": get_equipments.rows
+            //     }
+            //     // console.log(result)
+            //     res.status(httpStatusCodes.OK || 500).json(result)
+            // } else {
+            //     const result = new Api404Error('search equipment', i18n.__('validation.isExist', 'equipment'))
+            //     console.log(result, ` -----> err 404 Not Found in SearchEquipment function   at equipment_controller.js;`)
+            //     res.status(result.statusCode || 500).json(result)
+            // }
         } catch (err) {
-            console.error({ err }, '---->err in getSearchEquipment function at equipment_controller.js ')
+            console.error({ err }, '---->err in earchEquipment function at equipment_controller.js ')
             res.status(err.statusCode || 500).json(err)
         }
     }
