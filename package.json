@@ -1,7 +1,7 @@
 {
   "name": "Wave",
   "version": "1.0.0",
-  "description": "",
+  "description": "booking",
   "main": "server.js",
   "scripts": {
     "start": "node --experimental-json-modules server.js",
